@@ -55,7 +55,7 @@ public class TCPClient
         try
         {
             //send connection handshake to check if server responds
-            //System.out.println("Client sending message [" + message.getText() + "] to server");
+            System.out.println("Client sending message [" + message.getText() + "] to server");
             //send message
             out.writeObject(message);  
         }
@@ -112,7 +112,7 @@ public class TCPClient
                     Message m = (Message)in.readObject();
                     //interpret message
                     
-                    //System.out.println("Message " + m.getText() + " received from  server");
+                    System.out.println("Message " + m.getText() + " received from  server");
                                         
                     if(m!=null)
                     {

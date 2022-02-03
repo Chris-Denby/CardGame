@@ -5,6 +5,8 @@
  */
 package Interface;
 
+import Interface.Cards.Card;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -40,7 +42,8 @@ public class PlayerHand extends JLayeredPane
         width = containerWidth;
         height = (int) Math.round(containerHeight/4); 
         this.setPreferredSize(new Dimension(width, height));
-        this.setOpaque(false);
+        this.setOpaque(true);
+        this.setBackground(Color.DARK_GRAY);
     }
     
     public boolean addCard(Card card)
@@ -48,8 +51,6 @@ public class PlayerHand extends JLayeredPane
         if(!cardsInHand.contains(card))
         {
             cardsInHand.add(card);
-            card.setPlayerHand(this);
-            card.setCardLocation(Constants.Location.PLAYER_HAND);
             int height = (int) Math.round(this.height *0.8);
             card.applySize(height);
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -95,7 +96,6 @@ public class PlayerHand extends JLayeredPane
             this.remove(card);
             resizeHand();
             layers--;
-            //System.out.println("Removed card " + index); 
             //remove mouse listener assigned when card was added
             card.removeMouseListener(card.getMouseListeners()[0]);
         }
@@ -137,7 +137,6 @@ public class PlayerHand extends JLayeredPane
     {
         playArea.addCard(card);
         removeCard(card);
-        card.setCardLocation(Constants.Location.PLAYER_PLAY_AREA);
         
         //***************
         //send message to connected server/client

@@ -5,6 +5,7 @@
  */
 package Interface;
 
+import Interface.Cards.Card;
 import java.io.Serializable;
 
 /**

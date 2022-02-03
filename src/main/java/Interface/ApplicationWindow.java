@@ -10,8 +10,11 @@ import NetCode.TCPServerManyThreads;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -43,20 +46,32 @@ public class ApplicationWindow extends JFrame
         tabbedPane.addTab("Game Type", startGameWindow);
         //tabbedPane.addTab("Game",gameWindow);
         this.add(tabbedPane);
-        //tabbedPane.setEnabledAt(1, false);
         
-        
-        
-                
+    
         //SET JFRAME PARAMETERS
         setTitle("Card Game");
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         Dimension dimensions = new Dimension(800,600);
         this.setMinimumSize(dimensions);
         
+        //ADD LISTENERS
+
+        this.addComponentListener(new ComponentAdapter() 
+        {  
+                public void componentResized(ComponentEvent evt) {
+                    System.out.println("Resized");
+                    repaintGlass();
+                }
+        });
+        
         //MAKE THE JFRAME VISIBLE
         pack();
         setVisible(true);        
+    }
+    
+    private void repaintGlass()
+    {
+        this.getGlassPane().repaint();
     }
     
     

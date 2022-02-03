@@ -5,15 +5,21 @@
  */
 package Interface;
 
+import Interface.Cards.Card;
+import Interface.Cards.CreatureCard;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.JLayeredPane;
+import Interface.Constants;
+import Interface.Constants.CardLocation;
 
 /**
  *
@@ -21,6 +27,7 @@ import javax.swing.JLayeredPane;
  */
 public class Deck extends JLayeredPane
 {
+    
     int width;
     int height;
     PlayerHand playerHand;
@@ -30,8 +37,7 @@ public class Deck extends JLayeredPane
     List<Card> cardsInDeck = new ArrayList<Card>(); 
     GameWindow gameWindow;
     boolean isOpponents = false;
-    Integer layer = 0;
-    
+    Integer layer = 0;  
     
     public Deck(PlayerHand hand, PlayArea area, GameWindow window, boolean isOpponents)
     {
@@ -42,10 +48,10 @@ public class Deck extends JLayeredPane
         playArea = area;
         height = (int) Math.round(hand.height * 0.8);
         width = height*2;
-        this.setBackground(Color.LIGHT_GRAY);
+        //this.setBackground(Color.LIGHT_GRAY);
         this.setOpaque(true);
         this.setSize(new Dimension(width,height));
-            
+        
         if(!isOpponents)
         {
             Timer timer = new Timer();
@@ -55,21 +61,20 @@ public class Deck extends JLayeredPane
                     populateDeck();
                 }
             };
-            timer.schedule(tt, 5000);
+            timer.schedule(tt, 2000);
         }
+            
 
     }
     
     public void addCard(Card card)
     { 
-        card.setPlayArea(playArea);
-        cardsInDeck.add(card);
+        
+
         card.setBounds(origin.x+offset,origin.y,card.getWidth()-1,card.getHeight()-1);  
         card.setSize(Math.round(height*0.75f),height);
         card.applySize(card.getHeight());
         offset+=1;
-        this.add(card,layer);
-        layer++;
         
         //***************
         //send message to connected server/client
@@ -79,7 +84,15 @@ public class Deck extends JLayeredPane
             m.setText("OPPONENT_ADD_CARD_TO_DECK");
             m.setCard(card);
             gameWindow.sendMessage(m); 
+            card.setCardLocation(CardLocation.PLAYER_HAND);
         }
+        else
+        if(isOpponents)
+            card.setCardLocation(CardLocation.OPPONENT_HAND);
+        
+        cardsInDeck.add(card);
+        this.add(card,layer);
+        layer++;
     }
     
     public void removeCard (Card card)
@@ -100,17 +113,44 @@ public class Deck extends JLayeredPane
         }       
         return card;
     }
-    
+        
     public void populateDeck()
     {
         int deckSize = 60;
         int x=0;
         while(x<=deckSize)
         {
-            Card card = new Card(ThreadLocalRandom.current().nextInt(0,61)+"");
+            Card card = new CreatureCard(ThreadLocalRandom.current().nextInt(0,61)+"");
+            card.setCardID(System.identityHashCode(card));
             addCard(card);
             x++;
         }
+            this.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) 
+            {
+                drawCard();
+                Message m = new Message();
+                m.setText("OPPONENT_DRAW_CARD");
+                gameWindow.sendMessage(m);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
     }
   
     

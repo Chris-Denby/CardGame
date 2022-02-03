@@ -12,7 +12,7 @@ package Interface;
 public class Constants 
 {
     
-    static enum Location
+    public static enum CardLocation
     {
         PLAYER_HAND,
         PLAYER_PLAY_AREA,

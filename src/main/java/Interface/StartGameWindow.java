@@ -170,7 +170,8 @@ public class StartGameWindow extends JPanel
     
     public void showIPAddressDialog()
     {
-        String ipAddress = (String) JOptionPane.showInputDialog(this, "Enter IP Address","xxxx:8888");
+        //String ipAddress = (String) JOptionPane.showInputDialog(this, "Enter IP Address","xxxx:8888");
+        String ipAddress = (String) JOptionPane.showInputDialog(this, "Enter IP Address","localhost");
         startClient(ipAddress);
         
     }
