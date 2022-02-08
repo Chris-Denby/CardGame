@@ -25,6 +25,7 @@ public class GameControlPanel extends JPanel
     private JButton passTurnButton;
     private JButton resolveButton;
     private JLabel turnLabel;
+    private JLabel turnNumberLabel;
     private boolean isPlayerTurn = false;
     
     
@@ -38,14 +39,16 @@ public class GameControlPanel extends JPanel
         this.setOpaque(true);
         this.setBackground(Color.LIGHT_GRAY);
         
-        
         passTurnButton = new JButton("Pass Turn");
         resolveButton = new JButton("Resolve Event");
+        passTurnButton.setEnabled(false);
+        resolveButton.setEnabled(false);
         turnLabel = new JLabel();
+        turnNumberLabel = new JLabel();
         this.add(passTurnButton);
         this.add(resolveButton); 
         this.add(turnLabel);
-        
+        this.add(turnNumberLabel);
         
         resolveButton.addActionListener(new ActionListener() {
             @Override
@@ -73,10 +76,16 @@ public class GameControlPanel extends JPanel
     {
         this.isPlayerTurn = is;
         if(isPlayerTurn)
-            turnLabel.setText("YOUR TURN");
+        {
+            turnLabel.setText("YOUR\nTURN");
+        }
         else
-            turnLabel.setText("OPPONENTS TURN");           
+        {
+            turnLabel.setText("OPPONENTS\nTURN");           
+        }
+        
         passTurnButton.setEnabled(isPlayerTurn);
         resolveButton.setEnabled(isPlayerTurn);
+        turnNumberLabel.setText(gameWindow.getTurnNumber()+"");
     }
 }

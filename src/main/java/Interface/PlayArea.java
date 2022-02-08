@@ -38,6 +38,7 @@ public class PlayArea extends JPanel
             
     ArrayList<Card> cards = new ArrayList<Card>();
     private Deque<CardEvent> cardEventStack = new ArrayDeque<CardEvent>();
+    ArrayList<Card> discardPile = new ArrayList<Card>();
  
     public PlayArea(int containerWidth, int containerHeight, GameWindow window, boolean isOpponent)
     {
@@ -65,17 +66,19 @@ public class PlayArea extends JPanel
             if(isOpponent)
                 card.setCardLocation(CardLocation.OPPONENT_PLAY_AREA);
             else
-                card.setCardLocation(CardLocation.PLAYER_HAND);
+                card.setCardLocation(CardLocation.PLAYER_PLAY_AREA);
             
-            cards.add(card);
-            int height = (int) Math.round(this.height *0.25);
+            
+            int height = (int) Math.round(this.height/3);
             card.applySize(height);
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
+            card.setFaceUp(true);
             this.add(card, BorderLayout.PAGE_END);
+            MyMouseListener mouseListener = new MyMouseListener(card,this);
+            card.addMouseListener(mouseListener); 
+            cards.add(card);
             this.revalidate();
             this.repaint();
-            MyMouseListener mouseListener = new MyMouseListener(card,this);
-            card.addMouseListener(mouseListener);  
         }
     }
     
@@ -85,10 +88,17 @@ public class PlayArea extends JPanel
         {
             cards.remove(card);
             this.remove(card);
+            addToDiscardPile(card);
             this.revalidate();
             this.repaint();
         }
     }
+    
+    public void addToDiscardPile(Card card)
+    {
+        discardPile.add(card);
+    }
+    
     
     public void showSelectedCard(Card card)
     {          
@@ -135,7 +145,8 @@ public class PlayArea extends JPanel
 
         @Override
         public void mouseReleased(MouseEvent e) { 
-            //only allow mouse events while its the players 
+            //only allow mouse events while its the players
+                    System.out.println(card.getCardLocation());
             if(isPlayerTurn)
             {
                 activateCard(card);            

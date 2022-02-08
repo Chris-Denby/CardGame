@@ -11,6 +11,8 @@ package Interface;
  */
 public class Constants 
 {
+    static int maxHandSize = 7;
+    static int maxResourceAmount = 7;
     
     public static enum CardLocation
     {

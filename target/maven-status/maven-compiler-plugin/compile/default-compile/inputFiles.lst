@@ -1,7 +1,10 @@
+C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\GameControlPanel.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\PlayArea.java
+C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\ResourcePanel.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\DiscardPile.java
-C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Card.java
+C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\Card.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\NetCode\TCPServer.java
+C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\CreatureCard.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\StartGameWindow.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\ApplicationWindow.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\CardEvent.java

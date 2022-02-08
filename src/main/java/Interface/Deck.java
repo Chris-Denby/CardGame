@@ -7,18 +7,14 @@ package Interface;
 
 import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.JLayeredPane;
-import Interface.Constants;
 import Interface.Constants.CardLocation;
 
 /**
@@ -52,17 +48,6 @@ public class Deck extends JLayeredPane
         this.setOpaque(true);
         this.setSize(new Dimension(width,height));
         
-        if(!isOpponents)
-        {
-            Timer timer = new Timer();
-            TimerTask tt = new TimerTask() {
-                @Override
-                public void run() {
-                    populateDeck();
-                }
-            };
-            timer.schedule(tt, 2000);
-        }
             
 
     }
@@ -89,6 +74,7 @@ public class Deck extends JLayeredPane
         else
         if(isOpponents)
             card.setCardLocation(CardLocation.OPPONENT_HAND);
+            card.setFaceUp(false);
         
         cardsInDeck.add(card);
         this.add(card,layer);
@@ -109,12 +95,18 @@ public class Deck extends JLayeredPane
         if(playerHand.addCard(cardsInDeck.get(cardsInDeck.size()-1)))
         {
             removeCard(cardsInDeck.get(cardsInDeck.size()-1));
-            //System.out.println(cardsInDeck.size() + " cards remaining");                   
+            //System.out.println(cardsInDeck.size() + " cards remaining");  
+            if(!isOpponents)
+            {
+                Message m = new Message();
+                m.setText("OPPONENT_DRAW_CARD");
+                gameWindow.sendMessage(m);
+            }
         }       
         return card;
     }
         
-    public void populateDeck()
+    public void populateDeckAndDeal()
     {
         int deckSize = 60;
         int x=0;
@@ -125,14 +117,21 @@ public class Deck extends JLayeredPane
             addCard(card);
             x++;
         }
+        
+        //deal out first hand
+        playerHand.dealHand();
+
             this.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) 
             {
-                drawCard();
-                Message m = new Message();
-                m.setText("OPPONENT_DRAW_CARD");
-                gameWindow.sendMessage(m);
+                /**
+                 * DISABLED MANUAL DRAW - draw happens automatically at start of turn
+                if(gameWindow.getIsPlayerTurn())
+                {
+                    drawCard();
+                }
+                **/
             }
 
             @Override

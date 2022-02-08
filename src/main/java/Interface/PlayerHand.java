@@ -6,6 +6,7 @@
 package Interface;
 
 import Interface.Cards.Card;
+import Interface.Constants.CardLocation;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -21,23 +22,24 @@ import javax.swing.JLayeredPane;
  */
 public class PlayerHand extends JLayeredPane
 {
-    boolean isOpponent = false;
+    boolean isOpponents = false;
     int layers = 0;
-    int maxCards;
     int width;
     int height;
+    int maxHandSize = Constants.maxHandSize;
     ArrayList<Card> cardsInHand = new ArrayList<>();
     PlayArea playArea;
     Deck deck;
     //this is the origin of hte first card added
     Point origin;
     GameWindow gameWindow;
-    //this is the offset to compute the position of hte next card added
+    ResourcePanel resourcePanel;
     
-    public PlayerHand(int containerWidth, int containerHeight, PlayArea area, boolean isOpponents, GameWindow window)
+    public PlayerHand(int containerWidth, int containerHeight, PlayArea area, boolean isOpponents, GameWindow window, ResourcePanel panel)
     {
+        resourcePanel = panel;
         gameWindow = window;
-        this.isOpponent = isOpponents;
+        this.isOpponents = isOpponents;
         playArea = area;
         width = containerWidth;
         height = (int) Math.round(containerHeight/4); 
@@ -56,22 +58,26 @@ public class PlayerHand extends JLayeredPane
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
             //set the position of the cards added
             card.setBounds(origin.x, origin.y,card.getWidth(),card.getHeight());
+            if(!isOpponents)
+                card.setFaceUp(true);
             this.add(card,layers);
             layers++;
             resizeHand();
-            
             card.addMouseListener(new MouseListener() {
                 @Override
-                public void mouseClicked(MouseEvent e) 
-                {
-                    playCard(card);
+                public void mouseClicked(MouseEvent e){
                 }
 
                 @Override
                 public void mousePressed(MouseEvent e) {}
 
                 @Override
-                public void mouseReleased(MouseEvent e) {}
+                public void mouseReleased(MouseEvent e) {
+                    if(gameWindow.getIsPlayerTurn() && card.getCardLocation()==CardLocation.PLAYER_HAND)
+                    {
+                        playCard(card,false);
+                    }
+                }
 
                 @Override
                 public void mouseEntered(MouseEvent e) {}
@@ -79,8 +85,6 @@ public class PlayerHand extends JLayeredPane
                 @Override
                 public void mouseExited(MouseEvent e) {}
             });
-            
-            
             return true;
         }
         return false;
@@ -98,6 +102,7 @@ public class PlayerHand extends JLayeredPane
             layers--;
             //remove mouse listener assigned when card was added
             card.removeMouseListener(card.getMouseListeners()[0]);
+            playArea.addToDiscardPile(card);
         }
     }
     
@@ -115,7 +120,6 @@ public class PlayerHand extends JLayeredPane
     
     public void resizeHand()
     {
-        
         origin.x = (deck.getWidth()+(Math.round((height-deck.getHeight())/2)*2));
         
         //@index parameter is the hard that was taken from the hand
@@ -133,14 +137,24 @@ public class PlayerHand extends JLayeredPane
         }  
     }
     
-    public void playCard(Card card)
+    public void playCard(Card card, boolean isOpponents)
     {
+        if(card.getPlayCost()>resourcePanel.getAmount())
+            return;
+         
+        if(!isOpponents)
+            card.setCardLocation(CardLocation.PLAYER_HAND);
+            
+        else
+            card.setCardLocation(CardLocation.OPPONENT_HAND);           
+
+        resourcePanel.decreaseAmount(card.getPlayCost());
         playArea.addCard(card);
         removeCard(card);
         
         //***************
         //send message to connected server/client
-        if(!isOpponent)
+        if(!isOpponents)
         {
             Message message = new Message();
             message.setText("OPPONENT_PLAY_CARD");
@@ -154,7 +168,24 @@ public class PlayerHand extends JLayeredPane
     {
         return deck;
     }
+        
+    public void dealHand()
+    {
+        for(int x=0;x<maxHandSize;x++)
+            deck.drawCard();
+    }
+    
+    public int getNumCards()
+    {
+        return this.cardsInHand.size();
+    }
+    
+    public int getMaxHandSize()
+    {
+        return maxHandSize;
+    }
 
+    
     
     
     

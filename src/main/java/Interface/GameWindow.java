@@ -25,6 +25,8 @@ import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingWorker;
 import Interface.Constants.CardLocation;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -43,12 +45,13 @@ public class GameWindow extends JPanel
     Deck playerDeck;
     Deck opponentsDeck;
     GameControlPanel gameControlPanel;
+    ResourcePanel resourcePanel;
     private Deque<CardEvent> cardEventStack = new ArrayDeque<CardEvent>();
     private CardEvent cardEvent = null;
     JRootPane rootPane;
     MyGlassPane glassPane;
     private boolean isPlayerTurn = false;
-    
+    private int turnNumber = 0;
     
     //constructor
     public GameWindow(JTabbedPane pane)
@@ -66,11 +69,13 @@ public class GameWindow extends JPanel
         this.setBackground(Color.GREEN);
         
         //INITIALISE COMPONENTS
-        
+        resourcePanel = new ResourcePanel(getWidth(),getHeight(),this);
+        resourcePanel.setOpaque(true);
+        resourcePanel.setPreferredSize(new Dimension(Math.round(getWidth()/16),getHeight()));
         playerPlayArea = new PlayArea(getWidth(),getHeight(),this, false);
         opponentsPlayArea = new PlayArea(getWidth(),getHeight(),this, true);
-        playerHand = new PlayerHand(getWidth(),getHeight(), playerPlayArea, false,this);
-        opponentsHand = new PlayerHand(getWidth(),getHeight(), opponentsPlayArea, true,this);
+        playerHand = new PlayerHand(getWidth(),getHeight(), playerPlayArea, false,this,resourcePanel);
+        opponentsHand = new PlayerHand(getWidth(),getHeight(), opponentsPlayArea, true,this,resourcePanel);
         opponentsHand.setEnabled(false);
         playerDeck = new Deck(playerHand, playerPlayArea, this,false); 
         opponentsDeck = new Deck(opponentsHand, opponentsPlayArea, this,true);  
@@ -82,22 +87,46 @@ public class GameWindow extends JPanel
         this.add(opponentsHand, BorderLayout.PAGE_START);
         
         JPanel centrePanel = new JPanel();
-        //centrePanel.setBackground(Color.);
         centrePanel.setOpaque(false);
         centrePanel.setLayout(new BoxLayout(centrePanel, BoxLayout.PAGE_AXIS));
         centrePanel.add(opponentsPlayArea, BorderLayout.CENTER);
         centrePanel.add(playerPlayArea);
         
+
+        
         this.add(gameControlPanel, BorderLayout.WEST);
+        this.add(resourcePanel,BorderLayout.EAST);
         this.add(centrePanel, BorderLayout.CENTER);
         this.add(playerHand, BorderLayout.PAGE_END);
         
         playerHand.setDeckArea(playerDeck);    
-        
-        opponentsHand.setDeckArea(opponentsDeck); 
-        
+        opponentsHand.setDeckArea(opponentsDeck);
+        //set decks disabled until after each player is dealt
+        playerDeck.setEnabled(false);
+        opponentsDeck.setEnabled(false);
         //MAKE THE JFRAME VISIBLE
         setVisible(true); 
+        
+        //TRIGGER ACTIONS
+        
+        
+        Timer timer = new Timer();
+        
+        TimerTask tt = new TimerTask() {
+            @Override
+            public void run() {
+                playerDeck.populateDeckAndDeal();
+                if(netClient!=null)
+                {
+                    isPlayerTurn = true;
+                    passTurn();
+                }
+            }
+        };
+        timer.schedule(tt, 1500);
+        
+
+        
     }
     
     public void createCardEvent(Card card)
@@ -107,6 +136,8 @@ public class GameWindow extends JPanel
         //if card is clicked - create a new event for that card
         //then if another card is clicked as a target - trigger the source cards event on that card
         
+        //if the cost of the selected card is greater than the available resources - exit the method       
+        
         //select a card as event source only if it is not yet selected
         //dont allow origin card to be selected from opponents hand        
         if(cardEvent == null & !card.isActivated())
@@ -114,13 +145,25 @@ public class GameWindow extends JPanel
             if(this.isPlayerTurn & card.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
             return;
             
+
             cardEvent = new CardEvent(card);
             //activate cards in the play areas
             card.activateCard(true);
         }
         else
         if(cardEvent != null && cardEvent.getTargetCard()==null)
-        {           
+        {
+            //set the target card location if its the opponents turn
+            //because location information is lost when sending over the stream
+            if(getLocalCard(card)==null)
+                card.setCardLocation(CardLocation.OPPONENT_PLAY_AREA);
+            else
+                card.setCardLocation(CardLocation.PLAYER_PLAY_AREA);   
+            
+            //if target card is the same as the origin - abandon method
+            if(cardEvent.getOriginCard().getCardID()==card.getCardID())
+                return;
+            
             //activate cards in the play areas
             playerPlayArea.showSelectedCard(card);
             card.activateCard(true);
@@ -132,7 +175,6 @@ public class GameWindow extends JPanel
                 cardEvent.setType("CREATURE_COMBAT");
             }
             
-            System.out.println("event created: " + cardEvent.getOriginCard().getName() + "->" + cardEvent.getTargetCard().getName());
             //add card event to the stack
             cardEventStack.addFirst((CardEvent)cardEvent);
             
@@ -162,25 +204,16 @@ public class GameWindow extends JPanel
         
         //if target card objects dont match whats in players hand due to sending over stream
         //match by ID instead
-        
-        if(getLocalCard(targetCard)!=null)
+
+        if(targetCard!=null && getLocalCard(targetCard)!=null)
         {
             targetCard = getLocalCard(targetCard);
         }
         
-        /**
-        for(Card c:playerPlayArea.getCardsInPlayArea())
-        {
-            if(c.getCardID()==cardEvent.getTargetCard().getCardID())
-            {
-                targetCard = c;
-            }
-        }
-        **/
-        
         originCard.activateCard(false);
         targetCard.activateCard(false);
         cardEvent = null;
+        glassPane.setVisible(false);
         
        if(isPlayerTurn)
        {
@@ -203,18 +236,25 @@ public class GameWindow extends JPanel
     }
     
     public void executeCardEvent(CardEvent event)
-    {
+    {   
         Card originCard = event.getOriginCard();
         Card targetCard = event.getTargetCard();
         
-        //if target card objects dont match whats in players hand due to sending over stream
-        //match by ID instead
         
-        if(getLocalCard(targetCard)!=null)
-        {
+        //if target card objects dont match whats in players hand due to sending over stream
+        //match by ID instead        
+        if(getLocalCard(targetCard)!=null){
             targetCard = getLocalCard(targetCard);
         }
-                
+        
+        
+        //reveal facedown card
+        originCard.setFaceUp(true);
+        targetCard.setFaceUp(true);
+        
+        //DO ACTIONS
+        //
+        //                
         if(event.getType()=="CREATURE_COMBAT")
         {            
             System.out.println("Creature combat resolved");              
@@ -228,13 +268,15 @@ public class GameWindow extends JPanel
             }
         }
         
-        
+        //AFTER EVENT RESOLVED
         //return card state to normal
         event.execute();
         originCard.activateCard(false);
         targetCard.activateCard(false);
         //release current card event
         this.cardEvent = null;
+        glassPane.setVisible(false);
+        
         
         //***************
         //send message to connected server/client
@@ -261,9 +303,12 @@ public class GameWindow extends JPanel
     }
         
     public void passTurn()
-    {
+    {               
+        //increment turn number
+        turnNumber++;
+            
         if(isPlayerTurn)
-        {
+        {            
             isPlayerTurn=false;      
             this.playerPlayArea.setIsPlayerTurn(isPlayerTurn);
             this.opponentsPlayArea.setIsPlayerTurn(isPlayerTurn);
@@ -275,23 +320,90 @@ public class GameWindow extends JPanel
         }
         else if(!isPlayerTurn)
         {
+            //at the end of turn, if players hand is larger than its max hand size
+            //force player to choose a card to discard
+            //TO DO
+            
             isPlayerTurn=true;
             this.playerPlayArea.setIsPlayerTurn(isPlayerTurn);
             this.opponentsPlayArea.setIsPlayerTurn(isPlayerTurn);
             this.gameControlPanel.setIsPlayerTurn(isPlayerTurn);
+            
+            //draw card at the start of the turn - except the first turn of the game
+            if(turnNumber>1)
+                playerDeck.drawCard();
         }
         
+        //cancel any half created events
         if(cardEvent!=null)
             cancelCardEvent();
+        
+        //replenish resources back to turn amount
+        resourcePanel.resetResources();
+        
+        //if resources not at max, replenish
+        if(resourcePanel.getAmount()<Constants.maxResourceAmount)
+            resourcePanel.increaseAmount();
     }
     
     public void drawPointer(CardEvent cardEvent)
     {
         rootPane = this.getRootPane();
-        glassPane = new MyGlassPane(cardEvent);
+        
+        int horizontalSpacing = gameControlPanel.getWidth();
+        int originCardVerticalSpacing = 0;
+        int targetCardVerticalSpacing = 0;
+        
+        if(isPlayerTurn)
+        {
+            //on the players turn, origin is always from players hand
+            originCardVerticalSpacing = opponentsHand.getHeight() + opponentsPlayArea.getHeight();
+            
+            //if target is in player hand, spacing includes opponents hand + play area
+            if(cardEvent.getTargetCard().getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
+                targetCardVerticalSpacing = 
+                        opponentsHand.getHeight()
+                        + opponentsPlayArea.getHeight();
+            
+            //if target is in opponents hand, spacing includes opponents hand only
+            if(cardEvent.getTargetCard().getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
+                targetCardVerticalSpacing = opponentsHand.getHeight();
+        }
+        else if(!isPlayerTurn)
+        {
+            System.out.println("Is player turn? " + isPlayerTurn);
+            System.out.println("origin card from " + cardEvent.getOriginCard().getCardLocation());
+            System.out.println("target card from " + cardEvent.getTargetCard().getCardLocation());
+            
+            //if its the opponents turn, origin is always from the opponents hand
+            originCardVerticalSpacing = opponentsHand.getHeight();
+           
+            
+            //if the target is in the opponents hand, spacing includes opponents hand only
+            if(cardEvent.getTargetCard().getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
+                targetCardVerticalSpacing = opponentsHand.getHeight();
+                
+                
+            //if the target is in the players hand, spacing includes
+            if(cardEvent.getTargetCard().getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
+                targetCardVerticalSpacing = 
+                          opponentsHand.getHeight()
+                        + opponentsPlayArea.getHeight();
+        }
+
+        //create points for origin and target cards
+        //x = middle of card + horizontal spacing
+        //y = middle of card + vertical spacing determined above
+        Point origin = new Point(cardEvent.getOriginCard().getX()+(cardEvent.getOriginCard().getWidth()/2)+horizontalSpacing,
+                cardEvent.getOriginCard().getY()+(cardEvent.getOriginCard().getHeight()/2)+originCardVerticalSpacing);
+        
+        Point target = new Point(cardEvent.getTargetCard().getX()+(cardEvent.getTargetCard().getWidth()/2)+horizontalSpacing,
+                cardEvent.getTargetCard().getY()+(cardEvent.getTargetCard().getHeight()/2)+targetCardVerticalSpacing);
+        
+        glassPane = new MyGlassPane(origin,target);
+
         rootPane.setGlassPane(glassPane);
-        glassPane.setVisible(true);
-        glassPane.repaint();                   
+        glassPane.setVisible(true);                   
     }
     
     public void setOpponentInteractable(boolean enabled)
@@ -324,10 +436,6 @@ public class GameWindow extends JPanel
         this(pane);
         netClient = client;
         client.setGameWindow(this);
-        
-        //host always goes first - for testing
-        isPlayerTurn = true;
-        passTurn();
     }
     
     public void sendMessage(Message message)
@@ -360,7 +468,7 @@ public class GameWindow extends JPanel
         else
         if(message.getText().equals("OPPONENT_PLAY_CARD"))
         {
-            this.opponentsHand.playCard(message.getCard());
+            this.opponentsHand.playCard(message.getCard(),true);
         }
         else
         if(message.getText().equals("OPPONENT_ACTIVATE_CARD"))
@@ -377,6 +485,13 @@ public class GameWindow extends JPanel
         {
             passTurn();
         }
+        else
+        if(message.getText().equals("CANCEL_CARD_EVENT"))
+        {
+            if(cardEvent!=null)
+                cancelCardEvent();
+        
+        }
     }
     
     public class MyGlassPane extends JComponent
@@ -384,26 +499,10 @@ public class GameWindow extends JPanel
         Point originCardPoint;
         Point targetCardPoint;
 
-        public MyGlassPane(CardEvent e)
+        public MyGlassPane(Point origin, Point target)
         {
-            int verticalSpacing = 0;
-            int horizontalSpacing = 0;
-            //verticalSpacing = gameWindow.getOpponentHand().getHeight() + playerPlayArea.getHeight(); 
-            //verticalSpacing = gameWindow.getOpponentHand().getHeight(); 
-
-            originCardPoint = new Point(cardEvent.getOriginCard().getX()
-                    +(cardEvent.getOriginCard().getWidth()/2)
-                    +horizontalSpacing,
-                    cardEvent.getOriginCard().getY()
-                            +(cardEvent.getOriginCard().getHeight()/2)
-                            +verticalSpacing);
-            
-            targetCardPoint = new Point(cardEvent.getTargetCard().getX()
-                    +(cardEvent.getTargetCard().getWidth()/2)+horizontalSpacing,
-                    cardEvent.getTargetCard().getY()
-                            +(cardEvent.getTargetCard().getHeight()/2)
-                            +verticalSpacing);
-            
+            originCardPoint = origin;
+            targetCardPoint = target; 
             this.setVisible(true);
         }
         
@@ -442,7 +541,10 @@ public class GameWindow extends JPanel
         }
     }
     
-    
+    public int getTurnNumber()
+    {
+        return turnNumber;
+    }
     
     
     
