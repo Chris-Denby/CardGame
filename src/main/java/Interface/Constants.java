@@ -13,6 +13,7 @@ public class Constants
 {
     static int maxHandSize = 7;
     static int maxResourceAmount = 7;
+    static int defaultPlayerHealth = 20;
     
     public static enum CardLocation
     {
@@ -25,6 +26,14 @@ public class Constants
         OPPONENT_DECK,
         OPPONENT_DISCARD_PILE
     }
+    
+    public static enum TurnPhase
+    {
+        UPKEEP_PHASE,
+        MAIN_PHASE,
+        END_PHASE
+    }
+    
     
     
     

@@ -26,7 +26,7 @@ import javax.swing.SwingConstants;
  *
  * @author chris
  */
-public class Card extends JPanel implements Serializable
+public class CardBackup extends JPanel implements Serializable
 {
     private String objectID;
     private int width;
@@ -68,7 +68,7 @@ public class Card extends JPanel implements Serializable
     
     
     
-    public Card(String cardName)
+    public CardBackup(String cardName)
     {
         topPanel = new JPanel();
         bottomPanel = new JPanel();
@@ -251,9 +251,9 @@ public class Card extends JPanel implements Serializable
     @Override
     public boolean equals(Object object)
     {
-        if(object instanceof Card)
+        if(object instanceof CardBackup)
         {
-            Card other = (Card) object;
+            CardBackup other = (CardBackup) object;
             if(this.cardID == other.getCardID())
                 return true;
   

@@ -7,10 +7,6 @@ package Interface;
 
 import Interface.Cards.Card;
 import java.io.Serializable;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -20,6 +16,7 @@ public class CardEvent implements Serializable
 {
     private Card originCard = null;
     private Card targetCard = null;
+    private PlayerBox playerBoxPanel;
     private boolean isResolved = false;
     private String type;
     
@@ -51,6 +48,16 @@ public class CardEvent implements Serializable
     public Card getOriginCard()
     {
         return originCard;
+    }
+    
+    public PlayerBox getTargetPlayerBox()
+    {
+        return playerBoxPanel;
+    }
+    
+    public void addTargetPlayerBox(PlayerBox box)
+    {
+        playerBoxPanel = box;
     }
     
     public void execute()

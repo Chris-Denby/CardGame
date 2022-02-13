@@ -25,20 +25,15 @@ import javax.swing.JPanel;
  */
 public class ResourcePanel extends JPanel
 {
-    GameWindow gameWindow;
-    ArrayList<Resource> resources = new ArrayList<Resource>();
-    //original amount of tokens - used for resetting after consumption
-    int originalAmount;
-    int width;
-    int height;
+    private GameWindow gameWindow;
+    private ArrayList<Resource> resources = new ArrayList<Resource>();
+    private int width;
     
     public ResourcePanel(int width, int height,GameWindow window)
     {
         gameWindow = window;
-        originalAmount = gameWindow.getTurnNumber();
         this.setBackground(Color.WHITE);
         this.width = Math.round(width/16);
-        this.height = height;
         //set layout to add items vertically from top to bottom
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         this.setPreferredSize(new Dimension(width,height));   
@@ -54,10 +49,9 @@ public class ResourcePanel extends JPanel
         Resource r = new Resource();
         resources.add(r);
         this.add(r);
-        originalAmount++;
     }
     
-    public void decreaseAmount(int amount)
+    public void useResources(int amount)
     {
         for(int x=amount;x>0;x--)
         {
@@ -69,15 +63,17 @@ public class ResourcePanel extends JPanel
         }
     }
     
-    public void resetResources()
-    {
-        //add resources back - increasing amount back to original
-        for(int x=resources.size();x<=originalAmount;x++)
+    public void resetResources(int turnNumber)
+    {     
+        if(turnNumber>Constants.maxResourceAmount)
+            turnNumber = Constants.maxResourceAmount;
+        //add resources back - increasing amount back to current turn amount
+        for(int x=resources.size();x<turnNumber;x++)
         {
             Resource r = new Resource();
             resources.add(r);
             this.add(r); 
-        }
+        }           
     }  
     
     //class to draw the resource token

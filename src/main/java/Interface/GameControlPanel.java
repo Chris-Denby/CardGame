@@ -5,6 +5,7 @@
  */
 package Interface;
 
+import Interface.Constants.TurnPhase;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -26,6 +27,8 @@ public class GameControlPanel extends JPanel
     private JButton resolveButton;
     private JLabel turnLabel;
     private JLabel turnNumberLabel;
+    private JLabel turnPhaseLabel;
+    private JLabel notificationLabel;
     private boolean isPlayerTurn = false;
     
     
@@ -45,10 +48,14 @@ public class GameControlPanel extends JPanel
         resolveButton.setEnabled(false);
         turnLabel = new JLabel();
         turnNumberLabel = new JLabel();
+        turnPhaseLabel = new JLabel();
+        notificationLabel = new JLabel();
         this.add(passTurnButton);
         this.add(resolveButton); 
         this.add(turnLabel);
         this.add(turnNumberLabel);
+        this.add(turnPhaseLabel);
+        this.add(notificationLabel);
         
         resolveButton.addActionListener(new ActionListener() {
             @Override
@@ -87,5 +94,35 @@ public class GameControlPanel extends JPanel
         passTurnButton.setEnabled(isPlayerTurn);
         resolveButton.setEnabled(isPlayerTurn);
         turnNumberLabel.setText(gameWindow.getTurnNumber()+"");
+    }
+    
+    public void setTurnPhaseLabelText(TurnPhase phase)
+    {
+        turnPhaseLabel.setText(phase+"");
+    }
+    
+    public void setNotificationLabel(String text)
+    {
+        notificationLabel.setText(text);
+    }
+    
+    public void endGame(boolean hasWon)
+    {
+        if(hasWon)
+        {
+            //you won
+            notificationLabel.setText("YOU WON"); 
+        }
+        else
+        {
+            //you lost
+             notificationLabel.setText("YOU LOST");            
+        }
+        
+        //disable play buttons
+         passTurnButton.setEnabled(false);
+         resolveButton.setEnabled(false);
+         
+        
     }
 }

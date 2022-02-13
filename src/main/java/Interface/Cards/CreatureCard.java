@@ -78,6 +78,16 @@ public class CreatureCard extends Card
         toughnessLabel.setVisible(is);
     }
 
+    public void takeDamage(int damage)
+    {
+        this.toughness = toughness - damage;
+        this.toughnessLabel.setText(toughness+"");
+        if(toughness<=0)
+        {
+            //if toughness is reduced to 0 or below - it dies
+            playArea.removeCard(this);
+        }
+    }
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);

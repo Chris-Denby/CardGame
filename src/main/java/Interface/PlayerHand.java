@@ -7,6 +7,7 @@ package Interface;
 
 import Interface.Cards.Card;
 import Interface.Constants.CardLocation;
+import Interface.Constants.TurnPhase;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -75,7 +76,13 @@ public class PlayerHand extends JLayeredPane
                 public void mouseReleased(MouseEvent e) {
                     if(gameWindow.getIsPlayerTurn() && card.getCardLocation()==CardLocation.PLAYER_HAND)
                     {
-                        playCard(card,false);
+                        if(gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
+                        {
+                            removeCard(card);
+                            checkHandSizeForEndTurn();
+                        }
+                        else
+                            playCard(card,false);
                     }
                 }
 
@@ -95,7 +102,6 @@ public class PlayerHand extends JLayeredPane
         if(cardsInHand.contains(card))
         {
             int index = cardsInHand.indexOf(card);
-            int compIndex = this.getIndexOf(card);
             cardsInHand.remove(card);
             this.remove(card);
             resizeHand();
@@ -103,6 +109,14 @@ public class PlayerHand extends JLayeredPane
             //remove mouse listener assigned when card was added
             card.removeMouseListener(card.getMouseListeners()[0]);
             playArea.addToDiscardPile(card);
+            
+            if(!isOpponents)
+            {
+                Message message = new Message();
+                message.setText("PLAYER_DISCARD_CARD");
+                message.setCard(card);
+                gameWindow.sendMessage(message);
+            }
         }
     }
     
@@ -148,7 +162,7 @@ public class PlayerHand extends JLayeredPane
         else
             card.setCardLocation(CardLocation.OPPONENT_HAND);           
 
-        resourcePanel.decreaseAmount(card.getPlayCost());
+        resourcePanel.useResources(card.getPlayCost());
         playArea.addCard(card);
         removeCard(card);
         
@@ -184,6 +198,24 @@ public class PlayerHand extends JLayeredPane
     {
         return maxHandSize;
     }
+    
+    public boolean checkHandSizeForEndTurn()
+    {        
+        int numCardsOver = cardsInHand.size()-maxHandSize;
+  
+        if(numCardsOver>0)
+        {
+            gameWindow.getGameControlPanel().setNotificationLabel("Discard " + numCardsOver + " cards");
+            return false;
+        }
+        else
+        {
+            gameWindow.getGameControlPanel().setNotificationLabel("");           
+            return true;
+        }
+    }
+        
+}
 
     
     
@@ -191,4 +223,4 @@ public class PlayerHand extends JLayeredPane
     
     
     
-}
+

@@ -36,15 +36,9 @@ public class ApplicationWindow extends JFrame
     //constructor
     public ApplicationWindow()
     {
-        //netClient = new TCPClient();
-        //netServer = new TCPServer();
-        
-
         tabbedPane = new JTabbedPane();
         StartGameWindow startGameWindow = new StartGameWindow(tabbedPane);
-        //GameWindow gameWindow = new GameWindow(tabbedPane);
         tabbedPane.addTab("Game Type", startGameWindow);
-        //tabbedPane.addTab("Game",gameWindow);
         this.add(tabbedPane);
         
     
@@ -70,10 +64,16 @@ public class ApplicationWindow extends JFrame
     }
     
     private void repaintGlass()
-    {
-        this.getGlassPane().repaint();
-    }
-    
-    
-    
+    {   
+        /**
+        try
+        {
+            GameWindow window = (GameWindow)tabbedPane.getTabComponentAt(tabbedPane.indexOfTab("GAME"));
+            if(this.getGlassPane().isVisible())
+                window.drawPointer();
+        }
+        catch(IndexOutOfBoundsException e)
+        {}
+        **/    
+    }  
 }
