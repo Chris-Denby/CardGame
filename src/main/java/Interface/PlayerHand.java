@@ -14,6 +14,8 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import javax.swing.JLayeredPane;
 
@@ -73,16 +75,20 @@ public class PlayerHand extends JLayeredPane
                 public void mousePressed(MouseEvent e) {}
 
                 @Override
-                public void mouseReleased(MouseEvent e) {
-                    if(gameWindow.getIsPlayerTurn() && card.getCardLocation()==CardLocation.PLAYER_HAND)
+                public void mouseReleased(MouseEvent e) 
+                {
+                    if(e.getButton()==MouseEvent.BUTTON1)
                     {
-                        if(gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
+                        if(gameWindow.getIsPlayerTurn() && card.getCardLocation()==CardLocation.PLAYER_HAND)
                         {
-                            removeCard(card);
-                            checkHandSizeForEndTurn();
+                            if(gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
+                            {
+                                removeCard(card);
+                                checkHandSizeForEndTurn();
+                            }
+                            else
+                                playCard(card,false);
                         }
-                        else
-                            playCard(card,false);
                     }
                 }
 
@@ -92,6 +98,7 @@ public class PlayerHand extends JLayeredPane
                 @Override
                 public void mouseExited(MouseEvent e) {}
             });
+            
             return true;
         }
         return false;

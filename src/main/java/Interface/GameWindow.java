@@ -27,8 +27,13 @@ import javax.swing.SwingWorker;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.SwingConstants;
 
 
 /**
@@ -48,21 +53,24 @@ public class GameWindow extends JPanel
     private Deck opponentsDeck;
     private GameControlPanel gameControlPanel;
     private ResourcePanel resourcePanel;
+    private JPanel centrePanel;
     private Deque<CardEvent> cardEventStack = new ArrayDeque<CardEvent>();
     private CardEvent cardEvent = null;
     private JRootPane rootPane;
-    private MyGlassPane glassPane;
+    private DrawLineGlassPane drawLineGlassPane;
+    private CardZoomGlassPane cardZoomGlassPane;
     private boolean isPlayerTurn = false;
+    private int turnPasses = 0;
     private int turnNumber = 1;
     private TurnPhase turnPhase;
     private int turnCycleIncrementor = 0;
+    private Color overlayColor = new Color(223,223,223,200);
     
     //constructor
     public GameWindow(JTabbedPane pane)
     {      
         parentTabbedPane = pane;
         BorderLayout borderLayout = new BorderLayout();
-        
         //SET JFRAME PARAMETERS
         int width = 400;
         int height = 400;
@@ -90,7 +98,7 @@ public class GameWindow extends JPanel
         //ADD COMPONENTS        
         this.add(opponentsHand, BorderLayout.PAGE_START);
         
-        JPanel centrePanel = new JPanel();
+        centrePanel = new JPanel();
         centrePanel.setOpaque(false);
         centrePanel.setLayout(new BoxLayout(centrePanel, BoxLayout.PAGE_AXIS));
         centrePanel.add(opponentsPlayArea, BorderLayout.CENTER);
@@ -168,7 +176,6 @@ public class GameWindow extends JPanel
                 return;
             
             //activate cards in the play areas
-            playerPlayArea.selectCard(card);
             card.setIsSelected(true);
             cardEvent.addTargetCard(card);
             
@@ -236,37 +243,38 @@ public class GameWindow extends JPanel
     }
     
     public void cancelCardEvent()
-    {       
-        Card originCard = cardEvent.getOriginCard();
-        Card targetCard = cardEvent.getTargetCard();
-        PlayerBox targetPlayer = cardEvent.getTargetPlayerBox();
-        
-        //if target card objects dont match whats in players hand due to sending over stream
-        //match by ID instead
-        if(targetCard!=null && getLocalCard(targetCard)!=null)
+    {   if(cardEvent!=null)
         {
-            targetCard = getLocalCard(targetCard);
+            Card originCard = cardEvent.getOriginCard();
+            Card targetCard = cardEvent.getTargetCard();
+            PlayerBox targetPlayer = cardEvent.getTargetPlayerBox();
+
+            //if target card objects dont match whats in players hand due to sending over stream
+            //match by ID instead
+            if(targetCard!=null && getLocalCard(targetCard)!=null)
+            {
+                targetCard = getLocalCard(targetCard);
+            }
+
+            //unselect any selected cards or opponent
+            originCard.setIsSelected(false);
+            if(targetPlayer!=null)
+                targetPlayer.setIsSelected(false);
+            if(targetCard!=null)
+                targetCard.setIsSelected(false);
+
+            cardEvent = null;
+
+            if(drawLineGlassPane!=null)
+                drawLineGlassPane.setVisible(false);
+
+            if(isPlayerTurn)
+            {
+                Message m = new Message();
+                m.setText("CANCEL_CARD_EVENT");
+                sendMessage(m);
+            }
         }
-        
-        
-        //unselect any selected cards or opponent
-        originCard.setIsSelected(false);
-        if(targetPlayer!=null)
-            targetPlayer.setIsSelected(false);
-        if(targetCard!=null)
-            targetCard.setIsSelected(false);
-        
-        cardEvent = null;
-        
-        if(glassPane!=null)
-            glassPane.setVisible(false);
-        
-       if(isPlayerTurn)
-       {
-           Message m = new Message();
-           m.setText("CANCEL_CARD_EVENT");
-           sendMessage(m);
-       }
     }
     
     public Card getLocalCard(Card card)
@@ -364,7 +372,8 @@ public class GameWindow extends JPanel
         
         //release current card event
         this.cardEvent = null;
-        glassPane.setVisible(false);
+        drawLineGlassPane.setVisible(false);
+        drawLineGlassPane = null;
         
         //***************
         //send message to connected server/client
@@ -409,7 +418,7 @@ public class GameWindow extends JPanel
             
             isPlayerTurn=false;      
             this.playerPlayArea.setIsPlayerTurn(isPlayerTurn);
-            this.opponentsPlayArea.setIsPlayerTurn(isPlayerTurn);
+            this.opponentsPlayArea.setIsPlayerTurn(true);
             this.gameControlPanel.setIsPlayerTurn(isPlayerTurn);
           
             Message m = new Message();
@@ -422,12 +431,17 @@ public class GameWindow extends JPanel
             isPlayerTurn=true;
             
             this.playerPlayArea.setIsPlayerTurn(isPlayerTurn);
-            this.opponentsPlayArea.setIsPlayerTurn(isPlayerTurn);
+            this.opponentsPlayArea.setIsPlayerTurn(false);
             this.gameControlPanel.setIsPlayerTurn(isPlayerTurn);
             
+            //deactivate all activated cards in the players play area
+            playerPlayArea.unActivateAllCards();
+            
             //draw card at the start of the turn - except the first turn of the game
-            if(turnCycleIncrementor>1)
+            if(turnCycleIncrementor>0)
                 playerDeck.drawCard();
+            
+            
             
         }
         
@@ -547,10 +561,13 @@ public class GameWindow extends JPanel
         Point targetPoint = new Point(target.getX()+(target.getWidth()/2)+horizontalSpacing,
                 target.getY()+(target.getHeight()/2)+targetVerticalSpacing);
         
-        glassPane = new MyGlassPane(originPoint,targetPoint);
+        drawLineGlassPane = new DrawLineGlassPane(originPoint,targetPoint);
 
-        rootPane.setGlassPane(glassPane);
-        glassPane.setVisible(true);                   
+        if(cardZoomGlassPane==null)
+        {
+            rootPane.setGlassPane(drawLineGlassPane);
+            drawLineGlassPane.setVisible(true);  
+        }
     }
     
     public void setOpponentInteractable(boolean enabled)
@@ -659,29 +676,6 @@ public class GameWindow extends JPanel
             this.winGame();
         }
     }
-    
-    public class MyGlassPane extends JComponent
-    {
-        Point originCardPoint;
-        Point targetCardPoint;
-
-        public MyGlassPane(Point origin, Point target)
-        {
-            originCardPoint = origin;
-            targetCardPoint = target; 
-            this.setVisible(true);
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) 
-        {
-            super.paintComponent(g);
-            this.setForeground(Color.red);
-            Graphics2D graphics = (Graphics2D) g;
-            graphics.setStroke(new BasicStroke(5));
-            graphics.drawLine(originCardPoint.x,originCardPoint.y,targetCardPoint.x,targetCardPoint.y);
-        } 
-    }
 
     public class MessageListener extends SwingWorker<Void, Message>
     {      
@@ -755,6 +749,98 @@ public class GameWindow extends JPanel
     
     public void drawGame()
     {
+        
+    }
+    
+    public void zoomInCard(Card card)
+    {
+        if(cardZoomGlassPane==null)
+        {
+            Card zoomedCard = zoomedCard = card.getClone();
+            //if glass pane is currently hidden
+            //show zoomed in card glass pane
+            rootPane = this.getRootPane();
+            cardZoomGlassPane = new CardZoomGlassPane(zoomedCard);
+            rootPane.setGlassPane(cardZoomGlassPane);
+            cardZoomGlassPane.setVisible(true); 
+        }
+        else
+        if(cardZoomGlassPane!=null)
+        {
+            //remove zoomed in card glass pane
+            //restore draw line glass pane
+            cardZoomGlassPane.setVisible(false); 
+            cardZoomGlassPane = null;
+            if(drawLineGlassPane!=null)
+            {
+                rootPane.setGlassPane(drawLineGlassPane);
+                drawLineGlassPane.setVisible(true);
+            }
+        }        
+    }
+       
+    public class DrawLineGlassPane extends JComponent
+    {
+        Point originCardPoint;
+        Point targetCardPoint;
+
+        public DrawLineGlassPane(Point origin, Point target)
+        {
+            originCardPoint = origin;
+            targetCardPoint = target; 
+            setVisible(true);
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) 
+        {
+            super.paintComponent(g);
+            setForeground(Color.red);
+            Graphics2D graphics = (Graphics2D) g;
+            graphics.setStroke(new BasicStroke(5));
+            graphics.drawLine(originCardPoint.x,originCardPoint.y,targetCardPoint.x,targetCardPoint.y);
+        } 
+    }
+    
+    public class CardZoomGlassPane extends JComponent
+    {
+        public CardZoomGlassPane(Card card)
+        { 
+            //make size of glass pane the same as the game window
+            setSize(centrePanel.getWidth(), centrePanel.getHeight());
+            setVisible(true);
+            setBackground(overlayColor);
+            //resize clone of card to be zoomed            
+            card.applySize((int) Math.round(centrePanel.getHeight()*0.5));
+            //set card location on screen
+            card.setBounds((gameControlPanel.getWidth() + (int) Math.round(card.getWidth()/5)), 
+                    (int) Math.round((centrePanel.getHeight()-card.getHeight())/2) + playerHand.getHeight(), 
+                    card.getWidth(), card.getHeight());
+            
+            //add card to glass pane
+            add(card);
+            card.setFaceUp(true);
+            card.setIsActivated(false);
+            card.setIsSelected(false);
+            card.addMouseListener(new MouseListener() {
+                @Override
+                public void mouseClicked(MouseEvent e) {}
+
+                @Override
+                public void mousePressed(MouseEvent e) {}
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    zoomInCard(card);
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e) {}
+
+                @Override
+                public void mouseExited(MouseEvent e) {}
+            });
+        }
         
     }
 }

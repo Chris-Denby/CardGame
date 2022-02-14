@@ -26,7 +26,7 @@ import javax.swing.SwingConstants;
  *
  * @author chris
  */
-public class Card extends JPanel implements Serializable
+public class Card extends JPanel implements Serializable, Cloneable
 {
     private String objectID;
     private int width;
@@ -53,10 +53,6 @@ public class Card extends JPanel implements Serializable
     transient Font headingFont = new Font("Arial",Font.BOLD,headingFontSize);
     transient Font bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
     transient private boolean isSelected = false;
-    transient private Color overlayColor = new Color(223,223,223,200);
-    transient private ActivatedOverlay overlay;
-    transient private JPanel faceUpPanel;
-    transient private JPanel faceDownPanel;
     JLabel cardNameLabel;
     JPanel topPanel;
     JPanel pictureBox;
@@ -64,37 +60,42 @@ public class Card extends JPanel implements Serializable
     JLabel playCostLabel;
     
 
-    
-    
-    
-    
     public Card(String cardName)
     {
+        this.cardName = cardName;
+                
         topPanel = new JPanel();
         bottomPanel = new JPanel();
         pictureBox = new JPanel(); 
+        
+        this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         topPanel.setLayout(new BoxLayout(topPanel,BoxLayout.X_AXIS));
         bottomPanel.setLayout(new BoxLayout(bottomPanel,BoxLayout.X_AXIS));
-        this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-        this.cardName = cardName;
-        cardNameLabel = new JLabel(this.cardName,SwingConstants.LEFT);
-        playCostLabel = new JLabel(""+playCost,SwingConstants.RIGHT);
-        cardNameLabel.setVerticalAlignment(SwingConstants.CENTER);
-        playCostLabel.setVerticalAlignment(SwingConstants.CENTER);
         
-
         topPanel.setVisible(isFaceUp);
+        topPanel.setBackground(Color.BLUE);
         pictureBox.setVisible(isFaceUp);
         pictureBox.setBackground(Color.PINK);
-        topPanel.add(cardNameLabel);
-        topPanel.add(playCostLabel);
-        topPanel.setBackground(Color.BLUE);
-        
         bottomPanel.setBackground(Color.BLUE);
+        topPanel.setBounds(strokeSize,strokeSize,getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5));
+        pictureBox.setBounds(strokeSize,topPanel.getY()+topPanel.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5)*3);
+        bottomPanel.setBounds(strokeSize,pictureBox.getY()+pictureBox.getHeight(),topPanel.getWidth(), topPanel.getHeight());           
         add(topPanel); 
         add(pictureBox);
         add(bottomPanel);
+
+        cardNameLabel = new JLabel(this.cardName,SwingConstants.LEFT);
+        cardNameLabel.setVerticalAlignment(SwingConstants.CENTER);
+        playCostLabel = new JLabel(""+playCost,SwingConstants.RIGHT);
+        playCostLabel.setVerticalAlignment(SwingConstants.CENTER);
+                
+        headingFont = new Font("Arial",Font.BOLD,headingFontSize);
+        bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
+        cardNameLabel.setFont(headingFont);
+        playCostLabel.setFont(headingFont);
         
+        topPanel.add(cardNameLabel);
+        topPanel.add(playCostLabel); 
     }
     
     public void setCardID(int id)
@@ -141,8 +142,13 @@ public class Card extends JPanel implements Serializable
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));
         this.setSize(new Dimension(width,height));
-        //repaint();
-        //set card height as 40% of board height 
+        repaint();
+        //set card height as 40% of board height
+        
+        topPanel.setBounds(strokeSize,strokeSize,getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5));
+        pictureBox.setBounds(strokeSize,topPanel.getY()+topPanel.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5)*3);
+        bottomPanel.setBounds(strokeSize,pictureBox.getY()+pictureBox.getHeight(),topPanel.getWidth(), topPanel.getHeight());        
+              
     }        
 
     public void setIsSelected(boolean is)
@@ -225,18 +231,22 @@ public class Card extends JPanel implements Serializable
             strokeSize = 5;
         }
         else
+        if(isActivated){
+            strokeColor = Color.GRAY;
+            strokeSize = 5;
+        }
+        else
             strokeSize = 1;  
         
         //draw inside
         graphics.setColor(backgroundColor);
         graphics.fillRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
+        
+        //draw outline
         graphics.setColor(strokeColor);
         graphics.setStroke(new BasicStroke(strokeSize));
-        //draw outline
         graphics.drawRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
-        graphics.setStroke(new BasicStroke());
 
-        
         topPanel.setBounds(strokeSize,strokeSize,getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5));
         pictureBox.setBounds(strokeSize,topPanel.getY()+topPanel.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5)*3);
         bottomPanel.setBounds(strokeSize,pictureBox.getY()+pictureBox.getHeight(),topPanel.getWidth(), topPanel.getHeight());        
@@ -264,42 +274,14 @@ public class Card extends JPanel implements Serializable
     public CardLocation getCardLocation()
     {
         return location;
-    }
+    }   
     
-    public class ActivatedOverlay extends JPanel
+    public Card getClone()
     {
-        
-        public ActivatedOverlay()
-        {
-            
-            
-            
-        }
-        
-        @Override
-        public void paintComponent(Graphics g) 
-        {
-            super.paintComponent(g);
-            Graphics2D graphics = (Graphics2D) g;
-
-            this.setForeground(Color.black);
-            Color strokeColor = getForeground();
-
-            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            strokeSize = 1;  
-
-            //draw inside
-            graphics.setColor(overlayColor);
-            graphics.fillRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
-            graphics.setColor(overlayColor);
-            graphics.setStroke(new BasicStroke(strokeSize));
-            //draw outline
-            graphics.drawRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
-            graphics.setStroke(new BasicStroke());    
-        }
-        
-        
+        //this method creates a deep copy of the card and returns it
+        Card clone = new Card(this.getName());
+        clone.setPlayCost(playCost);
+        //set picture box
+        return clone;
     }
-    
 }

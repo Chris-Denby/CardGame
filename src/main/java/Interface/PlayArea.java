@@ -79,6 +79,38 @@ public class PlayArea extends JPanel
         playerBoxPanel = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent);
         playerBoxPanel.addMouseListener(new PlayerBoxMouseListener(playerBoxPanel,this));
         playerSubPanel.add(playerBoxPanel,Component.CENTER_ALIGNMENT);
+        
+        this.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) 
+            {
+                /**
+                 * DISABLED MANUAL DRAW - draw happens automatically at start of turn
+                if(gameWindow.getIsPlayerTurn())
+                {
+                    drawCard();
+                }
+                **/
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if(gameWindow.getIsPlayerTurn())
+                    gameWindow.cancelCardEvent();
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        });
     }
     
     public PlayerBox getPlayerBoxPanel()
@@ -134,17 +166,8 @@ public class PlayArea extends JPanel
     {
         discardPile.add(card);
     }
-    
+        
     public void selectCard(Card card)
-    {          
-        for(Card c:cardsInPlay)
-        {
-            if(c.getCardID()==card.getCardID())
-                c.setIsSelected(true);
-        }    
-    }
-    
-    public void activateCard(Card card)
     {
         System.out.println(this.getName());
         gameWindow.createCardEvent(card);   
@@ -181,9 +204,15 @@ public class PlayArea extends JPanel
         @Override
         public void mouseReleased(MouseEvent e) { 
             //only allow mouse events while its the players
-            if(isPlayerTurn)
+            
+            if(e.getButton()==MouseEvent.BUTTON1 && gameWindow.getIsPlayerTurn())
             {
-                activateCard(card);            
+                selectCard(card);            
+            }
+            else
+            if(e.getButton()==MouseEvent.BUTTON3)
+            {
+                gameWindow.zoomInCard(card);
             }
         }
 
@@ -223,7 +252,7 @@ public class PlayArea extends JPanel
         @Override
         public void mouseReleased(MouseEvent e) { 
             //only allow mouse events while its the players
-            if(isPlayerTurn)
+            if(gameWindow.getIsPlayerTurn())
             {
                 gameWindow.createCardEvent(playerBox);           
             }

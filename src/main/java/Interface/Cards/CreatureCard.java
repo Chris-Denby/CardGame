@@ -30,7 +30,6 @@ public class CreatureCard extends Card
     public CreatureCard(String cardName) 
     {
         super(cardName);
-
         powerLabel = new JLabel(power+"",SwingConstants.CENTER);
         powerLabel.setFont(headingFont);
         powerLabel.setVerticalAlignment(SwingConstants.CENTER);
@@ -38,7 +37,6 @@ public class CreatureCard extends Card
         toughnessLabel.setFont(headingFont);
 
         bottomPanel.add(powerLabel);
-        //bottomPanel.add(Box.createHorizontalGlue());
         bottomPanel.add(toughnessLabel); 
         
     }
@@ -94,6 +92,18 @@ public class CreatureCard extends Card
         powerLabel.setFont(headingFont);
         toughnessLabel.setFont(headingFont);        
    
+    }
+    
+    @Override
+    public CreatureCard getClone()
+    {
+        //this method creates a deep copy of the card and returns it
+        CreatureCard clone = new CreatureCard(getName());
+        clone.setPlayCost(getPlayCost());
+        clone.setPower(power);
+        clone.setToughness(toughness);
+        //set picture box
+        return clone;
     }
     
     
