@@ -57,11 +57,27 @@ public class GameControlPanel extends JPanel
         this.add(turnPhaseLabel);
         this.add(notificationLabel);
         
+        resolveButton.setEnabled(false);
+        
         resolveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) 
             {
-                gameWindow.executeCardEvent();
+                if(gameWindow.getTurnPhase()==TurnPhase.MAIN_PHASE)
+                {
+
+                    
+                }
+                else
+                if(gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.COMBAT_PHASE)
+                {
+                    gameWindow.requestResolveCombat();
+                    
+                }
+                if(!gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.DECLARE_BLOCKERS)
+                {
+                    gameWindow.passOnBlocking();
+                }
             }
         });
         
@@ -72,6 +88,16 @@ public class GameControlPanel extends JPanel
                 gameWindow.passTurn();
             }
         });
+    }
+    
+    public void enableResolveButton(boolean enabled)
+    {
+        resolveButton.setEnabled(enabled);
+    }
+    
+    public void setResolveButtonText(String text)
+    {
+        resolveButton.setText(text);
     }
     
     public void setTurnLabelText(String text)

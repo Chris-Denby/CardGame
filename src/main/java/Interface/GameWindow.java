@@ -146,23 +146,33 @@ public class GameWindow extends JPanel
         
         //if card is clicked - create a new event for that card
         //then if another card is clicked as a target - trigger the source cards event on that card
-        
         //if the cost of the selected card is greater than the available resources - exit the method       
-        
+
         //select a card as event source only if it is not yet selected
-        //dont allow origin card to be selected from opponents hand        
+        //dont allow origin card to be selected from opponents hand  
         if(cardEvent == null && !card.getIsSelected() && !card.getIsActivated())
         { 
             if(this.isPlayerTurn & card.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
             return;
             
-
+            setTurnPhase(TurnPhase.COMBAT_PHASE);
             cardEvent = new CardEvent(card);
             //activate cards in the play areas
             card.setIsSelected(true);
+            
+            //***************
+            //send message to connected server/client
+            if(isPlayerTurn)
+            {
+                Message message = new Message();
+                message.setText("OPPONENT_ACTIVATE_CARD");
+                message.setCard(card);
+                sendMessage(message);
+            }
         }
         else
-        if(cardEvent != null && cardEvent.getTargetCard()==null & cardEvent.getTargetPlayerBox()==null)
+        //if a card event exists and target card has not yet been set
+        if(cardEvent != null && cardEvent.getTargetCard()==null && cardEvent.getTargetPlayerBox()==null && turnPhase!=TurnPhase.DECLARE_BLOCKERS)
         {
             //set the target card location if its the opponents turn
             //because location information is lost when sending over the stream
@@ -176,7 +186,7 @@ public class GameWindow extends JPanel
                 return;
             
             //activate cards in the play areas
-            card.setIsSelected(true);
+            //card.setIsSelected(true);
             cardEvent.addTargetCard(card);
             
             //assign event type based on the type of cards selected
@@ -185,6 +195,9 @@ public class GameWindow extends JPanel
                 cardEvent.setType("CREATURE_COMBAT");
             }
             
+            
+            cardEvent.getTargetCard().setIsSelected(true);
+                        
             //add card event to the stack
             cardEventStack.addFirst((CardEvent)cardEvent);
             
@@ -195,17 +208,41 @@ public class GameWindow extends JPanel
             //System.out.println(cardEventStack.size()+" events on the stack");
             //reset current card event
             //cardEvent = null;
+            
+            //***************
+            //send message to connected server/client
+            if(isPlayerTurn)
+            {
+                Message message = new Message();
+                message.setText("OPPONENT_ACTIVATE_CARD");
+                message.setCard(card);
+                sendMessage(message);
+            }
         }
-
-        //***************
-        //send message to connected server/client
-        if(isPlayerTurn)
+        //if turn phase is delcare blockers
+        //the card added is to be the blocker
+        else
+        if(turnPhase==TurnPhase.DECLARE_BLOCKERS)
         {
+            //add blocker to card event
+            cardEvent.addBlockingCard(card);
+            
+            //show blocker selected
+            card.setIsSelected(true);
+            
+            if(!isPlayerTurn)
+            {
+            //send message to connected server/client
             Message message = new Message();
-            message.setText("OPPONENT_ACTIVATE_CARD");
+            message.setText("OPPONENT_DECLARED_BLOCKER");
             message.setCard(card);
             sendMessage(message);
-        }
+            }
+            
+            //after blocker declared
+            //execute the card event
+            executeCardEvent();
+        }  
     }
     
     public void createCardEvent(PlayerBox playerBox)
@@ -245,6 +282,7 @@ public class GameWindow extends JPanel
     public void cancelCardEvent()
     {   if(cardEvent!=null)
         {
+            setTurnPhase(TurnPhase.MAIN_PHASE);
             Card originCard = cardEvent.getOriginCard();
             Card targetCard = cardEvent.getTargetCard();
             PlayerBox targetPlayer = cardEvent.getTargetPlayerBox();
@@ -267,6 +305,8 @@ public class GameWindow extends JPanel
 
             if(drawLineGlassPane!=null)
                 drawLineGlassPane.setVisible(false);
+            
+            drawLineGlassPane=null;
 
             if(isPlayerTurn)
             {
@@ -289,17 +329,46 @@ public class GameWindow extends JPanel
         return null;
     }
     
+    public void requestResolveCombat()
+    {
+        if(cardEvent.getType()=="CREATURE_COMBAT")
+            executeCardEvent();
+        else
+        if(cardEvent.getType()=="CREATURE_ATTACK_PLAYER")
+        {
+            setTurnPhase(TurnPhase.DECLARE_BLOCKERS);  
+            
+            if(!isPlayerTurn)
+            {
+                gameControlPanel.enableResolveButton(true);
+                gameControlPanel.setResolveButtonText("NO BLOCKERS");
+            }
+        }
+        //***************
+        //send message to connected server/client
+        if(isPlayerTurn)
+        {
+            Message message = new Message();
+            message.setText("REQUEST_RESOLVE_COMBAT");
+            sendMessage(message);
+        } 
+    }
+
     public void executeCardEvent(CardEvent event)
     {   
+        setTurnPhase(TurnPhase.COMBAT_PHASE);
+        
         Card originCard = event.getOriginCard();
         Card targetCard = event.getTargetCard();
         PlayerBox targetPlayer = event.getTargetPlayerBox();
+        Card blockingCard = event.getBlockingCard();
         
         //if target card objects dont match whats in players hand due to sending over stream
         //match by ID instead        
         if(targetCard!=null && getLocalCard(targetCard)!=null){
             targetCard = getLocalCard(targetCard);
         }
+        
         
         //DO ACTIONS
         //
@@ -309,6 +378,9 @@ public class GameWindow extends JPanel
             //exchange damage between origin and target
             CreatureCard origin = (CreatureCard) originCard;
             CreatureCard target = (CreatureCard) targetCard;
+            
+            System.out.println(origin.getName() + " and " + target.getName() + " are fighting!");
+            
             Timer timer = new Timer();
             TimerTask targetDamageTask = new TimerTask() {
                 @Override
@@ -325,19 +397,47 @@ public class GameWindow extends JPanel
             };
             timer.schedule(originDamageTask, 500);
         }
-        
         if(event.getType()=="CREATURE_ATTACK_PLAYER")
-        {
+        {            
             //creature does damage to target player
             CreatureCard origin = (CreatureCard) originCard;
             PlayerBox target = event.getTargetPlayerBox();
+            CreatureCard blocker = (CreatureCard) event.getBlockingCard();
+            final int originPower = origin.getPower();
+            final int blockerPower;
+            final int blockerToughness;
+            if(blocker!=null)
+            {
+                blockerPower = blocker.getPower();
+                blockerToughness = blocker.getToughness();
+            }
+            else
+            {
+                blockerPower = 0;
+                blockerToughness = 0;
+            }
+
+            
             Timer timer = new Timer();
+            
+            TimerTask creatureDamageTask = new TimerTask(){
+                @Override
+                public void run(){
+                    if(blocker!=null)
+                    {
+                        blocker.takeDamage(originPower);
+                        origin.takeDamage(blockerPower);
+                    }
+                } 
+            };
+            if(blocker!=null)
+                timer.schedule(creatureDamageTask, 1000);  
+            
             TimerTask playerDamageTask = new TimerTask() {
                 @Override
                 public void run() {
-                    target.takeDamage(origin.getPower());
                     
-                    System.out.println("Players health is " + playerPlayArea.getPlayerBoxPanel().getPlayerHealth());
+                    target.takeDamage(originPower-blockerToughness);
                     //if card event execution reduced player health to 0 or below
                     if(playerPlayArea.getPlayerBoxPanel().getPlayerHealth()<=0)
                     {
@@ -348,7 +448,7 @@ public class GameWindow extends JPanel
         }
                 }
             };
-            timer.schedule(playerDamageTask, 500);  
+            timer.schedule(playerDamageTask, 1000);  
         }
         
         //AFTER EVENT RESOLVED
@@ -369,20 +469,19 @@ public class GameWindow extends JPanel
         {
             targetPlayer.setIsSelected(false);
         }
+        if(blockingCard!=null)
+        {
+            blockingCard.setIsSelected(false);
+            blockingCard.setIsActivated(true);
+        }
         
         //release current card event
         this.cardEvent = null;
         drawLineGlassPane.setVisible(false);
-        drawLineGlassPane = null;
+        drawLineGlassPane = null; 
         
-        //***************
-        //send message to connected server/client
-        if(isPlayerTurn)
-        {
-            Message message = new Message();
-            message.setText("OPPONENT_RESOLVED_CARDEVENT");
-            sendMessage(message);
-        }   
+        //progress turn phase
+        setTurnPhase(TurnPhase.MAIN_PHASE);
     }
     
     public void executeCardEvent()
@@ -405,7 +504,7 @@ public class GameWindow extends JPanel
 
     public void passTurn()
     {   
-        this.turnPhase = TurnPhase.END_PHASE;
+        setTurnPhase(TurnPhase.END_PHASE);
         gameControlPanel.setTurnPhaseLabelText(turnPhase);
         
         //increment turn number          
@@ -453,7 +552,7 @@ public class GameWindow extends JPanel
             cancelCardEvent();
         
         //progress to next turn phase
-        turnPhase = TurnPhase.MAIN_PHASE;
+        setTurnPhase(TurnPhase.MAIN_PHASE);
         gameControlPanel.setTurnPhaseLabelText(turnPhase);
         
         //increment turn number 
@@ -464,6 +563,15 @@ public class GameWindow extends JPanel
             turnNumber++;
             System.out.println("TURN "+ turnNumber);
         }     
+    }
+    
+    public void passOnBlocking()
+    {
+        executeCardEvent();
+        
+        Message message = new Message();
+        message.setText("OPPONENT_PASS_ON_BLOCKING");
+        sendMessage(message);
     }
     
     public void drawPointer(Component origin, Component target)
@@ -635,11 +743,7 @@ public class GameWindow extends JPanel
         {
             createCardEvent(message.getCard());
         }
-        else
-        if(message.getText().equals("OPPONENT_RESOLVED_CARDEVENT"))
-        {
-            executeCardEvent();
-        }
+        
         else
         if(message.getText().equals("OPPONENT_PASS_TURN"))
         {
@@ -668,12 +772,29 @@ public class GameWindow extends JPanel
         {
             //"player" meaning the active player who's turn it is
             //therefore on receipt, the player would be this applications opponent
-            opponentsHand.removeCard(message.getCard());
+            opponentsHand.discardCard(message.getCard());
         }
         else
         if(message.getText().equals("OPPONENT_LOSE_GAME"))
         {
             this.winGame();
+        }
+        else
+        if(message.getText().equals("REQUEST_RESOLVE_COMBAT"))
+        {
+            requestResolveCombat();
+        }
+        else
+        if(message.getText().equals("OPPONENT_DECLARED_BLOCKER"))
+        {
+            //send received blocking card to the create card event method
+            //this method asigns the card as a blocker in the card event
+            createCardEvent(message.getCard());
+        }
+        else
+        if(message.getText().equals("OPPONENT_PASS_ON_BLOCKING"))
+        {
+            executeCardEvent();            
         }
     }
 
@@ -722,6 +843,35 @@ public class GameWindow extends JPanel
         opponentsDeck.setEnabled(false);
         
      
+    }
+    
+    public void setTurnPhase(TurnPhase phase)
+    {
+        turnPhase = phase;
+        gameControlPanel.setTurnPhaseLabelText(turnPhase);
+        
+        if(phase==TurnPhase.MAIN_PHASE)
+        {
+            gameControlPanel.setResolveButtonText("Resolve"); 
+            gameControlPanel.enableResolveButton(false);
+        }
+        else
+        if(phase==TurnPhase.COMBAT_PHASE)
+        {
+            if(isPlayerTurn)
+                gameControlPanel.enableResolveButton(true);
+                
+            else
+                gameControlPanel.enableResolveButton(false);
+        }
+        else
+        if(phase==TurnPhase.DECLARE_BLOCKERS)
+        {
+            if(isPlayerTurn)
+                gameControlPanel.enableResolveButton(false);
+            else
+                gameControlPanel.enableResolveButton(true);    
+        }
     }
     
     public void loseGame()
@@ -778,7 +928,7 @@ public class GameWindow extends JPanel
             }
         }        
     }
-       
+           
     public class DrawLineGlassPane extends JComponent
     {
         Point originCardPoint;

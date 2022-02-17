@@ -31,6 +31,8 @@ public class Constants
     {
         UPKEEP_PHASE,
         MAIN_PHASE,
+        COMBAT_PHASE,
+        DECLARE_BLOCKERS,        
         END_PHASE
     }
     

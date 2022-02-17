@@ -83,7 +83,7 @@ public class PlayerHand extends JLayeredPane
                         {
                             if(gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
                             {
-                                removeCard(card);
+                                discardCard(card);
                                 checkHandSizeForEndTurn();
                             }
                             else
@@ -104,7 +104,7 @@ public class PlayerHand extends JLayeredPane
         return false;
     }
     
-    public void removeCard(Card card)
+    public void discardCard(Card card)
     {
         if(cardsInHand.contains(card))
         {
@@ -124,6 +124,20 @@ public class PlayerHand extends JLayeredPane
                 message.setCard(card);
                 gameWindow.sendMessage(message);
             }
+        }    
+    }
+    
+    public void removeCard(Card card)
+    {
+        if(cardsInHand.contains(card))
+        {
+            int index = cardsInHand.indexOf(card);
+            cardsInHand.remove(card);
+            this.remove(card);
+            resizeHand();
+            layers--;
+            //remove mouse listener assigned when card was added
+            card.removeMouseListener(card.getMouseListeners()[0]);
         }
     }
     

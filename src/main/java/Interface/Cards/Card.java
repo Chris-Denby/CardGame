@@ -18,6 +18,7 @@ import Interface.Constants.CardLocation;
 import Interface.PlayArea;
 import java.awt.Font;
 import javax.swing.BoxLayout;
+import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 
 
@@ -68,10 +69,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         bottomPanel = new JPanel();
         pictureBox = new JPanel(); 
         
-        this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-        topPanel.setLayout(new BoxLayout(topPanel,BoxLayout.X_AXIS));
-        bottomPanel.setLayout(new BoxLayout(bottomPanel,BoxLayout.X_AXIS));
-        
         topPanel.setVisible(isFaceUp);
         topPanel.setBackground(Color.BLUE);
         pictureBox.setVisible(isFaceUp);
@@ -85,9 +82,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         add(bottomPanel);
 
         cardNameLabel = new JLabel(this.cardName,SwingConstants.LEFT);
-        cardNameLabel.setVerticalAlignment(SwingConstants.CENTER);
         playCostLabel = new JLabel(""+playCost,SwingConstants.RIGHT);
-        playCostLabel.setVerticalAlignment(SwingConstants.CENTER);
                 
         headingFont = new Font("Arial",Font.BOLD,headingFontSize);
         bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
@@ -96,6 +91,8 @@ public class Card extends JPanel implements Serializable, Cloneable
         
         topPanel.add(cardNameLabel);
         topPanel.add(playCostLabel); 
+       
+        
     }
     
     public void setCardID(int id)

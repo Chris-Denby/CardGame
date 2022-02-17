@@ -14,6 +14,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 
 /**
@@ -30,6 +31,7 @@ public class CreatureCard extends Card
     public CreatureCard(String cardName) 
     {
         super(cardName);
+        
         powerLabel = new JLabel(power+"",SwingConstants.CENTER);
         powerLabel.setFont(headingFont);
         powerLabel.setVerticalAlignment(SwingConstants.CENTER);
@@ -78,14 +80,20 @@ public class CreatureCard extends Card
 
     public void takeDamage(int damage)
     {
-        this.toughness = toughness - damage;
+        if(this.toughness-damage<0)
+            this.toughness = 0;
+        else
+            this.toughness = toughness-damage;
+        
         this.toughnessLabel.setText(toughness+"");
+        
         if(toughness<=0)
         {
             //if toughness is reduced to 0 or below - it dies
             playArea.removeCard(this);
         }
     }
+    
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);

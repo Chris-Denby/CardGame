@@ -7,6 +7,7 @@ package Interface;
 
 import Interface.Cards.Card;
 import Interface.Constants.CardLocation;
+import Interface.Constants.TurnPhase;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -169,7 +170,6 @@ public class PlayArea extends JPanel
         
     public void selectCard(Card card)
     {
-        System.out.println(this.getName());
         gameWindow.createCardEvent(card);   
     }
     
@@ -203,15 +203,28 @@ public class PlayArea extends JPanel
 
         @Override
         public void mouseReleased(MouseEvent e) { 
-            //only allow mouse events while its the players
-            
-            if(e.getButton()==MouseEvent.BUTTON1 && gameWindow.getIsPlayerTurn())
+            //only allow mouse events while its the players turn, or if its the declare blockers phase
+            if(e.getButton()==MouseEvent.BUTTON1 && !gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.DECLARE_BLOCKERS && !card.getIsActivated() && card.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
             {
+                //if mouse 1 clicked
+                //and is not your turn
+                //and its declare blockers turn phase
+                //and card is not already activated
+                //add the clicked card is in your play area
+                selectCard(card);
+            }
+            else
+            if(e.getButton()==MouseEvent.BUTTON1 && gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()!=TurnPhase.DECLARE_BLOCKERS)
+            {
+                //if mouse 1 clicked
+                //and it is your turn
+                //and the turn phase is NOT declare blockers
                 selectCard(card);            
             }
             else
             if(e.getButton()==MouseEvent.BUTTON3)
             {
+                //if mouse 3 (right button) clicked
                 gameWindow.zoomInCard(card);
             }
         }
@@ -274,6 +287,18 @@ public class PlayArea extends JPanel
         {
             c.setIsActivated(false);            
         }
+    }
+    
+    public boolean checkForAvailableBlockers()
+    {
+        //returns true if any cards in play area are available to block
+        //else returns false
+        for(Card c:cardsInPlay)
+        {
+            if(!c.getIsActivated())
+                return true;
+        }
+        return false;
     }
     
 

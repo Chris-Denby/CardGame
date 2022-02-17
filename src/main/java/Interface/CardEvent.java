@@ -16,6 +16,7 @@ public class CardEvent implements Serializable
 {
     private Card originCard = null;
     private Card targetCard = null;
+    private Card blockingCard = null;
     private PlayerBox playerBoxPanel;
     private boolean isResolved = false;
     private String type;
@@ -58,6 +59,16 @@ public class CardEvent implements Serializable
     public void addTargetPlayerBox(PlayerBox box)
     {
         playerBoxPanel = box;
+    }
+    
+    public void addBlockingCard(Card card)
+    {
+        blockingCard = card;
+    }
+    
+    public Card getBlockingCard()
+    {
+        return blockingCard;
     }
     
     public void execute()
