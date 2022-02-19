@@ -5,6 +5,7 @@
  */
 package Interface;
 
+import Database.JSONHelper;
 import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import java.awt.Dimension;
@@ -16,6 +17,9 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.JLayeredPane;
 import Interface.Constants.CardLocation;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -106,51 +110,36 @@ public class Deck extends JLayeredPane
         return card;
     }
         
-    public void populateDeckAndDeal()
+    public void populateDeckAndDeal(boolean isPlayer1)
     {
-        int deckSize = 60;
-        int x=0;
-        while(x<=deckSize)
+        System.out.println("Deal");
+        JSONHelper h = new JSONHelper(); 
+        
+        if(isPlayer1)
+        {        
+            //read cards from JSON DB
+            //populate users deck  from JSON           
+            for(Card c:h.readJSONFile("player1Cards"))
+                addCard(c);
+        }
+        else 
         {
-            Card card = new CreatureCard(ThreadLocalRandom.current().nextInt(0,61)+"");
-            card.setCardID(System.identityHashCode(card));
-            addCard(card);
-            x++;
+            //read cards from JSON DB
+            //populate users deck  from JSON         
+            for(Card c:h.readJSONFile("player2Cards"))
+                addCard(c);
         }
         
         //deal out first hand
         playerHand.dealHand();
-
-            this.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) 
-            {
-                /**
-                 * DISABLED MANUAL DRAW - draw happens automatically at start of turn
-                if(gameWindow.getIsPlayerTurn())
-                {
-                    drawCard();
-                }
-                **/
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-            }
-        });
     }
+    
+    public List<Card> getCardsInDeck()
+    {
+        return cardsInDeck;
+    }
+    
+    
   
     
     

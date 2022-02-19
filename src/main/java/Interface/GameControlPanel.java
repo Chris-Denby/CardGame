@@ -5,6 +5,7 @@
  */
 package Interface;
 
+import Database.JSONHelper;
 import Interface.Constants.TurnPhase;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -29,8 +30,7 @@ public class GameControlPanel extends JPanel
     private JLabel turnNumberLabel;
     private JLabel turnPhaseLabel;
     private JLabel notificationLabel;
-    private boolean isPlayerTurn = false;
-    
+    private boolean isPlayerTurn = false;    
     
     public GameControlPanel(int containerWidth, int containerHeight, GameWindow window)
     {
@@ -65,15 +65,14 @@ public class GameControlPanel extends JPanel
             {
                 if(gameWindow.getTurnPhase()==TurnPhase.MAIN_PHASE)
                 {
-
-                    
+                    //do nothing on main phase                    
                 }
                 else
                 if(gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.COMBAT_PHASE)
                 {
-                    gameWindow.requestResolveCombat();
-                    
+                    gameWindow.requestResolveCombat();  
                 }
+                else
                 if(!gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.DECLARE_BLOCKERS)
                 {
                     gameWindow.passOnBlocking();
@@ -89,11 +88,12 @@ public class GameControlPanel extends JPanel
             }
         });
     }
-    
+       
     public void enableResolveButton(boolean enabled)
     {
         resolveButton.setEnabled(enabled);
     }
+    
     
     public void setResolveButtonText(String text)
     {

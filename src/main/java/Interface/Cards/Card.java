@@ -17,6 +17,9 @@ import javax.swing.JPanel;
 import Interface.Constants.CardLocation;
 import Interface.PlayArea;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import javax.swing.BoxLayout;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
@@ -77,9 +80,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         topPanel.setBounds(strokeSize,strokeSize,getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5));
         pictureBox.setBounds(strokeSize,topPanel.getY()+topPanel.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5)*3);
         bottomPanel.setBounds(strokeSize,pictureBox.getY()+pictureBox.getHeight(),topPanel.getWidth(), topPanel.getHeight());           
-        add(topPanel); 
-        add(pictureBox);
-        add(bottomPanel);
 
         cardNameLabel = new JLabel(this.cardName,SwingConstants.LEFT);
         playCostLabel = new JLabel(""+playCost,SwingConstants.RIGHT);
@@ -89,12 +89,42 @@ public class Card extends JPanel implements Serializable, Cloneable
         cardNameLabel.setFont(headingFont);
         playCostLabel.setFont(headingFont);
         
-        topPanel.add(cardNameLabel);
-        topPanel.add(playCostLabel); 
+        //topPanel.add(cardNameLabel);
+        //topPanel.add(playCostLabel); 
+        
+        GridBagConstraints gbConstraints = new GridBagConstraints();
+        topPanel.setLayout(new GridBagLayout());
+        
+        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gbConstraints.ipadx = 0;
+        gbConstraints.ipady = 0;
+        //gbConstraints.insets = new Insets(4,4,4,4);
+        gbConstraints.ipady = 0;
+        gbConstraints.weightx = 0;
+        gbConstraints.gridx = 0;
+        gbConstraints.gridy = 0;
+        gbConstraints.anchor = GridBagConstraints.LINE_END;
+        topPanel.add(cardNameLabel, gbConstraints);
+        
+        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gbConstraints.ipadx = 0;
+        gbConstraints.ipady = 0;
+        //gbConstraints.insets = new Insets(4,4,4,4);
+        gbConstraints.weightx = 0;
+        gbConstraints.gridx = 3;
+        gbConstraints.gridy = 0;
+        gbConstraints.anchor = GridBagConstraints.LINE_START;
+        topPanel.add(playCostLabel, gbConstraints);
+        
+        add(topPanel); 
+        add(pictureBox);
+        add(bottomPanel);
+        
+        
        
         
     }
-    
+
     public void setCardID(int id)
     {
         cardID = id;
@@ -175,6 +205,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     public void setPlayCost(int cost)
     {
         playCost = cost;
+        playCostLabel.setText(cost+"");
     }
     
     public int getPlayCost()

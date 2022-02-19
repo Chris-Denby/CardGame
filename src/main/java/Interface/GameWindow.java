@@ -5,6 +5,7 @@
  */
 package Interface;
 
+import Database.JSONHelper;
 import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import NetCode.TCPClient;
@@ -29,6 +30,7 @@ import Interface.Constants.TurnPhase;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -68,7 +70,7 @@ public class GameWindow extends JPanel
     
     //constructor
     public GameWindow(JTabbedPane pane)
-    {      
+    {
         parentTabbedPane = pane;
         BorderLayout borderLayout = new BorderLayout();
         //SET JFRAME PARAMETERS
@@ -123,13 +125,16 @@ public class GameWindow extends JPanel
         
         TimerTask tt = new TimerTask() {
             @Override
-            public void run() {
-                playerDeck.populateDeckAndDeal();
+            public void run() 
+            {
                 if(netClient!=null)
                 {
+                    playerDeck.populateDeckAndDeal(true);
                     isPlayerTurn = true;
                     passTurn();
                 }
+                else
+                    playerDeck.populateDeckAndDeal(false);
             }
         };
         timer.schedule(tt, 1500); 
@@ -199,15 +204,10 @@ public class GameWindow extends JPanel
             cardEvent.getTargetCard().setIsSelected(true);
                         
             //add card event to the stack
-            cardEventStack.addFirst((CardEvent)cardEvent);
+            //cardEventStack.addFirst((CardEvent)cardEvent);
             
             //show glass pane so the arrow can be drawn
-            //drawPointer();
             drawPointer(cardEvent.getOriginCard(), cardEvent.getTargetCard());
-                    
-            //System.out.println(cardEventStack.size()+" events on the stack");
-            //reset current card event
-            //cardEvent = null;
             
             //***************
             //send message to connected server/client
@@ -263,6 +263,15 @@ public class GameWindow extends JPanel
             
             //show glass pane so the arrow can be drawn
             drawPointer(cardEvent.getOriginCard(),cardEvent.getTargetPlayerBox());
+            
+            //if its the opponent who recieved the card event targeting their player box
+            //and they have no available blockers
+            //skip blocking without their input
+            
+            if(!isPlayerTurn)
+                if(!playerPlayArea.checkForAvailableBlockers())
+                    passOnBlocking();
+                
             
             //***************
             //send message to connected server/client
@@ -368,18 +377,13 @@ public class GameWindow extends JPanel
         if(targetCard!=null && getLocalCard(targetCard)!=null){
             targetCard = getLocalCard(targetCard);
         }
-        
-        
-        //DO ACTIONS
-        //
-        //                
+               
         if(event.getType()=="CREATURE_COMBAT")
         {   
             //exchange damage between origin and target
             CreatureCard origin = (CreatureCard) originCard;
             CreatureCard target = (CreatureCard) targetCard;
-            
-            System.out.println(origin.getName() + " and " + target.getName() + " are fighting!");
+
             
             Timer timer = new Timer();
             TimerTask targetDamageTask = new TimerTask() {
@@ -403,6 +407,7 @@ public class GameWindow extends JPanel
             CreatureCard origin = (CreatureCard) originCard;
             PlayerBox target = event.getTargetPlayerBox();
             CreatureCard blocker = (CreatureCard) event.getBlockingCard();
+            
             final int originPower = origin.getPower();
             final int blockerPower;
             final int blockerToughness;
@@ -417,7 +422,6 @@ public class GameWindow extends JPanel
                 blockerToughness = 0;
             }
 
-            
             Timer timer = new Timer();
             
             TimerTask creatureDamageTask = new TimerTask(){
@@ -476,7 +480,7 @@ public class GameWindow extends JPanel
         }
         
         //release current card event
-        this.cardEvent = null;
+        cardEvent = null;
         drawLineGlassPane.setVisible(false);
         drawLineGlassPane = null; 
         
@@ -895,11 +899,6 @@ public class GameWindow extends JPanel
         //disable interaction
         this.disablePlay();
         gameControlPanel.endGame(true);
-    }
-    
-    public void drawGame()
-    {
-        
     }
     
     public void zoomInCard(Card card)

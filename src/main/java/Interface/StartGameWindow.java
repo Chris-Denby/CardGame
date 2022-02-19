@@ -5,6 +5,7 @@
  */
 package Interface;
 
+import Database.JSONHelper;
 import NetCode.TCPServer;
 import NetCode.TCPClient;
 import java.awt.event.ActionEvent;
@@ -41,6 +42,9 @@ public class StartGameWindow extends JPanel
         this.add(startLocalButton);
         this.add(startClientButton);
         this.add(startServerButton);
+        
+        JSONHelper jHelper = new JSONHelper();
+        //jHelper.createCardLists();
         
         startClientButton.addActionListener((new ActionListener() 
         {

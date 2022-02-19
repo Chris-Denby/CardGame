@@ -21,7 +21,7 @@ import javax.swing.SwingConstants;
  *
  * @author chris
  */
-public class CreatureCard extends Card 
+public class CreatureCard extends Card
 {
     private int power = 1;
     private int toughness = 1;
@@ -42,6 +42,7 @@ public class CreatureCard extends Card
         bottomPanel.add(toughnessLabel); 
         
     }
+    
 
     public int getPower() 
     {
@@ -51,6 +52,7 @@ public class CreatureCard extends Card
     public void setPower(int power) 
     {
         this.power = power;
+        powerLabel.setText(power+"");
     }
 
     public int getToughness() 
@@ -61,6 +63,7 @@ public class CreatureCard extends Card
     public void setToughness(int toughness) 
     {
         this.toughness = toughness;
+        toughnessLabel.setText(toughness+"");
     }
     
     public void setLocation(CardLocation l)
