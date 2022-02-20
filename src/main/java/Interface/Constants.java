@@ -14,6 +14,8 @@ public class Constants
     static int maxHandSize = 7;
     static int maxResourceAmount = 7;
     static int defaultPlayerHealth = 20;
+    static int turnTimeLimit = 10;
+    static int discardTimeLimit = 10;
     
     public static enum CardLocation
     {

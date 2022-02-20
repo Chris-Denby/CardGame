@@ -17,6 +17,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.JLayeredPane;
 
 /**
@@ -37,6 +40,7 @@ public class PlayerHand extends JLayeredPane
     Point origin;
     GameWindow gameWindow;
     ResourcePanel resourcePanel;
+    private int discardTimeLimit = 10;
     
     public PlayerHand(int containerWidth, int containerHeight, PlayArea area, boolean isOpponents, GameWindow window, ResourcePanel panel)
     {
@@ -84,7 +88,8 @@ public class PlayerHand extends JLayeredPane
                             if(gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
                             {
                                 discardCard(card);
-                                checkHandSizeForEndTurn();
+                                if(checkHandSizeForEndTurn())
+                                    gameWindow.passTurn();     
                             }
                             else
                                 playCard(card,false);
@@ -102,6 +107,11 @@ public class PlayerHand extends JLayeredPane
             return true;
         }
         return false;
+    }
+    
+    public List<Card> getCardsInHand()
+    {
+        return cardsInHand;
     }
     
     public void discardCard(Card card)
@@ -222,6 +232,8 @@ public class PlayerHand extends JLayeredPane
     
     public boolean checkHandSizeForEndTurn()
     {        
+        gameWindow.setTurnPhase(TurnPhase.END_PHASE);
+        
         int numCardsOver = cardsInHand.size()-maxHandSize;
   
         if(numCardsOver>0)
@@ -231,7 +243,7 @@ public class PlayerHand extends JLayeredPane
         }
         else
         {
-            gameWindow.getGameControlPanel().setNotificationLabel("");           
+            gameWindow.getGameControlPanel().setNotificationLabel("");    
             return true;
         }
     }

@@ -67,6 +67,9 @@ public class GameWindow extends JPanel
     private TurnPhase turnPhase;
     private int turnCycleIncrementor = 0;
     private Color overlayColor = new Color(223,223,223,200);
+    private int discardTimeLimit;
+    private Timer discardTimer = new Timer();
+    private TimerTask discardTask;
     
     //constructor
     public GameWindow(JTabbedPane pane)
@@ -81,7 +84,7 @@ public class GameWindow extends JPanel
         this.setMinimumSize(dimensions);
         this.setLayout(borderLayout);
         this.setBackground(Color.GREEN);
-        
+                
         //INITIALISE COMPONENTS
         resourcePanel = new ResourcePanel(getWidth(),getHeight(),this);
         resourcePanel.setOpaque(true);
@@ -372,6 +375,8 @@ public class GameWindow extends JPanel
         PlayerBox targetPlayer = event.getTargetPlayerBox();
         Card blockingCard = event.getBlockingCard();
         
+        this.gameControlPanel.increaseTime();
+        
         //if target card objects dont match whats in players hand due to sending over stream
         //match by ID instead        
         if(targetCard!=null && getLocalCard(targetCard)!=null){
@@ -407,6 +412,7 @@ public class GameWindow extends JPanel
             CreatureCard origin = (CreatureCard) originCard;
             PlayerBox target = event.getTargetPlayerBox();
             CreatureCard blocker = (CreatureCard) event.getBlockingCard();
+            
             
             final int originPower = origin.getPower();
             final int blockerPower;
@@ -508,17 +514,11 @@ public class GameWindow extends JPanel
 
     public void passTurn()
     {   
-        setTurnPhase(TurnPhase.END_PHASE);
-        gameControlPanel.setTurnPhaseLabelText(turnPhase);
-        
-        //increment turn number          
+        gameControlPanel.setTurnPhaseLabelText(turnPhase);  
+        //gameControlPanel.startTurnTimer();
+               
         if(isPlayerTurn)
-        {
-            //if its the players turn, check if any cards need to be discarded before passing turn
-            //if player hand is over max hand size - prevent passing turn
-            if(!playerHand.checkHandSizeForEndTurn()) 
-                return;
-            
+        {            
             isPlayerTurn=false;      
             this.playerPlayArea.setIsPlayerTurn(isPlayerTurn);
             this.opponentsPlayArea.setIsPlayerTurn(true);
@@ -542,10 +542,7 @@ public class GameWindow extends JPanel
             
             //draw card at the start of the turn - except the first turn of the game
             if(turnCycleIncrementor>0)
-                playerDeck.drawCard();
-            
-            
-            
+                playerDeck.drawCard();            
         }
         
         //replenish resources back to turn amount
@@ -566,7 +563,8 @@ public class GameWindow extends JPanel
         {
             turnNumber++;
             System.out.println("TURN "+ turnNumber);
-        }     
+        }    
+        
     }
     
     public void passOnBlocking()

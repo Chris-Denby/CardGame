@@ -9,8 +9,11 @@ import Database.JSONHelper;
 import Interface.Constants.TurnPhase;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,13 +33,57 @@ public class GameControlPanel extends JPanel
     private JLabel turnNumberLabel;
     private JLabel turnPhaseLabel;
     private JLabel notificationLabel;
-    private boolean isPlayerTurn = false;    
+    private JLabel turnTimeLabel;
+    private boolean isPlayerTurn = false;   
+    private Timer turnTimer = new Timer();
+    private TimerTask turnTimerTask;
+    private TimerTask discardTask;
+    private int turnTimeLimit = 60;
+    private int discardTimeLimit;
     
     public GameControlPanel(int containerWidth, int containerHeight, GameWindow window)
     {
         gameWindow = window;
         height = containerHeight;
         width = Math.round(containerWidth/4);
+        
+        turnTimerTask = new TimerTask() 
+        {
+            @Override
+            public void run() 
+            {
+                turnTimeLimit--;
+                
+                if(turnTimeLimit>=0)
+                    turnTimeLabel.setText(turnTimeLimit+"");
+                
+                if(turnTimeLimit<=10)
+                    turnTimeLabel.setForeground(Color.RED);
+                
+                if(turnTimeLimit==0)
+                {                    
+                    if(gameWindow.getIsPlayerTurn())
+                        gameWindow.passTurn(); 
+                }
+            }
+        };
+        
+        discardTask = new TimerTask() 
+        {
+            @Override
+            public void run() 
+            {
+                discardTimeLimit--;
+                setTurnTimerLabelText(discardTimeLimit);                
+                if(discardTimeLimit==0)
+                {
+                    //if discard time limit reaches 0
+                    //discard last card in hand
+                    gameWindow.getPlayerHand().discardCard(gameWindow.getPlayerHand().getCardsInHand().get(gameWindow.getPlayerHand().getCardsInHand().size()-1));
+                    gameWindow.passTurn();
+                }
+            }
+        };
         
         this.setPreferredSize(new Dimension(width,height));
         this.setOpaque(true);
@@ -50,12 +97,14 @@ public class GameControlPanel extends JPanel
         turnNumberLabel = new JLabel();
         turnPhaseLabel = new JLabel();
         notificationLabel = new JLabel();
+        turnTimeLabel = new JLabel();
         this.add(passTurnButton);
         this.add(resolveButton); 
         this.add(turnLabel);
         this.add(turnNumberLabel);
         this.add(turnPhaseLabel);
         this.add(notificationLabel);
+        this.add(turnTimeLabel);
         
         resolveButton.setEnabled(false);
         
@@ -84,7 +133,10 @@ public class GameControlPanel extends JPanel
             @Override
             public void actionPerformed(ActionEvent e) 
             {
-                gameWindow.passTurn();
+                if(gameWindow.getPlayerHand().checkHandSizeForEndTurn())
+                        gameWindow.passTurn();
+                //else
+                    //startDiscardTimer();                    
             }
         });
     }
@@ -93,8 +145,7 @@ public class GameControlPanel extends JPanel
     {
         resolveButton.setEnabled(enabled);
     }
-    
-    
+
     public void setResolveButtonText(String text)
     {
         resolveButton.setText(text);
@@ -150,5 +201,41 @@ public class GameControlPanel extends JPanel
          resolveButton.setEnabled(false);
          
         
+    }
+    
+    public void stopTurnTimer()
+    {
+        turnTimer.cancel();
+        turnTimer.purge();
+    }
+    
+    
+    public void startTurnTimer()
+    {
+        turnTimeLimit = Constants.turnTimeLimit;
+        turnTimeLabel.setText(turnTimeLimit+"");
+        turnTimeLabel.setForeground(Color.BLACK);
+        stopTurnTimer();
+        //repeat turn timer update every 1 second
+        turnTimer.scheduleAtFixedRate(turnTimerTask,0,1000);
+    }
+    
+    public void increaseTime()
+    {
+        turnTimeLimit = turnTimeLimit +3;
+    }
+    
+    public void setTurnTimerLabelText(int sec)
+    {
+        turnTimeLabel.setText(sec+"");
+    }
+    
+    public void startDiscardTimer()
+    {
+        turnTimer.cancel();
+        turnTimer.purge();
+        resolveButton.setEnabled(false);
+        discardTimeLimit = Constants.discardTimeLimit;
+        turnTimer.schedule(discardTask, 0, Constants.discardTimeLimit*100);
     }
 }

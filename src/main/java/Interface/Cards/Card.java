@@ -73,10 +73,10 @@ public class Card extends JPanel implements Serializable, Cloneable
         pictureBox = new JPanel(); 
         
         topPanel.setVisible(isFaceUp);
-        topPanel.setBackground(Color.BLUE);
+        topPanel.setBackground(Color.WHITE);
         pictureBox.setVisible(isFaceUp);
         pictureBox.setBackground(Color.PINK);
-        bottomPanel.setBackground(Color.BLUE);
+        bottomPanel.setBackground(Color.WHITE);
         topPanel.setBounds(strokeSize,strokeSize,getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5));
         pictureBox.setBounds(strokeSize,topPanel.getY()+topPanel.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/5)*3);
         bottomPanel.setBounds(strokeSize,pictureBox.getY()+pictureBox.getHeight(),topPanel.getWidth(), topPanel.getHeight());           
@@ -95,23 +95,24 @@ public class Card extends JPanel implements Serializable, Cloneable
         GridBagConstraints gbConstraints = new GridBagConstraints();
         topPanel.setLayout(new GridBagLayout());
         
-        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+        //gbConstraints.fill = GridBagConstraints.HORIZONTAL;
         gbConstraints.ipadx = 0;
         gbConstraints.ipady = 0;
-        //gbConstraints.insets = new Insets(4,4,4,4);
+        int insetWidth = topPanel.getWidth()-cardNameLabel.getWidth()-playCostLabel.getWidth();
+        gbConstraints.insets = new Insets(0,0,insetWidth,4);
         gbConstraints.ipady = 0;
-        gbConstraints.weightx = 0;
+        gbConstraints.weightx =1;
         gbConstraints.gridx = 0;
         gbConstraints.gridy = 0;
         gbConstraints.anchor = GridBagConstraints.LINE_END;
         topPanel.add(cardNameLabel, gbConstraints);
         
-        gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+        //gbConstraints.fill = GridBagConstraints.HORIZONTAL;
         gbConstraints.ipadx = 0;
         gbConstraints.ipady = 0;
         //gbConstraints.insets = new Insets(4,4,4,4);
         gbConstraints.weightx = 0;
-        gbConstraints.gridx = 3;
+        gbConstraints.gridx = 1;
         gbConstraints.gridy = 0;
         gbConstraints.anchor = GridBagConstraints.LINE_START;
         topPanel.add(playCostLabel, gbConstraints);
@@ -220,6 +221,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         {
             headingFontSize = 8;
             bodyFontSize = 6;
+            this.remove(topPanel);
         }
         else
         {
@@ -227,7 +229,7 @@ public class Card extends JPanel implements Serializable, Cloneable
             bodyFontSize = 6;
         }
         revalidate(); 
-        //repaint();
+        repaint();
     }
     
     public void setPlayArea(PlayArea area)
@@ -256,12 +258,12 @@ public class Card extends JPanel implements Serializable, Cloneable
         //draw fill
         if(isSelected){   
             strokeColor = Color.RED;
-            strokeSize = 5;
+            strokeSize = 2;
         }
         else
         if(isActivated){
             strokeColor = Color.GRAY;
-            strokeSize = 5;
+            strokeSize = 2;
         }
         else
             strokeSize = 1;  
