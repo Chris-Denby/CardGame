@@ -28,6 +28,7 @@ import javax.swing.SwingWorker;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
+import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -70,10 +71,12 @@ public class GameWindow extends JPanel
     private int discardTimeLimit;
     private Timer discardTimer = new Timer();
     private TimerTask discardTask;
+    private StartGameWindow startGameWindow;
     
     //constructor
-    public GameWindow(JTabbedPane pane)
+    public GameWindow(JTabbedPane pane, StartGameWindow startGameWindow)
     {
+        this.startGameWindow = startGameWindow;
         parentTabbedPane = pane;
         BorderLayout borderLayout = new BorderLayout();
         //SET JFRAME PARAMETERS
@@ -687,9 +690,9 @@ public class GameWindow extends JPanel
         opponentsDeck.setEnabled(enabled);
     }
     
-    public GameWindow(JTabbedPane pane,TCPServer server)
+    public GameWindow(JTabbedPane pane,TCPServer server, StartGameWindow startGamePanel)
     {
-        this(pane);
+        this(pane, startGamePanel);
         netServer = server;
         server.setGameWindow(this);
         //setOpponentInteractable(false);
@@ -705,9 +708,14 @@ public class GameWindow extends JPanel
         return opponentsHand;
     }
     
-    public GameWindow(JTabbedPane pane,TCPClient client)
+    public Image getImageFromCache(int id)
     {
-        this(pane);
+        return startGameWindow.getImageFromCache(id);        
+    }
+    
+    public GameWindow(JTabbedPane pane,TCPClient client, StartGameWindow startGamePanel)
+    {
+        this(pane, startGamePanel);
         netClient = client;
         client.setGameWindow(this);
     }
@@ -726,6 +734,14 @@ public class GameWindow extends JPanel
     
     public void recieveMessage(Message message)
     {   
+        Card messageCard = null;
+        if(message.getCard()!=null)
+        {
+            messageCard = message.getCard();
+            messageCard.setImage(getImageFromCache(messageCard.getImageID()));
+            //messageCard.setCardBack((getImageFromCache(999)));
+        }
+        
         if(message.getText().equals("OPPONENT_DRAW_CARD"))
         {
             opponentsDeck.drawCard();
@@ -733,17 +749,17 @@ public class GameWindow extends JPanel
         else
         if(message.getText().equals("OPPONENT_ADD_CARD_TO_DECK"))
         {
-            opponentsDeck.addCard(message.getCard());
+            opponentsDeck.addCard(messageCard);
         }
         else
         if(message.getText().equals("OPPONENT_PLAY_CARD"))
         {
-            this.opponentsHand.playCard(message.getCard(),true);
+            this.opponentsHand.playCard(messageCard,true);
         }
         else
         if(message.getText().equals("OPPONENT_ACTIVATE_CARD"))
         {
-            createCardEvent(message.getCard());
+            createCardEvent(messageCard);
         }
         
         else
@@ -774,7 +790,7 @@ public class GameWindow extends JPanel
         {
             //"player" meaning the active player who's turn it is
             //therefore on receipt, the player would be this applications opponent
-            opponentsHand.discardCard(message.getCard());
+            opponentsHand.discardCard(messageCard);
         }
         else
         if(message.getText().equals("OPPONENT_LOSE_GAME"))
@@ -791,7 +807,7 @@ public class GameWindow extends JPanel
         {
             //send received blocking card to the create card event method
             //this method asigns the card as a blocker in the card event
-            createCardEvent(message.getCard());
+            createCardEvent(messageCard);
         }
         else
         if(message.getText().equals("OPPONENT_PASS_ON_BLOCKING"))
@@ -903,7 +919,7 @@ public class GameWindow extends JPanel
     {
         if(cardZoomGlassPane==null)
         {
-            Card zoomedCard = zoomedCard = card.getClone();
+            Card zoomedCard = zoomedCard = card.getClone(getImageFromCache(card.getImageID()));
             //if glass pane is currently hidden
             //show zoomed in card glass pane
             rootPane = this.getRootPane();
@@ -957,6 +973,7 @@ public class GameWindow extends JPanel
             setSize(centrePanel.getWidth(), centrePanel.getHeight());
             setVisible(true);
             setBackground(overlayColor);
+            //card.setImage(getImageFromCache(card.getImageID()));
             //resize clone of card to be zoomed            
             card.applySize((int) Math.round(centrePanel.getHeight()*0.5));
             //set card location on screen

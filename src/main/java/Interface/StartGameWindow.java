@@ -6,13 +6,20 @@
 package Interface;
 
 import Database.JSONHelper;
+import Interface.Cards.Card;
 import NetCode.TCPServer;
 import NetCode.TCPClient;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -31,6 +38,9 @@ public class StartGameWindow extends JPanel
     private TCPClient netClient;
     private TCPServer netServer;
     
+    HashMap<Integer,Image> imageCache = new HashMap<Integer,Image>();
+    JSONHelper jsonHelper = new JSONHelper();
+    
     JButton startLocalButton = new JButton("Start local game");
     JButton startClientButton = new JButton("Join net game");
     JButton startServerButton = new JButton("Host net game");
@@ -43,8 +53,8 @@ public class StartGameWindow extends JPanel
         this.add(startClientButton);
         this.add(startServerButton);
         
-        JSONHelper jHelper = new JSONHelper();
-        //jHelper.createCardLists();
+        loadImageCache();
+        
         
         startClientButton.addActionListener((new ActionListener() 
         {
@@ -156,19 +166,19 @@ public class StartGameWindow extends JPanel
     
     private void startGame()
     {
-        parentTabbedPane.addTab("Game", new GameWindow(parentTabbedPane));
+        parentTabbedPane.addTab("Game", new GameWindow(parentTabbedPane,this));
         parentTabbedPane.setSelectedIndex(1);
     }
     
     private void startGame(TCPClient client)
     {
-        parentTabbedPane.addTab("Game", new GameWindow(parentTabbedPane, client));
+        parentTabbedPane.addTab("Game", new GameWindow(parentTabbedPane, client,this));
         parentTabbedPane.setSelectedIndex(1);    
     }
     
     private void startGame(TCPServer server)
     {
-        parentTabbedPane.addTab("Game", new GameWindow(parentTabbedPane, server));
+        parentTabbedPane.addTab("Game", new GameWindow(parentTabbedPane, server,this));
         parentTabbedPane.setSelectedIndex(1);    
     }
     
@@ -179,9 +189,29 @@ public class StartGameWindow extends JPanel
         startClient(ipAddress);
         
     }
-
-
-            
-
     
+    public void loadImageCache()
+    {
+        try{
+            for(Card c:jsonHelper.readJSONFile("player1Cards")){
+                System.out.println("attempting to read - "+ Constants.imagePath+c.getImageID()+".jpg");
+                imageCache.put(c.getImageID(), ImageIO.read(new File(Constants.imagePath+c.getImageID()+".jpg")));
+            }
+
+            for(Card cc:jsonHelper.readJSONFile("player2Cards")){
+                System.out.println("attempting to read - "+ Constants.imagePath+cc.getImageID()+".jpg");
+                imageCache.put(cc.getImageID(), ImageIO.read(new File(Constants.imagePath+cc.getImageID()+".jpg")));
+            } 
+            
+                imageCache.put(999, ImageIO.read(new File(Constants.imagePath+"back.jpg")));
+        }
+        catch(Exception ex){
+            System.out.println("image read failed:\n"+ex.getMessage());} 
+        
+    }
+    
+    public Image getImageFromCache(int imageID)
+    {
+        return imageCache.get(imageID);
+    }
 }

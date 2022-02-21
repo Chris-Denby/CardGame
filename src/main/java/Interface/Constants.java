@@ -16,6 +16,8 @@ public class Constants
     static int defaultPlayerHealth = 20;
     static int turnTimeLimit = 10;
     static int discardTimeLimit = 10;
+    public static String JSONpath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\cards.json";
+    public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
     
     public static enum CardLocation
     {
@@ -38,6 +40,10 @@ public class Constants
         END_PHASE
     }
     
+    public static enum SpellEffect
+    {
+        DRAW_CARD  
+    }
     
     
     

@@ -41,11 +41,6 @@ public class JSONHelper
     
     public JSONHelper()
     {
-        //populate JSON file with pre-filled cards
-        //for development purposes
-        //delete after cards created
-        //and read only on startup
-            //createCardLists();
         
     }
 
@@ -138,7 +133,8 @@ public class JSONHelper
 
             if(o.get("type").equals("class Interface.Cards.CreatureCard"))
             {
-                CreatureCard cCard = new CreatureCard("");
+                CreatureCard cCard = new CreatureCard("",1);
+                cCard.setImageID(Integer.parseInt(Long.toString((Long)o.get("imageID"))));
                 cCard.setName((String)o.get("name"));
                 cCard.setCardID(Integer.parseInt(Long.toString((Long)o.get("id"))));
                 cCard.setPlayCost(Integer.parseInt(Long.toString((Long)o.get("cost")))); 
@@ -148,7 +144,8 @@ public class JSONHelper
             }  
             else
             {
-                Card card = new Card("");
+                Card card = new Card("",1);
+                card.setImageID(Integer.parseInt(Long.toString((Long)o.get("imageID"))));
                 card.setName((String)o.get("name"));
                 card.setCardID(Integer.parseInt(Long.toString((Long)o.get("id"))));
                 card.setPlayCost(Integer.parseInt(Long.toString((Long)o.get("cost"))));    
@@ -162,20 +159,16 @@ public class JSONHelper
     
     public void createCardLists()
     {
-        //1st level JSON container
         JSONObject cardsJSON = new JSONObject();
-        //2nd level JSON containers
-        //JSONObject player1CardsJSON = new JSONObject();
-        //JSONObject player2CardsJSON = new JSONObject();
-        //3rd level JSON arrays
         JSONArray player1CardsJSONArray = new JSONArray();
         JSONArray player2CardsJSONArray = new JSONArray();
         
         //player 1 card list
         for(int x=0;x<60;x++)
         {
-            CreatureCard c = new CreatureCard("");
+            CreatureCard c = new CreatureCard("",1);
             c.setName("Creature");
+            c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
             c.setCardID(System.identityHashCode(c));
             c.setPower(ThreadLocalRandom.current().nextInt(1,8));
             c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
@@ -190,6 +183,7 @@ public class JSONHelper
             cardJSON.put("type",c.getClass().toString());
             cardJSON.put("power",((CreatureCard) c).getPower());
             cardJSON.put("toughness",((CreatureCard) c).getToughness());
+            cardJSON.put("imageID",c.getImageID());
 
            player1CardsJSONArray.add(cardJSON);
         }
@@ -197,8 +191,9 @@ public class JSONHelper
         //player 2 card list
         for(int x=0;x<60;x++)
         {
-            CreatureCard c = new CreatureCard("");
+            CreatureCard c = new CreatureCard("",1);
             c.setName("Creature");
+            c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
             c.setCardID(System.identityHashCode(c));
             c.setPower(ThreadLocalRandom.current().nextInt(1,8));
             c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
@@ -213,6 +208,7 @@ public class JSONHelper
             cardJSON.put("type",c.getClass().toString());
             cardJSON.put("power",((CreatureCard) c).getPower());
             cardJSON.put("toughness",((CreatureCard) c).getToughness());
+            cardJSON.put("imageID",c.getImageID());
 
            player2CardsJSONArray.add(cardJSON);
         }

@@ -9,6 +9,7 @@ import Interface.Constants.CardLocation;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -28,9 +29,9 @@ public class CreatureCard extends Card
     private JLabel powerLabel;
     private JLabel toughnessLabel;
     
-    public CreatureCard(String cardName) 
+    public CreatureCard(String cardName, int imageID) 
     {
-        super(cardName);
+        super(cardName,imageID);
         
         powerLabel = new JLabel(power+"",SwingConstants.CENTER);
         powerLabel.setFont(headingFont);
@@ -106,10 +107,11 @@ public class CreatureCard extends Card
     }
     
     @Override
-    public CreatureCard getClone()
+    public CreatureCard getClone(Image img)
     {
         //this method creates a deep copy of the card and returns it
-        CreatureCard clone = new CreatureCard(getName());
+        CreatureCard clone = new CreatureCard(getName(),getImageID());
+        clone.setImage(img);
         clone.setPlayCost(getPlayCost());
         clone.setPower(power);
         clone.setToughness(toughness);

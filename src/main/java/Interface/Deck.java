@@ -120,14 +120,22 @@ public class Deck extends JLayeredPane
             //read cards from JSON DB
             //populate users deck  from JSON           
             for(Card c:h.readJSONFile("player1Cards"))
+            {
+                c.setImage(gameWindow.getImageFromCache(c.getImageID()));
+                //c.setCardBack((gameWindow.getImageFromCache(999)));
                 addCard(c);
+            }
         }
         else 
         {
             //read cards from JSON DB
             //populate users deck  from JSON         
             for(Card c:h.readJSONFile("player2Cards"))
+            {
+                c.setImage(gameWindow.getImageFromCache(c.getImageID()));
+                //c.setCardBack((gameWindow.getImageFromCache(999)));
                 addCard(c);
+            }
         }
         
         //deal out first hand

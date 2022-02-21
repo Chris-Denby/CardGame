@@ -19,7 +19,9 @@ import Interface.PlayArea;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Shape;
 import javax.swing.BoxLayout;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
@@ -57,20 +59,23 @@ public class Card extends JPanel implements Serializable, Cloneable
     transient Font headingFont = new Font("Arial",Font.BOLD,headingFontSize);
     transient Font bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
     transient private boolean isSelected = false;
+    private int imageID;
     JLabel cardNameLabel;
     JPanel topPanel;
-    JPanel pictureBox;
+    ImagePanel pictureBox;
     JPanel bottomPanel;
     JLabel playCostLabel;
+    Image cardBack;
     
 
-    public Card(String cardName)
+    public Card(String cardName, int imageId)
     {
         this.cardName = cardName;
+        this.imageID = imageID;
                 
         topPanel = new JPanel();
         bottomPanel = new JPanel();
-        pictureBox = new JPanel(); 
+        pictureBox = new ImagePanel();
         
         topPanel.setVisible(isFaceUp);
         topPanel.setBackground(Color.WHITE);
@@ -88,9 +93,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
         cardNameLabel.setFont(headingFont);
         playCostLabel.setFont(headingFont);
-        
-        //topPanel.add(cardNameLabel);
-        //topPanel.add(playCostLabel); 
         
         GridBagConstraints gbConstraints = new GridBagConstraints();
         topPanel.setLayout(new GridBagLayout());
@@ -125,6 +127,16 @@ public class Card extends JPanel implements Serializable, Cloneable
        
         
     }
+    
+    public void setCardBack(Image img)
+    {
+        cardBack = img;
+    }
+    
+    public void setImageID(int id)
+    {
+        imageID = id;
+    }
 
     public void setCardID(int id)
     {
@@ -134,6 +146,11 @@ public class Card extends JPanel implements Serializable, Cloneable
     public int getCardID()
     {
         return cardID;
+    }
+    
+    public int getImageID()
+    {
+        return imageID;
     }
         
     public String getName()
@@ -236,6 +253,11 @@ public class Card extends JPanel implements Serializable, Cloneable
     {
         this.playArea = area;
     }
+    
+    public void setImage(Image img)
+    {
+        pictureBox.setImage(img);
+    }
      
     @Override
     public void paintComponent(Graphics g) 
@@ -267,7 +289,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         }
         else
             strokeSize = 1;  
-        
+                
         //draw inside
         graphics.setColor(backgroundColor);
         graphics.fillRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
@@ -306,11 +328,12 @@ public class Card extends JPanel implements Serializable, Cloneable
         return location;
     }   
     
-    public Card getClone()
+    public Card getClone(Image img)
     {
         //this method creates a deep copy of the card and returns it
-        Card clone = new Card(this.getName());
+        Card clone = new Card(cardName,imageID);
         clone.setPlayCost(playCost);
+        clone.setImage(img);
         //set picture box
         return clone;
     }

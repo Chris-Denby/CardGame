@@ -61,7 +61,8 @@ public class TCPClient
         }
         catch(IOException ex)
         {
-            System.out.println("Message failed to send from Client: " + ex.getMessage());
+            System.out.println("Message failed to send from Client:");
+            ex.printStackTrace();
         } 
     }
     
