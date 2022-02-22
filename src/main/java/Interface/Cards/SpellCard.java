@@ -10,6 +10,7 @@ import Interface.Constants.SpellEffect;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -50,6 +51,11 @@ public class SpellCard extends Card
         this.effect=effect;
     }
     
+    public void setEffect(String effect)
+    {
+        this.effect = SpellEffect.valueOf(effect);
+    }
+    
     public SpellEffect getEffect()
     {
         return effect;
@@ -61,12 +67,13 @@ public class SpellCard extends Card
     }
     
     @Override
-    public SpellCard getClone()
+    public SpellCard getClone(Image img)
     {
         //this method creates a deep copy of the card and returns it
         SpellCard clone = new SpellCard(getName(), getImageID());
         clone.setPlayCost(getPlayCost());
         clone.setEffect(effect);
+        clone.setImage(img);
         //set picture box
         return clone;
     }

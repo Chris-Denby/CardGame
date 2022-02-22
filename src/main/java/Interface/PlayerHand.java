@@ -6,6 +6,7 @@
 package Interface;
 
 import Interface.Cards.Card;
+import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
 import java.awt.Color;
@@ -191,8 +192,8 @@ public class PlayerHand extends JLayeredPane
             card.setCardLocation(CardLocation.PLAYER_HAND);
             
         else
-            card.setCardLocation(CardLocation.OPPONENT_HAND);           
-
+            card.setCardLocation(CardLocation.OPPONENT_HAND);
+        
         resourcePanel.useResources(card.getPlayCost());
         playArea.addCard(card);
         removeCard(card);
@@ -218,6 +219,13 @@ public class PlayerHand extends JLayeredPane
     {
         for(int x=0;x<maxHandSize;x++)
             deck.drawCard();
+    }
+    
+    public void drawCards(int num)
+    {
+        //draw cards * the number passed as parameter
+        for(int x=0;x<num;x++)
+            this.deck.drawCard();
     }
     
     public int getNumCards()

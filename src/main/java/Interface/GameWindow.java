@@ -8,6 +8,7 @@ package Interface;
 import Database.JSONHelper;
 import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
+import Interface.Cards.SpellCard;
 import NetCode.TCPClient;
 import NetCode.TCPServer;
 import java.awt.BasicStroke;
@@ -26,6 +27,7 @@ import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingWorker;
 import Interface.Constants.CardLocation;
+import Interface.Constants.SpellEffect;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
 import java.awt.Image;
@@ -170,6 +172,14 @@ public class GameWindow extends JPanel
             cardEvent = new CardEvent(card);
             //activate cards in the play areas
             card.setIsSelected(true);
+            
+            if(card instanceof SpellCard){
+                cardEvent.setType("CAST_SPELL");
+                //set self as the target
+                cardEvent.addTargetPlayerBox(playerPlayArea.getPlayerBoxPanel());
+                executeCardEvent();
+                return;
+            }
             
             //***************
             //send message to connected server/client
@@ -371,7 +381,7 @@ public class GameWindow extends JPanel
 
     public void executeCardEvent(CardEvent event)
     {   
-        setTurnPhase(TurnPhase.COMBAT_PHASE);
+
         
         Card originCard = event.getOriginCard();
         Card targetCard = event.getTargetCard();
@@ -385,89 +395,106 @@ public class GameWindow extends JPanel
         if(targetCard!=null && getLocalCard(targetCard)!=null){
             targetCard = getLocalCard(targetCard);
         }
-               
-        if(event.getType()=="CREATURE_COMBAT")
-        {   
-            //exchange damage between origin and target
-            CreatureCard origin = (CreatureCard) originCard;
-            CreatureCard target = (CreatureCard) targetCard;
-
-            
-            Timer timer = new Timer();
-            TimerTask targetDamageTask = new TimerTask() {
-                @Override
-                public void run() {
-                    origin.takeDamage(target.getPower());
-                }
-            };
-            TimerTask originDamageTask = new TimerTask() {
-                @Override
-                public void run() {
-                    target.takeDamage(origin.getPower()); 
-                    timer.schedule(targetDamageTask, 500);
-                }
-            };
-            timer.schedule(originDamageTask, 500);
-        }
-        if(event.getType()=="CREATURE_ATTACK_PLAYER")
-        {            
-            //creature does damage to target player
-            CreatureCard origin = (CreatureCard) originCard;
-            PlayerBox target = event.getTargetPlayerBox();
-            CreatureCard blocker = (CreatureCard) event.getBlockingCard();
-            
-            
-            final int originPower = origin.getPower();
-            final int blockerPower;
-            final int blockerToughness;
-            if(blocker!=null)
+        
+        if(event.getType()=="CAST_SPELL")
+        {
+            //do action
+            SpellCard spellCard = (SpellCard) event.getOriginCard();
+            if(spellCard.getEffect()==SpellEffect.DRAW_CARD && isPlayerTurn)
             {
-                blockerPower = blocker.getPower();
-                blockerToughness = blocker.getToughness();
+                this.getPlayerHand().drawCards(spellCard.getPlayCost());
+            }
+        }
+        else
+        {
+            setTurnPhase(TurnPhase.COMBAT_PHASE);
+            
+            if(event.getType()=="CREATURE_COMBAT")
+            {   
+                //exchange damage between origin and target
+                CreatureCard origin = (CreatureCard) originCard;
+                CreatureCard target = (CreatureCard) targetCard;
+
+
+                Timer timer = new Timer();
+                TimerTask targetDamageTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        origin.takeDamage(target.getPower());
+                    }
+                };
+                TimerTask originDamageTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        target.takeDamage(origin.getPower()); 
+                        timer.schedule(targetDamageTask, 500);
+                    }
+                };
+                timer.schedule(originDamageTask, 500);
             }
             else
-            {
-                blockerPower = 0;
-                blockerToughness = 0;
-            }
+            if(event.getType()=="CREATURE_ATTACK_PLAYER")
+            {            
+                //creature does damage to target player
+                CreatureCard origin = (CreatureCard) originCard;
+                PlayerBox target = event.getTargetPlayerBox();
+                CreatureCard blocker = (CreatureCard) event.getBlockingCard();
 
-            Timer timer = new Timer();
-            
-            TimerTask creatureDamageTask = new TimerTask(){
-                @Override
-                public void run(){
-                    if(blocker!=null)
-                    {
-                        blocker.takeDamage(originPower);
-                        origin.takeDamage(blockerPower);
-                    }
-                } 
-            };
-            if(blocker!=null)
-                timer.schedule(creatureDamageTask, 1000);  
-            
-            TimerTask playerDamageTask = new TimerTask() {
-                @Override
-                public void run() {
-                    
-                    target.takeDamage(originPower-blockerToughness);
-                    //if card event execution reduced player health to 0 or below
-                    if(playerPlayArea.getPlayerBoxPanel().getPlayerHealth()<=0)
-                    {
-                        System.out.println("YOU LOSE THE GAME!!!");
-                        //if player is <=0 health and opponent is >0
-                        //player loses the game
-                        loseGame();
-        }
+
+                final int originPower = origin.getPower();
+                final int blockerPower;
+                final int blockerToughness;
+                if(blocker!=null)
+                {
+                    blockerPower = blocker.getPower();
+                    blockerToughness = blocker.getToughness();
                 }
-            };
-            timer.schedule(playerDamageTask, 1000);  
+                else
+                {
+                    blockerPower = 0;
+                    blockerToughness = 0;
+                }
+
+                Timer timer = new Timer();
+
+                TimerTask creatureDamageTask = new TimerTask(){
+                    @Override
+                    public void run(){
+                        if(blocker!=null)
+                        {
+                            blocker.takeDamage(originPower);
+                            origin.takeDamage(blockerPower);
+                        }
+                    } 
+                };
+                if(blocker!=null)
+                    timer.schedule(creatureDamageTask, 1000);  
+
+                TimerTask playerDamageTask = new TimerTask() {
+                    @Override
+                    public void run() 
+                    {
+                        if(originPower-blockerToughness>0)                       
+                            target.takeDamage(originPower-blockerToughness);
+
+                        //if card event execution reduced player health to 0 or below
+                        if(playerPlayArea.getPlayerBoxPanel().getPlayerHealth()<=0)
+                        {
+                            System.out.println("YOU LOSE THE GAME!!!");
+                            //if player is <=0 health and opponent is >0
+                            //player loses the game
+                            loseGame();
+                        }
+                    }
+                };
+                timer.schedule(playerDamageTask, 1000);  
+            }
         }
-        
+
         //AFTER EVENT RESOLVED
         //return card state to normal
         event.execute();
-        
+
         if(originCard!=null)
         {
             originCard.setIsSelected(false);
@@ -487,12 +514,16 @@ public class GameWindow extends JPanel
             blockingCard.setIsSelected(false);
             blockingCard.setIsActivated(true);
         }
-        
+
         //release current card event
         cardEvent = null;
-        drawLineGlassPane.setVisible(false);
-        drawLineGlassPane = null; 
         
+        if(drawLineGlassPane!=null)
+        {
+            drawLineGlassPane.setVisible(false);
+            drawLineGlassPane = null; 
+        }
+
         //progress turn phase
         setTurnPhase(TurnPhase.MAIN_PHASE);
     }

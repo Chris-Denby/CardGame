@@ -18,6 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.JLayeredPane;
 import Interface.Constants.CardLocation;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -112,13 +113,13 @@ public class Deck extends JLayeredPane
         
     public void populateDeckAndDeal(boolean isPlayer1)
     {
-        System.out.println("Deal");
         JSONHelper h = new JSONHelper(); 
         
         if(isPlayer1)
         {        
             //read cards from JSON DB
-            //populate users deck  from JSON           
+            //populate users deck  from JSON  
+            
             for(Card c:h.readJSONFile("player1Cards"))
             {
                 c.setImage(gameWindow.getImageFromCache(c.getImageID()));
@@ -137,19 +138,25 @@ public class Deck extends JLayeredPane
                 addCard(c);
             }
         }
-        
+        shuffleDeck();
         //deal out first hand
         playerHand.dealHand();
+    }
+    
+    public void shuffleDeck()
+    {
+        layer = 0;
+        this.removeAll();
+        Collections.shuffle(cardsInDeck);
+        for(Card c:cardsInDeck)
+        {
+            add(c,layer);
+            layer++;
+        }
     }
     
     public List<Card> getCardsInDeck()
     {
         return cardsInDeck;
-    }
-    
-    
-  
-    
-    
-    
+    }  
 }

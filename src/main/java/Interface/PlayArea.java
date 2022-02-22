@@ -6,6 +6,7 @@
 package Interface;
 
 import Interface.Cards.Card;
+import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
 import java.awt.BorderLayout;
@@ -19,6 +20,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
@@ -148,6 +151,23 @@ public class PlayArea extends JPanel
             cardsInPlay.add(card);
             this.revalidate();
             this.repaint();
+            
+            if(card instanceof SpellCard)
+            {
+                //do activate on enter the battlefield
+                Timer timer = new Timer();
+                TimerTask tt = new TimerTask() {
+                    @Override
+                    public void run()
+                    {
+                        timer.cancel();
+                        selectCard(card);  
+                        removeCard(card);
+
+                    }
+                }; 
+                timer.schedule(tt, 1000);
+            }
         }
     }
     

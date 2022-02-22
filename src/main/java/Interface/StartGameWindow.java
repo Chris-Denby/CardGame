@@ -10,6 +10,7 @@ import Interface.Cards.Card;
 import NetCode.TCPServer;
 import NetCode.TCPClient;
 import java.awt.Image;
+import static java.awt.Image.SCALE_DEFAULT;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -53,7 +54,12 @@ public class StartGameWindow extends JPanel
         this.add(startClientButton);
         this.add(startServerButton);
         
+        //JSONHelper jh = new JSONHelper();
+        //jh.createCardLists();
+        
         loadImageCache();
+        
+        
         
         
         startClientButton.addActionListener((new ActionListener() 
@@ -194,16 +200,20 @@ public class StartGameWindow extends JPanel
     {
         try{
             for(Card c:jsonHelper.readJSONFile("player1Cards")){
-                System.out.println("attempting to read - "+ Constants.imagePath+c.getImageID()+".jpg");
-                imageCache.put(c.getImageID(), ImageIO.read(new File(Constants.imagePath+c.getImageID()+".jpg")));
+                 //imageCache.put(c.getImageID(), ImageIO.read(new File(Constants.imagePath+c.getImageID()+".jpg")));
+                Image img = ImageIO.read(new File(Constants.imagePath+c.getImageID()+".jpg"));
+                img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
+                imageCache.put(c.getImageID(), img);
             }
 
             for(Card cc:jsonHelper.readJSONFile("player2Cards")){
-                System.out.println("attempting to read - "+ Constants.imagePath+cc.getImageID()+".jpg");
-                imageCache.put(cc.getImageID(), ImageIO.read(new File(Constants.imagePath+cc.getImageID()+".jpg")));
+                //imageCache.put(cc.getImageID(), ImageIO.read(new File(Constants.imagePath+cc.getImageID()+".jpg")));
+                Image img = ImageIO.read(new File(Constants.imagePath+cc.getImageID()+".jpg"));
+                img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
+                imageCache.put(cc.getImageID(), img);
             } 
             
-                imageCache.put(999, ImageIO.read(new File(Constants.imagePath+"back.jpg")));
+                //imageCache.put(999, ImageIO.read(new File(Constants.imagePath+"back.jpg")));
         }
         catch(Exception ex){
             System.out.println("image read failed:\n"+ex.getMessage());} 

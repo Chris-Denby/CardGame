@@ -7,6 +7,8 @@ package Database;
 
 import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
+import Interface.Cards.SpellCard;
+import Interface.Constants;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -68,12 +70,15 @@ public class JSONHelper
                 cardJSON.put("power",((CreatureCard) c).getPower());
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
             }
+            if(c instanceof SpellCard)
+            {
+                //cardJSON.put("effect", ((SpellCard) c).getEffect());
+            }
             cardJSON.put("id",c.getCardID());
             cardJSON.put("name",c.getName());
             cardJSON.put("cost",c.getPlayCost());
 
            //add card to parent json record
-           //allCardsJSON.put("card", cardJSON);
            allCardsJSONArray.add(cardJSON);
         }
         cardsJSON.put("cards", allCardsJSONArray);
@@ -83,7 +88,6 @@ public class JSONHelper
     public void writeJSONFile(JSONObject jObject)
     {
         try{
-            System.out.println("writing JSON");
             file = new FileWriter(filePath + fileName);
             file.write(jObject.toJSONString());
         }
@@ -102,9 +106,6 @@ public class JSONHelper
                 e.printStackTrace();
             }
         }
-        
-        
-        
     }
     
     public List<Card> readJSONFile(String recordName)
@@ -141,6 +142,17 @@ public class JSONHelper
                 cCard.setPower(Integer.parseInt(Long.toString((Long)o.get("power")))); 
                 cCard.setToughness(Integer.parseInt(Long.toString((Long)o.get("toughness")))); 
                 cardsList.add(cCard);
+            }
+            else
+            if(o.get("type").equals("class Interface.Cards.SpellCard"))
+            {
+                SpellCard sCard = new SpellCard("",1);
+                sCard.setImageID(Integer.parseInt(Long.toString((Long)o.get("imageID"))));
+                sCard.setName((String)o.get("name"));
+                sCard.setCardID(Integer.parseInt(Long.toString((Long)o.get("id"))));
+                sCard.setPlayCost(Integer.parseInt(Long.toString((Long)o.get("cost")))); 
+                sCard.setEffect((String)o.get("effect"));
+                cardsList.add(sCard);
             }  
             else
             {
@@ -152,8 +164,6 @@ public class JSONHelper
                 cardsList.add(card);
             }            
         }
-        System.out.println("SIZE: "+ cardsList.size());
-                
         return cardsList;
     }
     
@@ -166,24 +176,48 @@ public class JSONHelper
         //player 1 card list
         for(int x=0;x<60;x++)
         {
-            CreatureCard c = new CreatureCard("",1);
-            c.setName("Creature");
-            c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
-            c.setCardID(System.identityHashCode(c));
-            c.setPower(ThreadLocalRandom.current().nextInt(1,8));
-            c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
-            c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));            
+            JSONObject cardJSON = null;
             
-            //create json object
-            JSONObject cardJSON = new JSONObject();
+            if(x<50)
+            {
+                CreatureCard c = new CreatureCard("",1);
+                c.setName("Creature");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPower(ThreadLocalRandom.current().nextInt(1,8));
+                c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));            
 
-            cardJSON.put("id",c.getCardID());
-            cardJSON.put("name",c.getName());
-            cardJSON.put("cost",c.getPlayCost());
-            cardJSON.put("type",c.getClass().toString());
-            cardJSON.put("power",((CreatureCard) c).getPower());
-            cardJSON.put("toughness",((CreatureCard) c).getToughness());
-            cardJSON.put("imageID",c.getImageID());
+                //create json object
+                cardJSON = new JSONObject();
+
+                cardJSON.put("id",c.getCardID());
+                cardJSON.put("name",c.getName());
+                cardJSON.put("cost",c.getPlayCost());
+                cardJSON.put("type",c.getClass().toString());
+                cardJSON.put("power",((CreatureCard) c).getPower());
+                cardJSON.put("toughness",((CreatureCard) c).getToughness());
+                cardJSON.put("imageID",c.getImageID());
+            }
+            if(x>=50)
+            {
+                SpellCard c = new SpellCard("",1);
+                c.setName("Spell");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
+                c.setEffect(Constants.SpellEffect.DRAW_CARD);
+
+                //create json object
+                cardJSON = new JSONObject();
+
+                cardJSON.put("id",c.getCardID());
+                cardJSON.put("name",c.getName());
+                cardJSON.put("cost",c.getPlayCost());
+                cardJSON.put("type",c.getClass().toString());
+                cardJSON.put("imageID",c.getImageID()); 
+                cardJSON.put("effect",c.getEffect().toString());
+            }
 
            player1CardsJSONArray.add(cardJSON);
         }
@@ -191,24 +225,48 @@ public class JSONHelper
         //player 2 card list
         for(int x=0;x<60;x++)
         {
-            CreatureCard c = new CreatureCard("",1);
-            c.setName("Creature");
-            c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
-            c.setCardID(System.identityHashCode(c));
-            c.setPower(ThreadLocalRandom.current().nextInt(1,8));
-            c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
-            c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));            
+            JSONObject cardJSON = null;
             
-            //create json object
-            JSONObject cardJSON = new JSONObject();
+            if(x<50)
+            {
+                CreatureCard c = new CreatureCard("",1);
+                c.setName("Creature");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPower(ThreadLocalRandom.current().nextInt(1,8));
+                c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));            
 
-            cardJSON.put("id",c.getCardID());
-            cardJSON.put("name",c.getName());
-            cardJSON.put("cost",c.getPlayCost());
-            cardJSON.put("type",c.getClass().toString());
-            cardJSON.put("power",((CreatureCard) c).getPower());
-            cardJSON.put("toughness",((CreatureCard) c).getToughness());
-            cardJSON.put("imageID",c.getImageID());
+                //create json object
+                cardJSON = new JSONObject();
+
+                cardJSON.put("id",c.getCardID());
+                cardJSON.put("name",c.getName());
+                cardJSON.put("cost",c.getPlayCost());
+                cardJSON.put("type",c.getClass().toString());
+                cardJSON.put("power",((CreatureCard) c).getPower());
+                cardJSON.put("toughness",((CreatureCard) c).getToughness());
+                cardJSON.put("imageID",c.getImageID());
+            }
+            if(x>=50)
+            {
+                SpellCard c = new SpellCard("",1);
+                c.setName("Spell");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
+                c.setEffect(Constants.SpellEffect.DRAW_CARD);
+
+                //create json object
+                cardJSON = new JSONObject();
+
+                cardJSON.put("id",c.getCardID());
+                cardJSON.put("name",c.getName());
+                cardJSON.put("cost",c.getPlayCost());
+                cardJSON.put("type",c.getClass().toString());
+                cardJSON.put("imageID",c.getImageID()); 
+                cardJSON.put("effect",c.getEffect().toString());
+            }
 
            player2CardsJSONArray.add(cardJSON);
         }
