@@ -32,6 +32,7 @@ public class SpellCard extends Card
     {
         super(cardName, imageID);
         effectLabel = new JLabel();
+        this.setFaceUp(false);
 
     }
 
@@ -40,20 +41,35 @@ public class SpellCard extends Card
         super.setCardLocation(l);
         revalidate();
     }
-    
-    public void setFaceUp(boolean is)
-    {
-        super.setFaceUp(is);
-    }
-    
+        
     public void setEffect(SpellEffect effect)
     {
         this.effect=effect;
+        setBodyText(this.effect);
     }
     
     public void setEffect(String effect)
     {
         this.effect = SpellEffect.valueOf(effect);
+        setBodyText(this.effect);
+    }
+    
+    public void setBodyText(SpellEffect effect)
+    {
+        switch(effect)
+        {
+            case DRAW_CARD:
+                setBodyText("Draw "+ playCost +" cards");
+                return;
+                
+            case DEAL_DAMAGE:
+                setBodyText("Deal "+ playCost +" damage");
+                return;
+                
+            case HEAL_DAMAGE:
+                setBodyText("Heal "+ playCost +" damage");
+                return;
+        }
     }
     
     public SpellEffect getEffect()

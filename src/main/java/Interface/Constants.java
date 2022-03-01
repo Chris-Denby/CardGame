@@ -11,11 +11,13 @@ package Interface;
  */
 public class Constants 
 {
-    static int maxHandSize = 7;
-    static int maxResourceAmount = 7;
-    static int defaultPlayerHealth = 20;
-    static int turnTimeLimit = 10;
-    static int discardTimeLimit = 10;
+    public static int windowWidth = 800;
+    public static int windowHeight = 700;
+    public static int maxHandSize = 7;
+    public static int maxResourceAmount = 7;
+    public static int defaultPlayerHealth = 20;
+    public static int turnTimeLimit = 10;
+    public static int discardTimeLimit = 10;
     public static String JSONpath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\cards.json";
     public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
     
@@ -42,7 +44,15 @@ public class Constants
     
     public static enum SpellEffect
     {
-        DRAW_CARD  
+        DRAW_CARD,
+        DEAL_DAMAGE,
+        HEAL_DAMAGE
+    }
+    
+    public static enum ETBeffect
+    {
+        TAUNT,
+        GAIN_LIFE        
     }
     
     

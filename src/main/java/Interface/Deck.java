@@ -59,8 +59,6 @@ public class Deck extends JLayeredPane
     
     public void addCard(Card card)
     { 
-        
-
         card.setBounds(origin.x+offset,origin.y,card.getWidth()-1,card.getHeight()-1);  
         card.setSize(Math.round(height*0.75f),height);
         card.applySize(card.getHeight());
@@ -93,9 +91,8 @@ public class Deck extends JLayeredPane
         layer--;
     }
     
-    public Card drawCard()
+    public void drawCard()
     {
-        Card card = null;
         //add new card to play area from the top of the deck
         if(playerHand.addCard(cardsInDeck.get(cardsInDeck.size()-1)))
         {
@@ -108,7 +105,6 @@ public class Deck extends JLayeredPane
                 gameWindow.sendMessage(m);
             }
         }       
-        return card;
     }
         
     public void populateDeckAndDeal(boolean isPlayer1)

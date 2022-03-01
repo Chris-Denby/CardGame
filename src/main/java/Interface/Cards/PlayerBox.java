@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Interface;
+package Interface.Cards;
 
+import Interface.Constants;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,7 +41,7 @@ public class PlayerBox extends JPanel
     public PlayerBox(int containerHeight, boolean isOpponent)
     {
         this.isOpponent = isOpponent;
-        this.height = (int) Math.round(containerHeight*0.6);
+        this.height = (int) Math.round(containerHeight*0.4);
         this.width = this.height;
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));

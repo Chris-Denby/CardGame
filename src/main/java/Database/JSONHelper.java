@@ -178,7 +178,7 @@ public class JSONHelper
         {
             JSONObject cardJSON = null;
             
-            if(x<50)
+            if(x<40)
             {
                 CreatureCard c = new CreatureCard("",1);
                 c.setName("Creature");
@@ -199,10 +199,31 @@ public class JSONHelper
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
                 cardJSON.put("imageID",c.getImageID());
             }
+            else
+            if(x>=40&& x<50)
+            {
+                SpellCard c = new SpellCard("",1);
+                c.setName("Burn Spell");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
+                c.setEffect(Constants.SpellEffect.DEAL_DAMAGE);
+
+                //create json object
+                cardJSON = new JSONObject();
+
+                cardJSON.put("id",c.getCardID());
+                cardJSON.put("name",c.getName());
+                cardJSON.put("cost",c.getPlayCost());
+                cardJSON.put("type",c.getClass().toString());
+                cardJSON.put("imageID",c.getImageID()); 
+                cardJSON.put("effect",c.getEffect().toString());               
+            }
+            else
             if(x>=50)
             {
                 SpellCard c = new SpellCard("",1);
-                c.setName("Spell");
+                c.setName("Draw Cards");
                 c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
                 c.setCardID(System.identityHashCode(c));
                 c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
@@ -227,7 +248,7 @@ public class JSONHelper
         {
             JSONObject cardJSON = null;
             
-            if(x<50)
+            if(x<40)
             {
                 CreatureCard c = new CreatureCard("",1);
                 c.setName("Creature");
@@ -248,10 +269,31 @@ public class JSONHelper
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
                 cardJSON.put("imageID",c.getImageID());
             }
+            else
+            if(x>=40&& x<50)
+            {
+                SpellCard c = new SpellCard("",1);
+                c.setName("Burn Spell");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
+                c.setEffect(Constants.SpellEffect.DEAL_DAMAGE);
+
+                //create json object
+                cardJSON = new JSONObject();
+
+                cardJSON.put("id",c.getCardID());
+                cardJSON.put("name",c.getName());
+                cardJSON.put("cost",c.getPlayCost());
+                cardJSON.put("type",c.getClass().toString());
+                cardJSON.put("imageID",c.getImageID()); 
+                cardJSON.put("effect",c.getEffect().toString());               
+            }
+            else
             if(x>=50)
             {
                 SpellCard c = new SpellCard("",1);
-                c.setName("Spell");
+                c.setName("Draw Cards");
                 c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
                 c.setCardID(System.identityHashCode(c));
                 c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
@@ -267,7 +309,7 @@ public class JSONHelper
                 cardJSON.put("imageID",c.getImageID()); 
                 cardJSON.put("effect",c.getEffect().toString());
             }
-
+            
            player2CardsJSONArray.add(cardJSON);
         }
         

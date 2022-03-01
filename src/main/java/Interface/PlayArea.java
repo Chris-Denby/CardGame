@@ -5,6 +5,7 @@
  */
 package Interface;
 
+import Interface.Cards.PlayerBox;
 import Interface.Cards.Card;
 import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
@@ -29,7 +30,7 @@ import javax.swing.JPanel;
  *
  * @author chris
  */
-public class PlayArea extends JPanel 
+public class PlayArea extends JPanel
 {
     GameWindow gameWindow;
     
@@ -55,17 +56,18 @@ public class PlayArea extends JPanel
         width = containerWidth;
         
         //height is the container minus the who player and opponents hands
-        height = (int) containerHeight-Math.round(containerHeight/2); 
+        height = (int) containerHeight-Math.round((containerHeight/16)*3); 
         this.setPreferredSize(new Dimension(width,height));
         this.setOpaque(false); 
         
         cardSubPanel = new JPanel();
-        //cardSubPanel.setBackground(Color.YELLOW);
-        cardSubPanel.setPreferredSize(new Dimension(width,height/2));
+        cardSubPanel.setBackground(Color.RED);
+        cardSubPanel.setPreferredSize(new Dimension(width,Math.round(height/10)*6));
         cardSubPanel.setSize(new Dimension(width,height/2));
+        
         playerSubPanel = new JPanel();
         //playerSubPanel.setBackground(Color.CYAN);
-        playerSubPanel.setPreferredSize(new Dimension(width,height/2));
+        playerSubPanel.setPreferredSize(new Dimension(width,Math.round(height/10)*4));
         playerSubPanel.setSize(new Dimension(width,height/2));
         this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         
@@ -140,7 +142,8 @@ public class PlayArea extends JPanel
                 card.setCardLocation(CardLocation.PLAYER_PLAY_AREA);
             
             card.setPlayArea(this);
-            int height = (int) Math.round(this.height/3);
+            
+            int height = (int) Math.round(cardSubPanel.getHeight()*0.75);
             card.applySize(height);
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
             card.setAlignmentY(Component.CENTER_ALIGNMENT);
@@ -154,6 +157,8 @@ public class PlayArea extends JPanel
             
             if(card instanceof SpellCard)
             {
+                SpellCard scard = (SpellCard) card;
+                
                 //do activate on enter the battlefield
                 Timer timer = new Timer();
                 TimerTask tt = new TimerTask() {
@@ -161,12 +166,11 @@ public class PlayArea extends JPanel
                     public void run()
                     {
                         timer.cancel();
-                        selectCard(card);  
-                        removeCard(card);
-
+                        selectCard(scard);  
                     }
                 }; 
                 timer.schedule(tt, 1000);
+                
             }
         }
     }
@@ -223,6 +227,7 @@ public class PlayArea extends JPanel
 
         @Override
         public void mouseReleased(MouseEvent e) { 
+            System.out.println("click");
             //only allow mouse events while its the players turn, or if its the declare blockers phase
             if(e.getButton()==MouseEvent.BUTTON1 && !gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.DECLARE_BLOCKERS && !card.getIsActivated() && card.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
             {
@@ -239,7 +244,16 @@ public class PlayArea extends JPanel
                 //if mouse 1 clicked
                 //and it is your turn
                 //and the turn phase is NOT declare blockers
-                selectCard(card);            
+                selectCard(card);    
+            }
+            else
+            if(e.getButton()==MouseEvent.BUTTON1 && gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.COMBAT_PHASE)
+            {
+                //if mouse 1 clicked
+                //and it is your turn
+                //and its combat phase
+                selectCard(card);
+                
             }
             else
             if(e.getButton()==MouseEvent.BUTTON3)

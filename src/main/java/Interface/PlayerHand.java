@@ -6,7 +6,6 @@
 package Interface;
 
 import Interface.Cards.Card;
-import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
 import java.awt.Color;
@@ -18,6 +17,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -50,7 +50,7 @@ public class PlayerHand extends JLayeredPane
         this.isOpponents = isOpponents;
         playArea = area;
         width = containerWidth;
-        height = (int) Math.round(containerHeight/4); 
+        height = (int) Math.round((containerHeight/16)*5); 
         this.setPreferredSize(new Dimension(width, height));
         this.setOpaque(true);
         this.setBackground(Color.DARK_GRAY);
@@ -60,6 +60,7 @@ public class PlayerHand extends JLayeredPane
     {
         if(!cardsInHand.contains(card))
         {
+            card.setPlayerHand(this);
             cardsInHand.add(card);
             int height = (int) Math.round(this.height *0.8);
             card.applySize(height);
@@ -140,16 +141,12 @@ public class PlayerHand extends JLayeredPane
     
     public void removeCard(Card card)
     {
-        if(cardsInHand.contains(card))
-        {
-            int index = cardsInHand.indexOf(card);
-            cardsInHand.remove(card);
-            this.remove(card);
-            resizeHand();
-            layers--;
-            //remove mouse listener assigned when card was added
-            card.removeMouseListener(card.getMouseListeners()[0]);
-        }
+        cardsInHand.remove(card);
+        this.remove(card);
+        resizeHand();
+        layers--;
+        //remove mouse listener assigned when card was added
+        //card.removeMouseListener(card.getMouseListeners()[0]);
     }
     
     public void setDeckArea(Deck deck)
@@ -185,18 +182,27 @@ public class PlayerHand extends JLayeredPane
     
     public void playCard(Card card, boolean isOpponents)
     {
+        
+        System.out.println(card.getPlayerHand().toString());
+        
+        //if the cost of hte card exceeds available resources - exit method
         if(card.getPlayCost()>resourcePanel.getAmount())
             return;
          
         if(!isOpponents)
-            card.setCardLocation(CardLocation.PLAYER_HAND);
-            
+            card.setCardLocation(CardLocation.PLAYER_HAND);   
         else
             card.setCardLocation(CardLocation.OPPONENT_HAND);
         
+        
+
         resourcePanel.useResources(card.getPlayCost());
         playArea.addCard(card);
-        removeCard(card);
+        
+        this.removeCard(card);
+        card.removeFromPlayerHand();
+        
+        
         
         //***************
         //send message to connected server/client
@@ -255,7 +261,6 @@ public class PlayerHand extends JLayeredPane
             return true;
         }
     }
-        
 }
 
     

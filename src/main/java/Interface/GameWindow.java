@@ -8,6 +8,7 @@ package Interface;
 import Database.JSONHelper;
 import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
+import Interface.Cards.PlayerBox;
 import Interface.Cards.SpellCard;
 import NetCode.TCPClient;
 import NetCode.TCPServer;
@@ -74,10 +75,12 @@ public class GameWindow extends JPanel
     private Timer discardTimer = new Timer();
     private TimerTask discardTask;
     private StartGameWindow startGameWindow;
+    private Timer combatTimer;
     
     //constructor
     public GameWindow(JTabbedPane pane, StartGameWindow startGameWindow)
     {
+        combatTimer = new Timer();
         this.startGameWindow = startGameWindow;
         parentTabbedPane = pane;
         BorderLayout borderLayout = new BorderLayout();
@@ -164,21 +167,34 @@ public class GameWindow extends JPanel
         //select a card as event source only if it is not yet selected
         //dont allow origin card to be selected from opponents hand  
         if(cardEvent == null && !card.getIsSelected() && !card.getIsActivated())
-        { 
+        {
+            System.out.println("Card event method fired from " + card.getName() + " @ " + card.getCardLocation());
+            //if origin card is in opponents play area, do nothing
             if(this.isPlayerTurn & card.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
-            return;
+                return;
             
             setTurnPhase(TurnPhase.COMBAT_PHASE);
             cardEvent = new CardEvent(card);
             //activate cards in the play areas
             card.setIsSelected(true);
             
-            if(card instanceof SpellCard){
-                cardEvent.setType("CAST_SPELL");
-                //set self as the target
-                cardEvent.addTargetPlayerBox(playerPlayArea.getPlayerBoxPanel());
-                executeCardEvent();
-                return;
+            if(card instanceof SpellCard)
+            {
+                SpellCard scard = (SpellCard) card;
+                
+                if(scard.getEffect()==SpellEffect.DRAW_CARD)
+                {
+                    //if a draw card spell, set self as the target and execute immediately
+                    cardEvent.addTargetPlayerBox(playerPlayArea.getPlayerBoxPanel());
+                    executeCardEvent();
+                    return; 
+                }
+                else
+                if(scard.getEffect()==SpellEffect.DEAL_DAMAGE)
+                {
+                    //let method continue to allow a second card, or player, to be targeted
+                    
+                }
             }
             
             //***************
@@ -190,11 +206,12 @@ public class GameWindow extends JPanel
                 message.setCard(card);
                 sendMessage(message);
             }
-        }
+        }       
         else
         //if a card event exists and target card has not yet been set
         if(cardEvent != null && cardEvent.getTargetCard()==null && cardEvent.getTargetPlayerBox()==null && turnPhase!=TurnPhase.DECLARE_BLOCKERS)
         {
+            
             //set the target card location if its the opponents turn
             //because location information is lost when sending over the stream
             if(getLocalCard(card)==null)
@@ -206,24 +223,27 @@ public class GameWindow extends JPanel
             if(cardEvent.getOriginCard().getCardID()==card.getCardID())
                 return;
             
-            //activate cards in the play areas
-            //card.setIsSelected(true);
+            
+            //set selected card as the target card
             cardEvent.addTargetCard(card);
-            
-            //assign event type based on the type of cards selected
-            if(cardEvent.getOriginCard() instanceof CreatureCard & cardEvent.getTargetCard() instanceof CreatureCard)
-            {
-                cardEvent.setType("CREATURE_COMBAT");
-            }
-            
-            
             cardEvent.getTargetCard().setIsSelected(true);
-                        
-            //add card event to the stack
-            //cardEventStack.addFirst((CardEvent)cardEvent);
-            
+                              
             //show glass pane so the arrow can be drawn
             drawPointer(cardEvent.getOriginCard(), cardEvent.getTargetCard());
+
+            if(cardEvent.getOriginCard() instanceof CreatureCard & cardEvent.getTargetCard() instanceof CreatureCard)
+            {
+                executeCardEvent();
+            }
+            else
+            if(cardEvent.getOriginCard() instanceof SpellCard)
+            {
+                executeCardEvent();
+            }
+   
+            //add card event to the stack
+            //cardEventStack.addFirst((CardEvent)cardEvent);
+
             
             //***************
             //send message to connected server/client
@@ -271,11 +291,8 @@ public class GameWindow extends JPanel
             playerBox.setIsSelected(true);
             cardEvent.addTargetPlayerBox(playerBox);
             
-            //assign event type based on the type of cards selected
-            cardEvent.setType("CREATURE_ATTACK_PLAYER");
-            
             //add card event to the stack
-            cardEventStack.addFirst((CardEvent)cardEvent);
+            //cardEventStack.addFirst((CardEvent)cardEvent);
             
             //show glass pane so the arrow can be drawn
             drawPointer(cardEvent.getOriginCard(),cardEvent.getTargetPlayerBox());
@@ -325,11 +342,20 @@ public class GameWindow extends JPanel
                 targetPlayer.setIsSelected(false);
             if(targetCard!=null)
                 targetCard.setIsSelected(false);
+            
+            
+            //if spell is pending a target, remove the spell from plat
+            if(originCard instanceof SpellCard && targetCard==null)
+            {
+                originCard.removeFromPlayArea();
+            }
+            
+            
 
             cardEvent = null;
 
-            if(drawLineGlassPane!=null)
-                drawLineGlassPane.setVisible(false);
+            hideDrawLineGlassPane();
+            
             
             drawLineGlassPane=null;
 
@@ -356,10 +382,10 @@ public class GameWindow extends JPanel
     
     public void requestResolveCombat()
     {
-        if(cardEvent.getType()=="CREATURE_COMBAT")
+        if(cardEvent.getOriginCard() instanceof CreatureCard && cardEvent.getTargetCard() instanceof CreatureCard)
             executeCardEvent();
         else
-        if(cardEvent.getType()=="CREATURE_ATTACK_PLAYER")
+        if(cardEvent.getOriginCard() instanceof CreatureCard && cardEvent.getTargetPlayerBox()!=null)
         {
             setTurnPhase(TurnPhase.DECLARE_BLOCKERS);  
             
@@ -381,8 +407,8 @@ public class GameWindow extends JPanel
 
     public void executeCardEvent(CardEvent event)
     {   
+        TimerTask combatTask = null;
 
-        
         Card originCard = event.getOriginCard();
         Card targetCard = event.getTargetCard();
         PlayerBox targetPlayer = event.getTargetPlayerBox();
@@ -396,44 +422,82 @@ public class GameWindow extends JPanel
             targetCard = getLocalCard(targetCard);
         }
         
-        if(event.getType()=="CAST_SPELL")
+        if(event.getOriginCard() instanceof SpellCard)
         {
             //do action
             SpellCard spellCard = (SpellCard) event.getOriginCard();
-            if(spellCard.getEffect()==SpellEffect.DRAW_CARD && isPlayerTurn)
+            if(spellCard.getEffect()==SpellEffect.DRAW_CARD)
             {
-                this.getPlayerHand().drawCards(spellCard.getPlayCost());
+                combatTask = new TimerTask()
+                {
+                    @Override
+                    public void run()
+                    {
+                        if(isPlayerTurn)
+                            playerHand.drawCards(spellCard.getPlayCost());
+                        
+                        event.getOriginCard().removeFromPlayArea();
+                        //release current card event
+                        cardEvent = null;
+                        hideDrawLineGlassPane();
+                    }
+                };  
             }
+            else
+            if(spellCard.getEffect()==SpellEffect.DEAL_DAMAGE)
+            {   
+                combatTask = new TimerTask()
+                {
+                    @Override
+                    public void run()
+                    {
+                        if(cardEvent.getTargetCard() instanceof CreatureCard)
+                        {
+                            CreatureCard ccard = (CreatureCard) cardEvent.getTargetCard();
+                            ccard.takeDamage(cardEvent.getOriginCard().getPlayCost());
+                        }
+                        if(cardEvent.getTargetPlayerBox()!=null)
+                        {
+                            cardEvent.getTargetPlayerBox().takeDamage(cardEvent.getOriginCard().getPlayCost()); 
+                        }
+                        event.getOriginCard().removeFromPlayArea();
+                        //release current card event
+                        cardEvent = null;
+                        hideDrawLineGlassPane();
+                    }
+                };   
+            }
+            if(combatTask!=null)
+                combatTimer.schedule(combatTask, 1000);
         }
         else
         {
-            setTurnPhase(TurnPhase.COMBAT_PHASE);
-            
-            if(event.getType()=="CREATURE_COMBAT")
+            if(event.getOriginCard() instanceof CreatureCard & event.getTargetCard() instanceof CreatureCard)
             {   
                 //exchange damage between origin and target
                 CreatureCard origin = (CreatureCard) originCard;
                 CreatureCard target = (CreatureCard) targetCard;
 
-
-                Timer timer = new Timer();
                 TimerTask targetDamageTask = new TimerTask() {
                     @Override
                     public void run() {
                         origin.takeDamage(target.getPower());
+                        //release current card event
+                        cardEvent = null;
+                        hideDrawLineGlassPane();
                     }
                 };
                 TimerTask originDamageTask = new TimerTask() {
                     @Override
                     public void run() {
                         target.takeDamage(origin.getPower()); 
-                        timer.schedule(targetDamageTask, 500);
+                        combatTimer.schedule(targetDamageTask, 500);
                     }
                 };
-                timer.schedule(originDamageTask, 500);
+                combatTimer.schedule(originDamageTask, 500);
             }
             else
-            if(event.getType()=="CREATURE_ATTACK_PLAYER")
+            if(event.getOriginCard() instanceof CreatureCard & event.getTargetPlayerBox() !=null)
             {            
                 //creature does damage to target player
                 CreatureCard origin = (CreatureCard) originCard;
@@ -455,7 +519,6 @@ public class GameWindow extends JPanel
                     blockerToughness = 0;
                 }
 
-                Timer timer = new Timer();
 
                 TimerTask creatureDamageTask = new TimerTask(){
                     @Override
@@ -468,7 +531,7 @@ public class GameWindow extends JPanel
                     } 
                 };
                 if(blocker!=null)
-                    timer.schedule(creatureDamageTask, 1000);  
+                    combatTimer.schedule(creatureDamageTask, 1000);  
 
                 TimerTask playerDamageTask = new TimerTask() {
                     @Override
@@ -480,14 +543,18 @@ public class GameWindow extends JPanel
                         //if card event execution reduced player health to 0 or below
                         if(playerPlayArea.getPlayerBoxPanel().getPlayerHealth()<=0)
                         {
-                            System.out.println("YOU LOSE THE GAME!!!");
+                            
                             //if player is <=0 health and opponent is >0
                             //player loses the game
                             loseGame();
                         }
+                        
+                        hideDrawLineGlassPane();
+                        //release current card event
+                        cardEvent = null;
                     }
                 };
-                timer.schedule(playerDamageTask, 1000);  
+                combatTimer.schedule(playerDamageTask, 1000);  
             }
         }
 
@@ -515,19 +582,19 @@ public class GameWindow extends JPanel
             blockingCard.setIsActivated(true);
         }
 
-        //release current card event
-        cardEvent = null;
-        
+        //progress turn phase
+        setTurnPhase(TurnPhase.MAIN_PHASE);
+    }
+    
+    public void hideDrawLineGlassPane()
+    {
         if(drawLineGlassPane!=null)
         {
             drawLineGlassPane.setVisible(false);
             drawLineGlassPane = null; 
         }
-
-        //progress turn phase
-        setTurnPhase(TurnPhase.MAIN_PHASE);
     }
-    
+
     public void executeCardEvent()
     {
         //if no parameters given
@@ -771,6 +838,9 @@ public class GameWindow extends JPanel
             messageCard = message.getCard();
             messageCard.setImage(getImageFromCache(messageCard.getImageID()));
             //messageCard.setCardBack((getImageFromCache(999)));
+            
+            messageCard.setPlayArea(opponentsPlayArea);
+            messageCard.setPlayerHand(opponentsHand);
         }
         
         if(message.getText().equals("OPPONENT_DRAW_CARD"))
@@ -792,7 +862,6 @@ public class GameWindow extends JPanel
         {
             createCardEvent(messageCard);
         }
-        
         else
         if(message.getText().equals("OPPONENT_PASS_TURN"))
         {
@@ -844,30 +913,6 @@ public class GameWindow extends JPanel
         if(message.getText().equals("OPPONENT_PASS_ON_BLOCKING"))
         {
             executeCardEvent();            
-        }
-    }
-
-    public class MessageListener extends SwingWorker<Void, Message>
-    {      
-        @Override
-        protected Void doInBackground() 
-        {
-            Message message;
-            while(true)
-            {
-                message = null;
-                
-                if(message!=null)
-                {
-                    publish(message);
-                }
-            }
-        }
-        
-        //@Override
-        protected void publish()
-        {
-            
         }
     }
     

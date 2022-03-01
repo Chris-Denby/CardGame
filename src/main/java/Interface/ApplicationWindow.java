@@ -45,7 +45,7 @@ public class ApplicationWindow extends JFrame
         //SET JFRAME PARAMETERS
         setTitle("Card Game");
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        Dimension dimensions = new Dimension(800,600);
+        Dimension dimensions = new Dimension(Constants.windowWidth,Constants.windowHeight);
         this.setMinimumSize(dimensions);
         
         //ADD LISTENERS
