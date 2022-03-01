@@ -91,7 +91,6 @@ public class GameWindow extends JPanel
         this.setSize(width, height);
         this.setMinimumSize(dimensions);
         this.setLayout(borderLayout);
-        this.setBackground(Color.GREEN);
                 
         //INITIALISE COMPONENTS
         resourcePanel = new ResourcePanel(getWidth(),getHeight(),this);
@@ -1051,7 +1050,7 @@ public class GameWindow extends JPanel
             setBackground(overlayColor);
             //card.setImage(getImageFromCache(card.getImageID()));
             //resize clone of card to be zoomed            
-            card.applySize((int) Math.round(centrePanel.getHeight()*0.5));
+            card.applySize((int) Math.round(centrePanel.getHeight()*0.6));
             //set card location on screen
             card.setBounds((gameControlPanel.getWidth() + (int) Math.round(card.getWidth()/5)), 
                     (int) Math.round((centrePanel.getHeight()-card.getHeight())/2) + playerHand.getHeight(), 

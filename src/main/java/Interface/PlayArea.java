@@ -10,8 +10,6 @@ import Interface.Cards.Card;
 import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -20,7 +18,6 @@ import java.awt.event.MouseListener;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.BoxLayout;
@@ -61,14 +58,15 @@ public class PlayArea extends JPanel
         this.setOpaque(false); 
         
         cardSubPanel = new JPanel();
-        cardSubPanel.setBackground(Color.RED);
-        cardSubPanel.setPreferredSize(new Dimension(width,Math.round(height/10)*6));
-        cardSubPanel.setSize(new Dimension(width,height/2));
+        Dimension cardSubPanelDimension = new Dimension(width,Math.round(height/10)*6);
+        cardSubPanel.setPreferredSize(cardSubPanelDimension);
+        cardSubPanel.setSize(cardSubPanelDimension);
         
         playerSubPanel = new JPanel();
-        //playerSubPanel.setBackground(Color.CYAN);
-        playerSubPanel.setPreferredSize(new Dimension(width,Math.round(height/10)*4));
-        playerSubPanel.setSize(new Dimension(width,height/2));
+        Dimension playerSubPanelDimension = new Dimension(width,Math.round(height/10)*4);
+        playerSubPanel.setPreferredSize(playerSubPanelDimension);
+        playerSubPanel.setSize(playerSubPanelDimension);
+        
         this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         
         if(!isOpponent)
@@ -143,8 +141,7 @@ public class PlayArea extends JPanel
             
             card.setPlayArea(this);
             
-            int height = (int) Math.round(cardSubPanel.getHeight()*0.75);
-            card.applySize(height);
+            //card.applySize(cardSubPanel.getHeight());
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
             card.setAlignmentY(Component.CENTER_ALIGNMENT);
             card.setFaceUp(true);

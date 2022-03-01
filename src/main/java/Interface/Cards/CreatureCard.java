@@ -7,20 +7,10 @@ package Interface.Cards;
 
 import Interface.Constants.CardLocation;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Image;
-import java.awt.Insets;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SpringLayout;
-import javax.swing.SwingConstants;
 
 /**
  *
@@ -37,13 +27,12 @@ public class CreatureCard extends Card
     {
         super(cardName,imageID);
         
+        
         powerLabel = new JLabel(power+"");
         powerLabel.setFont(headingFont);
         //powerLabel.setVerticalAlignment(SwingConstants.CENTER);
         toughnessLabel = new JLabel(toughness+"");
         toughnessLabel.setFont(headingFont);
-        powerLabel.setBackground(Color.PINK);
-        toughnessLabel.setBackground(Color.ORANGE);
         
         
         JPanel fillPanel = new JPanel();
@@ -52,43 +41,6 @@ public class CreatureCard extends Card
         bottomPanel.add(powerLabel,BorderLayout.WEST);
         bottomPanel.add(fillPanel,BorderLayout.CENTER);
         bottomPanel.add(toughnessLabel, BorderLayout.EAST);
-        
-        
-        
-        
-        /**
-        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.LINE_AXIS));
-        bottomPanel.add(powerLabel);
-        bottomPanel.add(Box.createHorizontalGlue());
-        bottomPanel.add(toughnessLabel);
-        **/
-        
-        /**
-        GridBagConstraints gbConstraints = new GridBagConstraints();
-        bottomPanel.setLayout(new GridBagLayout());
-        
-        //gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gbConstraints.ipadx = 0;
-        gbConstraints.ipady = 0;
-        int insetWidth = bottomPanel.getWidth()-powerLabel.getWidth()-toughnessLabel.getWidth();
-        //gbConstraints.insets = new Insets(0,0,insetWidth,4);
-        gbConstraints.ipady = 0;
-        gbConstraints.weightx = 0;
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 0;
-        gbConstraints.anchor = GridBagConstraints.LINE_END;
-        bottomPanel.add(powerLabel, gbConstraints);
-
-        //gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gbConstraints.ipadx = 0;
-        gbConstraints.ipady = 0;
-        gbConstraints.weightx = 0;
-        gbConstraints.gridx = 1;
-        gbConstraints.gridy = 0;
-        gbConstraints.anchor = GridBagConstraints.LINE_START;
-        bottomPanel.add(toughnessLabel, gbConstraints);
-        **/
-        
     }
     
 

@@ -17,24 +17,12 @@ import javax.swing.JPanel;
 import Interface.Constants.CardLocation;
 import Interface.PlayArea;
 import Interface.PlayerHand;
+import java.awt.BorderLayout;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Shape;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BoxLayout;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
-import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 
 
@@ -77,6 +65,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     JPanel bottomPanel;
     JLabel playCostLabel;
     JTextPane bodyBox;
+    JPanel innerPanel;
     Image cardBack;
     
 
@@ -84,6 +73,8 @@ public class Card extends JPanel implements Serializable, Cloneable
     {
         this.cardName = cardName;
         this.imageID = imageID;
+        
+        innerPanel = new JPanel();
                 
         topPanel = new JPanel();
         bottomPanel = new JPanel();
@@ -91,10 +82,10 @@ public class Card extends JPanel implements Serializable, Cloneable
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
 
-        topPanel.setBackground(Color.WHITE);
-        bodyBox.setBackground(Color.GREEN);
+        topPanel.setBackground(Color.lightGray);
+        bodyBox.setBackground(Color.lightGray);
         pictureBox.setBackground(Color.PINK);
-        bottomPanel.setBackground(Color.WHITE);
+        bottomPanel.setBackground(Color.lightGray);
         
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
@@ -106,41 +97,23 @@ public class Card extends JPanel implements Serializable, Cloneable
                 
         headingFont = new Font("Arial",Font.BOLD,headingFontSize);
         bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
-        cardNameLabel.setFont(headingFont);
-        playCostLabel.setFont(headingFont);
         
-        GridBagConstraints gbConstraints = new GridBagConstraints();
-        topPanel.setLayout(new GridBagLayout());
+        innerPanel.setLayout(new BoxLayout(innerPanel,BoxLayout.Y_AXIS));
+        innerPanel.setBackground(Color.ORANGE);
+        this.add(innerPanel);
+                        
+        topPanel.setBackground(Color.LIGHT_GRAY);
+
+        topPanel.setLayout(new BorderLayout());
+        topPanel.add(cardNameLabel,BorderLayout.WEST);
+        //topPanel.add(fillPanel,BorderLayout.CENTER);
+        topPanel.add(playCostLabel, BorderLayout.EAST);
         
-        //gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gbConstraints.ipadx = 0;
-        gbConstraints.ipady = 0;
-        //int insetWidth = topPanel.getWidth()-cardNameLabel.getWidth()-playCostLabel.getWidth();
-        //gbConstraints.insets = new Insets(0,0,insetWidth,4);
-        gbConstraints.ipady = 0;
-        gbConstraints.weightx =1;
-        gbConstraints.gridx = 0;
-        gbConstraints.gridy = 0;
-        gbConstraints.anchor = GridBagConstraints.LINE_END;
-        topPanel.add(cardNameLabel, gbConstraints);
-        
-        //gbConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gbConstraints.ipadx = 0;
-        gbConstraints.ipady = 0;
-        gbConstraints.weightx = 0;
-        gbConstraints.gridx = 1;
-        gbConstraints.gridy = 0;
-        gbConstraints.anchor = GridBagConstraints.LINE_START;
-        topPanel.add(playCostLabel, gbConstraints);
-        
-        add(topPanel); 
-        add(pictureBox);
-        add(bodyBox);
-        add(bottomPanel);
-        
-        
-       
-        
+        innerPanel.add(topPanel); 
+        innerPanel.add(pictureBox);
+        innerPanel.add(bodyBox);
+        innerPanel.add(bottomPanel);
+
     }
     
     public PlayerHand getPlayerHand()
@@ -191,30 +164,53 @@ public class Card extends JPanel implements Serializable, Cloneable
             this.backgroundColor = Color.WHITE;
         else
             this.backgroundColor = Color.GRAY; 
-        
-        
+
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
         bodyBox.setVisible(isFaceUp);
         bottomPanel.setVisible(isFaceUp);
-        
     }
     
-    public void applySize(int height)
-    {        
-        this.height = height;
+    public void applySize(int h)
+    {  
+        System.out.println("APPLY SIZE - height: " + h);
+        this.height = (int) Math.round(h*0.75);
         this.setOpaque(false); //makes this panel transparent
         width = (int) Math.round(height*0.75);
         arcSize = (int) Math.round(height/20);
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));
         this.setSize(new Dimension(width,height));
+
+        innerPanel.setBounds(0,0,
+                width-shadowGap-arcSize-arcSize,height-shadowGap-arcSize);
+        
+        int innerWidth = innerPanel.getWidth();
+        int innerHeight = innerPanel.getHeight();
+
+        topPanel.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*1)));
+        pictureBox.setPreferredSize(new Dimension(innerWidth,Math.round((innerHeight/10)*4)));
+        bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
+        bottomPanel.setPreferredSize(new Dimension(innerWidth,Math.round(innerHeight/10)*1));
+        
+        
+        headingFont = new Font("Arial",Font.BOLD,8);
+        bodyFont = new Font("Arial",Font.PLAIN,8);
+        
+        cardNameLabel.setFont(headingFont);
+        playCostLabel.setFont(headingFont);
+        bodyBox.setFont(bodyFont);
+        
         repaint();
-        //set card height as 40% of board height
     }        
 
     public void setIsSelected(boolean is)
     {
+        if(is)
+        backgroundColor = Color.orange;
+        else
+            backgroundColor = Color.white;
+        
         isSelected = is;
         repaint();
         revalidate();
@@ -222,6 +218,11 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void setIsActivated(boolean is)
     {
+        if(is)
+        backgroundColor = Color.darkGray;
+        else
+            backgroundColor = Color.white;
+        
         isActivated = is;
         repaint();
         revalidate();
@@ -293,7 +294,9 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void setBodyText(String text)    
     {
-        bodyBox.setText(text);        
+        bodyBox.setText(text);
+        
+        /**
 
         StyledDocument doc = (StyledDocument) bodyBox.getDocument();
         Style style = doc.addStyle("style", null);
@@ -309,6 +312,8 @@ public class Card extends JPanel implements Serializable, Cloneable
         } catch (BadLocationException ex) {
             Logger.getLogger(Card.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        **/
     }
      
     @Override
@@ -329,19 +334,6 @@ public class Card extends JPanel implements Serializable, Cloneable
             graphics.fillRoundRect(shadowOffset,shadowOffset,width-strokeSize-shadowOffset,height-strokeSize-shadowOffset,arcSize,arcSize);
         } 
         
-        //draw fill
-        if(isSelected){   
-            strokeColor = Color.RED;
-            strokeSize = 2;
-        }
-        else
-        if(isActivated){
-            strokeColor = Color.GRAY;
-            strokeSize = 2;
-        }
-        else
-            strokeSize = 1;  
-                
         //draw inside
         graphics.setColor(backgroundColor);
         graphics.fillRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
@@ -350,16 +342,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         graphics.setColor(strokeColor);
         graphics.setStroke(new BasicStroke(strokeSize));
         graphics.drawRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
-
-        topPanel.setBounds(strokeSize,strokeSize,getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/10));
-        pictureBox.setBounds(strokeSize,topPanel.getY()+topPanel.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/10)*4);
-        bodyBox.setBounds(strokeSize,pictureBox.getY()+pictureBox.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/10)*4);
-        bottomPanel.setBounds(strokeSize,bodyBox.getY()+bodyBox.getHeight(),getWidth()-shadowGap-(strokeSize*2), Math.round((getHeight()-shadowOffset-(strokeSize*2))/10));
-        
-        headingFont = new Font("Arial",Font.BOLD,headingFontSize);
-        bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
-        cardNameLabel.setFont(headingFont);
-        playCostLabel.setFont(headingFont);
     }
     
     @Override

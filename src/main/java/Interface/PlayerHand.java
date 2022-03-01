@@ -62,7 +62,6 @@ public class PlayerHand extends JLayeredPane
         {
             card.setPlayerHand(this);
             cardsInHand.add(card);
-            int height = (int) Math.round(this.height *0.8);
             card.applySize(height);
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
             //set the position of the cards added
