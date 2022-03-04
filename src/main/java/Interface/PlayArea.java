@@ -7,6 +7,7 @@ package Interface;
 
 import Interface.Cards.PlayerBox;
 import Interface.Cards.Card;
+import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
@@ -20,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
@@ -66,7 +69,7 @@ public class PlayArea extends JPanel
         Dimension playerSubPanelDimension = new Dimension(width,Math.round(height/10)*4);
         playerSubPanel.setPreferredSize(playerSubPanelDimension);
         playerSubPanel.setSize(playerSubPanelDimension);
-        
+                
         this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         
         if(!isOpponent)
@@ -83,6 +86,7 @@ public class PlayArea extends JPanel
         playerBoxPanel = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent);
         playerBoxPanel.addMouseListener(new PlayerBoxMouseListener(playerBoxPanel,this));
         playerSubPanel.add(playerBoxPanel,Component.CENTER_ALIGNMENT);
+        
         
         this.addMouseListener(new MouseListener() {
             @Override
@@ -197,6 +201,32 @@ public class PlayArea extends JPanel
     public ArrayList<Card> getCardsInPlayArea()
     {
         return cardsInPlay;
+    }
+    
+    public void triggerETeffect(Card card)
+    {       
+        BiConsumer<Integer,Card> buffConsumer = (i,c)-> {
+           if(c instanceof CreatureCard)
+               ((CreatureCard) c).setPower(((CreatureCard) c).getPower()+i);  
+        };
+        
+        
+        
+                        
+        switch(card.getETBeffect())
+        {
+            
+            case TAUNT:
+            break;
+                
+            case BUFF_1:
+                int buffBy = card.getETBeffect().toString().charAt(card.getETBeffect().toString().length());
+                buffConsumer.accept(buffBy,card);
+            break;
+            
+            
+        }
+        
     }
     
     public class CardMouseListener implements MouseListener

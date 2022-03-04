@@ -51,8 +51,10 @@ public class Constants
     
     public static enum ETBeffect
     {
+        NONE,
         TAUNT,
-        GAIN_LIFE        
+        GAIN_LIFE,
+        BUFF_1
     }
     
     

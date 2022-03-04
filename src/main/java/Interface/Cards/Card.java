@@ -15,10 +15,12 @@ import java.io.Serializable;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import Interface.Constants.CardLocation;
+import Interface.Constants.ETBeffect;
 import Interface.PlayArea;
 import Interface.PlayerHand;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import javax.swing.BoxLayout;
 import javax.swing.JTextPane;
@@ -59,6 +61,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     transient Font bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
     transient private boolean isSelected = false;
     private int imageID;
+    private ETBeffect etbEffect;
     JLabel cardNameLabel;
     JPanel topPanel;
     ImagePanel pictureBox;
@@ -67,6 +70,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     JTextPane bodyBox;
     JPanel innerPanel;
     Image cardBack;
+
     
 
     public Card(String cardName, int imageId)
@@ -82,10 +86,10 @@ public class Card extends JPanel implements Serializable, Cloneable
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
 
-        topPanel.setBackground(Color.lightGray);
-        bodyBox.setBackground(Color.lightGray);
-        pictureBox.setBackground(Color.PINK);
-        bottomPanel.setBackground(Color.lightGray);
+        //topPanel.setBackground(Color.lightGray);
+        //bodyBox.setBackground(Color.lightGray);
+        //pictureBox.setBackground(Color.PINK);
+        //bottomPanel.setBackground(Color.lightGray);
         
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
@@ -99,10 +103,8 @@ public class Card extends JPanel implements Serializable, Cloneable
         bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
         
         innerPanel.setLayout(new BoxLayout(innerPanel,BoxLayout.Y_AXIS));
-        innerPanel.setBackground(Color.ORANGE);
+        innerPanel.setBackground(Color.WHITE);
         this.add(innerPanel);
-                        
-        topPanel.setBackground(Color.LIGHT_GRAY);
 
         topPanel.setLayout(new BorderLayout());
         topPanel.add(cardNameLabel,BorderLayout.WEST);
@@ -119,6 +121,19 @@ public class Card extends JPanel implements Serializable, Cloneable
     public PlayerHand getPlayerHand()
     {
         return playerHand;
+    }
+    
+    public ETBeffect getETBeffect()
+    {
+        return etbEffect;
+    }
+    
+    public void setETBeffect(ETBeffect effect)
+    {
+        etbEffect = effect;
+        
+        if(this.getETBeffect()!=ETBeffect.NONE)
+            setBodyText(this.getETBeffect().toString());
     }
     
     public void setCardBack(Image img)
@@ -160,11 +175,14 @@ public class Card extends JPanel implements Serializable, Cloneable
     public void setFaceUp(boolean is)
     {
         this.isFaceUp = is;
-        if(isFaceUp)
+        if(isFaceUp){
             this.backgroundColor = Color.WHITE;
-        else
-            this.backgroundColor = Color.GRAY; 
+        }
+        else{
+            this.backgroundColor = Color.GRAY;
+        }
 
+        innerPanel.setVisible(is);
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
         bodyBox.setVisible(isFaceUp);
@@ -173,7 +191,6 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void applySize(int h)
     {  
-        System.out.println("APPLY SIZE - height: " + h);
         this.height = (int) Math.round(h*0.75);
         this.setOpaque(false); //makes this panel transparent
         width = (int) Math.round(height*0.75);
@@ -181,18 +198,25 @@ public class Card extends JPanel implements Serializable, Cloneable
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));
         this.setSize(new Dimension(width,height));
-
-        innerPanel.setBounds(0,0,
-                width-shadowGap-arcSize-arcSize,height-shadowGap-arcSize);
         
+        this.setLayout(null);
+                
+        //Dimension innerPanelDimensions = new Dimension(width-shadowGap-arcSize-arcSize,height-shadowGap-arcSize);  
+        //innerPanel.setPreferredSize(innerPanelDimensions);
+
         int innerWidth = innerPanel.getWidth();
         int innerHeight = innerPanel.getHeight();
+        
+        innerPanel.setBounds(
+            (width-innerWidth-shadowOffset+strokeSize+strokeSize)/2,
+            (height-innerHeight-shadowOffset+strokeSize+strokeSize)/2,
+            width-shadowGap-arcSize-arcSize,
+            height-shadowGap-arcSize-arcSize);
 
         topPanel.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*1)));
         pictureBox.setPreferredSize(new Dimension(innerWidth,Math.round((innerHeight/10)*4)));
         bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
         bottomPanel.setPreferredSize(new Dimension(innerWidth,Math.round(innerHeight/10)*1));
-        
         
         headingFont = new Font("Arial",Font.BOLD,8);
         bodyFont = new Font("Arial",Font.PLAIN,8);

@@ -40,12 +40,6 @@ public class SpellCard extends Card
         setBodyText(this.effect);
     }
     
-    public void setEffect(String effect)
-    {
-        this.effect = SpellEffect.valueOf(effect);
-        setBodyText(this.effect);
-    }
-    
     public void setBodyText(SpellEffect effect)
     {
         switch(effect)

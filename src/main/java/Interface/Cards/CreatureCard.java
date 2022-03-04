@@ -5,7 +5,9 @@
  */
 package Interface.Cards;
 
+import Interface.Constants;
 import Interface.Constants.CardLocation;
+import Interface.Constants.ETBeffect;
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -32,8 +34,7 @@ public class CreatureCard extends Card
         powerLabel.setFont(headingFont);
         //powerLabel.setVerticalAlignment(SwingConstants.CENTER);
         toughnessLabel = new JLabel(toughness+"");
-        toughnessLabel.setFont(headingFont);
-        
+        toughnessLabel.setFont(headingFont);        
         
         JPanel fillPanel = new JPanel();
         fillPanel.setSize(bottomPanel.getWidth()-powerLabel.getWidth()-toughnessLabel.getWidth(), bottomPanel.getHeight());
@@ -41,9 +42,15 @@ public class CreatureCard extends Card
         bottomPanel.add(powerLabel,BorderLayout.WEST);
         bottomPanel.add(fillPanel,BorderLayout.CENTER);
         bottomPanel.add(toughnessLabel, BorderLayout.EAST);
+               
     }
     
-
+    @Override
+    public void setBodyText(String text)    
+    {
+        bodyBox.setText(text);
+    }   
+    
     public int getPower() 
     {
         return power;

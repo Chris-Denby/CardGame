@@ -15,6 +15,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 /**
  *
@@ -41,7 +42,7 @@ public class PlayerBox extends JPanel
     public PlayerBox(int containerHeight, boolean isOpponent)
     {
         this.isOpponent = isOpponent;
-        this.height = (int) Math.round(containerHeight*0.4);
+        this.height = (int) Math.round(containerHeight*0.5);
         this.width = this.height;
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));

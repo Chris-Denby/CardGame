@@ -9,6 +9,7 @@ import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants;
+import Interface.Constants.ETBeffect;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,11 +20,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -69,6 +74,7 @@ public class JSONHelper
                 cardJSON.put("type",c.getClass().toString());
                 cardJSON.put("power",((CreatureCard) c).getPower());
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
+                cardJSON.put("etbEffect", c.getETBeffect().toString());
             }
             if(c instanceof SpellCard)
             {
@@ -141,6 +147,7 @@ public class JSONHelper
                 cCard.setPlayCost(Integer.parseInt(Long.toString((Long)o.get("cost")))); 
                 cCard.setPower(Integer.parseInt(Long.toString((Long)o.get("power")))); 
                 cCard.setToughness(Integer.parseInt(Long.toString((Long)o.get("toughness")))); 
+                cCard.setETBeffect(ETBeffect.valueOf((String)o.get("etbEffect")));
                 cardsList.add(cCard);
             }
             else
@@ -151,7 +158,7 @@ public class JSONHelper
                 sCard.setName((String)o.get("name"));
                 sCard.setCardID(Integer.parseInt(Long.toString((Long)o.get("id"))));
                 sCard.setPlayCost(Integer.parseInt(Long.toString((Long)o.get("cost")))); 
-                sCard.setEffect((String)o.get("effect"));
+                sCard.setEffect(Constants.SpellEffect.valueOf((String)o.get("effect")));
                 cardsList.add(sCard);
             }  
             else
@@ -173,6 +180,9 @@ public class JSONHelper
         JSONArray player1CardsJSONArray = new JSONArray();
         JSONArray player2CardsJSONArray = new JSONArray();
         
+        List<ETBeffect> effectsList = Arrays.asList(ETBeffect.values());
+        
+        
         //player 1 card list
         for(int x=0;x<60;x++)
         {
@@ -186,7 +196,8 @@ public class JSONHelper
                 c.setCardID(System.identityHashCode(c));
                 c.setPower(ThreadLocalRandom.current().nextInt(1,8));
                 c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
-                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));            
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8)); 
+                c.setETBeffect(effectsList.get(ThreadLocalRandom.current().nextInt(0,effectsList.size())));
 
                 //create json object
                 cardJSON = new JSONObject();
@@ -198,6 +209,7 @@ public class JSONHelper
                 cardJSON.put("power",((CreatureCard) c).getPower());
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
                 cardJSON.put("imageID",c.getImageID());
+                cardJSON.put("etbEffect",c.getETBeffect().toString());
             }
             else
             if(x>=40&& x<50)
@@ -256,7 +268,8 @@ public class JSONHelper
                 c.setCardID(System.identityHashCode(c));
                 c.setPower(ThreadLocalRandom.current().nextInt(1,8));
                 c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
-                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));            
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8)); 
+                c.setETBeffect(effectsList.get(ThreadLocalRandom.current().nextInt(0,effectsList.size())));
 
                 //create json object
                 cardJSON = new JSONObject();
@@ -268,6 +281,7 @@ public class JSONHelper
                 cardJSON.put("power",((CreatureCard) c).getPower());
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
                 cardJSON.put("imageID",c.getImageID());
+                cardJSON.put("etbEffect",c.getETBeffect().toString());
             }
             else
             if(x>=40&& x<50)

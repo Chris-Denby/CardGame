@@ -200,20 +200,19 @@ public class StartGameWindow extends JPanel
     {
         try{
             for(Card c:jsonHelper.readJSONFile("player1Cards")){
-                 //imageCache.put(c.getImageID(), ImageIO.read(new File(Constants.imagePath+c.getImageID()+".jpg")));
                 Image img = ImageIO.read(new File(Constants.imagePath+c.getImageID()+".jpg"));
                 img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
                 imageCache.put(c.getImageID(), img);
             }
 
             for(Card cc:jsonHelper.readJSONFile("player2Cards")){
-                //imageCache.put(cc.getImageID(), ImageIO.read(new File(Constants.imagePath+cc.getImageID()+".jpg")));
                 Image img = ImageIO.read(new File(Constants.imagePath+cc.getImageID()+".jpg"));
                 img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
                 imageCache.put(cc.getImageID(), img);
             } 
             
-                //imageCache.put(999, ImageIO.read(new File(Constants.imagePath+"back.jpg")));
+
+            imageCache.put(000, ImageIO.read(new File(Constants.imagePath+"resource.png")));
         }
         catch(Exception ex){
             System.out.println("image read failed:\n"+ex.getMessage());} 

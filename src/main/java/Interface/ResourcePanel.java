@@ -12,6 +12,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import static java.awt.Image.SCALE_DEFAULT;
 import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.Timer;
@@ -85,15 +87,19 @@ public class ResourcePanel extends JPanel
         int spacing;
         //size of the token as a factor of hte width of the resource window
         int sizeFraction = 6;
+        Image resourceImage;
         
         public Resource()
         {
             setAlignmentX(Component.CENTER_ALIGNMENT);
             //set token width to 80% of container
             tokenWidth = Math.round(width-((width/10)*sizeFraction));
+            tokenHeight = tokenWidth;
             //determine start x.y pos of token from width
             spacing = Math.round((width-tokenWidth)/2);
             this.setPreferredSize(new Dimension(width,width));
+            resourceImage = gameWindow.getImageFromCache(000);
+            resourceImage = resourceImage.getScaledInstance(tokenWidth, tokenWidth, SCALE_DEFAULT);
         }
         
         @Override
@@ -112,7 +118,7 @@ public class ResourcePanel extends JPanel
             //setBackground(Color.BLACK);
             graphics.drawOval(spacing, spacing, tokenWidth,tokenWidth);
             graphics.fillOval(spacing, spacing, tokenWidth,tokenWidth);
-            
+            graphics.drawImage(resourceImage, spacing, spacing, this);
             
             
         }  

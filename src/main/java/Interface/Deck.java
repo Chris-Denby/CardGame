@@ -59,9 +59,9 @@ public class Deck extends JLayeredPane
     
     public void addCard(Card card)
     { 
+        //card.setSize(Math.round(height*0.75f),height);
+        card.applySize(playerHand.getHeight());
         card.setBounds(origin.x+offset,origin.y,card.getWidth()-1,card.getHeight()-1);  
-        card.setSize(Math.round(height*0.75f),height);
-        card.applySize(card.getHeight());
         offset+=1;
         
         //***************
@@ -109,32 +109,25 @@ public class Deck extends JLayeredPane
         
     public void populateDeckAndDeal(boolean isPlayer1)
     {
-        JSONHelper h = new JSONHelper(); 
+        //read cards from JSON DB
+        //populate users deck  from JSON 
         
+        JSONHelper h = new JSONHelper(); 
+        List<Card> cardList;
+
         if(isPlayer1)
-        {        
-            //read cards from JSON DB
-            //populate users deck  from JSON  
-            
-            for(Card c:h.readJSONFile("player1Cards"))
-            {
-                c.setImage(gameWindow.getImageFromCache(c.getImageID()));
-                //c.setCardBack((gameWindow.getImageFromCache(999)));
-                addCard(c);
-            }
-        }
-        else 
+            cardList = h.readJSONFile("player1Cards");
+        else
+            cardList = h.readJSONFile("player2Cards");
+
+        Collections.shuffle(cardList);
+ 
+        for(Card c:cardList)
         {
-            //read cards from JSON DB
-            //populate users deck  from JSON         
-            for(Card c:h.readJSONFile("player2Cards"))
-            {
-                c.setImage(gameWindow.getImageFromCache(c.getImageID()));
-                //c.setCardBack((gameWindow.getImageFromCache(999)));
-                addCard(c);
-            }
+            c.setImage(gameWindow.getImageFromCache(c.getImageID()));
+            //c.setCardBack((gameWindow.getImageFromCache(999)));
+            addCard(c);
         }
-        shuffleDeck();
         //deal out first hand
         playerHand.dealHand();
     }
