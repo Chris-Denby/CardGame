@@ -75,7 +75,9 @@ public class ResourcePanel extends JPanel
             Resource r = new Resource();
             resources.add(r);
             this.add(r); 
-        }           
+        }   
+        repaint();
+        revalidate();
     }  
     
     //class to draw the resource token

@@ -369,14 +369,10 @@ public class GameWindow extends JPanel
     
     public Card getLocalCard(Card card)
     {
-        for(Card c:playerPlayArea.getCardsInPlayArea())
-        {
-            if(c.getCardID()==card.getCardID())
-            {
-                return c;
-            }
-        }
-        return null;
+        if(playerPlayArea.getCardsInPlayArea().containsKey(card.getCardID()))
+            return playerPlayArea.getCardsInPlayArea().get(card.getCardID());
+        else
+            return null;
     }
     
     public void requestResolveCombat()
@@ -452,7 +448,12 @@ public class GameWindow extends JPanel
                     {
                         if(cardEvent.getTargetCard() instanceof CreatureCard)
                         {
-                            CreatureCard ccard = (CreatureCard) cardEvent.getTargetCard();
+                            CreatureCard ccard;
+                            if(getLocalCard(cardEvent.getTargetCard())!=null)
+                                ccard = (CreatureCard) getLocalCard(cardEvent.getTargetCard());
+                            else
+                                ccard = (CreatureCard) cardEvent.getTargetCard();
+
                             ccard.takeDamage(cardEvent.getOriginCard().getPlayCost());
                         }
                         if(cardEvent.getTargetPlayerBox()!=null)
@@ -642,11 +643,14 @@ public class GameWindow extends JPanel
             
             //draw card at the start of the turn - except the first turn of the game
             if(turnCycleIncrementor>0)
-                playerDeck.drawCard();            
+                playerDeck.drawCard();     
         }
         
         //replenish resources back to turn amount
-        resourcePanel.resetResources(turnNumber);  
+        resourcePanel.resetResources(turnNumber);
+        
+        //highlight playable cards
+        playerHand.highlightPlayableCards();
         
         //cancel any half created events
         if(cardEvent!=null)
@@ -663,8 +667,8 @@ public class GameWindow extends JPanel
         {
             turnNumber++;
             System.out.println("TURN "+ turnNumber);
-        }    
-        
+        }  
+                
     }
     
     public void passOnBlocking()

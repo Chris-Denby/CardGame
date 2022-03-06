@@ -76,6 +76,7 @@ public class SpellCard extends Card
         clone.setPlayCost(getPlayCost());
         clone.setEffect(effect);
         clone.setImage(img);
+        clone.setCardID(this.getCardID());
         //set picture box
         return clone;
     }

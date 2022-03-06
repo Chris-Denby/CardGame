@@ -35,14 +35,10 @@ public class CreatureCard extends Card
         //powerLabel.setVerticalAlignment(SwingConstants.CENTER);
         toughnessLabel = new JLabel(toughness+"");
         toughnessLabel.setFont(headingFont);        
-        
-        JPanel fillPanel = new JPanel();
-        fillPanel.setSize(bottomPanel.getWidth()-powerLabel.getWidth()-toughnessLabel.getWidth(), bottomPanel.getHeight());
+
         bottomPanel.setLayout(new BorderLayout());
         bottomPanel.add(powerLabel,BorderLayout.WEST);
-        bottomPanel.add(fillPanel,BorderLayout.CENTER);
-        bottomPanel.add(toughnessLabel, BorderLayout.EAST);
-               
+        bottomPanel.add(toughnessLabel, BorderLayout.EAST);     
     }
     
     @Override
@@ -90,6 +86,8 @@ public class CreatureCard extends Card
 
     public void takeDamage(int damage)
     {
+        System.out.println("I took damage - " + this.getName() + " " + this.getPlayCost() + " " + this.getCardLocation());
+        
         if(this.toughness-damage<0)
             this.toughness = 0;
         else
@@ -99,9 +97,11 @@ public class CreatureCard extends Card
         
         if(toughness<=0)
         {
+            System.out.println("I died");
             //if toughness is reduced to 0 or below - it dies
             playArea.removeCard(this);
         }
+        
     }
     
     @Override

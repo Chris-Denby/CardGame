@@ -18,10 +18,16 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -45,7 +51,8 @@ public class PlayArea extends JPanel
     JPanel playerSubPanel;
     PlayerBox playerBoxPanel;
             
-    ArrayList<Card> cardsInPlay = new ArrayList<Card>();
+    //ArrayList<Card> cardsInPlay = new ArrayList<Card>();
+    private HashMap<Integer,Card> cardsInPlay = new HashMap<Integer,Card>();
     private Deque<CardEvent> cardEventStack = new ArrayDeque<CardEvent>();
     ArrayList<Card> discardPile = new ArrayList<Card>();
  
@@ -135,7 +142,7 @@ public class PlayArea extends JPanel
 
     public void addCard(Card card)
     {       
-        if(!cardsInPlay.contains(card))
+        if(!cardsInPlay.containsKey(card.getCardID()))
         {
             //set card location
             if(isOpponent)
@@ -152,9 +159,11 @@ public class PlayArea extends JPanel
             cardSubPanel.add(card);
             CardMouseListener mouseListener = new CardMouseListener(card,this);
             card.addMouseListener(mouseListener); 
-            cardsInPlay.add(card);
-            this.revalidate();
-            this.repaint();
+            cardsInPlay.put(card.getCardID(), card);
+            //this.revalidate();
+            //this.repaint();
+            
+            triggerETeffect(card);
             
             if(card instanceof SpellCard)
             {
@@ -178,13 +187,13 @@ public class PlayArea extends JPanel
     
     public void removeCard(Card card)
     {
-        if(cardsInPlay.contains(card))
+        if(cardsInPlay.containsKey(card.getCardID()))
         {
-            cardsInPlay.remove(card);
-            cardSubPanel.remove(card);
+            cardSubPanel.remove(cardsInPlay.get(card.getCardID()));
             addToDiscardPile(card);
-            this.revalidate();
-            this.repaint();
+            cardsInPlay.remove(card.getCardID()); 
+            revalidate();
+            repaint();
         }
     }
     
@@ -198,35 +207,30 @@ public class PlayArea extends JPanel
         gameWindow.createCardEvent(card);   
     }
     
-    public ArrayList<Card> getCardsInPlayArea()
+    public HashMap<Integer,Card> getCardsInPlayArea()
     {
         return cardsInPlay;
     }
     
     public void triggerETeffect(Card card)
-    {       
-        BiConsumer<Integer,Card> buffConsumer = (i,c)-> {
-           if(c instanceof CreatureCard)
-               ((CreatureCard) c).setPower(((CreatureCard) c).getPower()+i);  
-        };
-        
-        
-        
-                        
+    {
+        if(card.getETBeffect()==null)
+            return;
+
         switch(card.getETBeffect())
         {
-            
             case TAUNT:
             break;
                 
             case BUFF_1:
-                int buffBy = card.getETBeffect().toString().charAt(card.getETBeffect().toString().length());
-                buffConsumer.accept(buffBy,card);
+                int buffBy = Integer.parseInt(card.getETBeffect().toString().split("_")[1]);
+                BiConsumer<Integer,Card> buffConsumer = (i,c)-> {
+                    //for each creature card in play, increase power by buff value
+                    if(c instanceof CreatureCard && c.getCardID()!=c.getCardID())
+                                ((CreatureCard) c).setPower(((CreatureCard) c).getPower()+buffBy);};
+                cardsInPlay.forEach(buffConsumer);
             break;
-            
-            
-        }
-        
+        }        
     }
     
     public class CardMouseListener implements MouseListener
@@ -254,7 +258,6 @@ public class PlayArea extends JPanel
 
         @Override
         public void mouseReleased(MouseEvent e) { 
-            System.out.println("click");
             //only allow mouse events while its the players turn, or if its the declare blockers phase
             if(e.getButton()==MouseEvent.BUTTON1 && !gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.DECLARE_BLOCKERS && !card.getIsActivated() && card.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
             {
@@ -286,7 +289,8 @@ public class PlayArea extends JPanel
             if(e.getButton()==MouseEvent.BUTTON3)
             {
                 //if mouse 3 (right button) clicked
-                gameWindow.zoomInCard(card);
+                //gameWindow.zoomInCard(card);
+                System.out.println(card.getCardID());
             }
         }
 
@@ -344,24 +348,26 @@ public class PlayArea extends JPanel
     
     public void unActivateAllCards()
     {
-        for(Card c:cardsInPlay)
-        {
-            c.setIsActivated(false);            
-        }
+        BiConsumer <Integer,Card> consumer = (i,card)->{card.setIsActivated(false);};
+        cardsInPlay.forEach(consumer);
+        
     }
     
     public boolean checkForAvailableBlockers()
     {
         //returns true if any cards in play area are available to block
         //else returns false
-        for(Card c:cardsInPlay)
+        for(Map.Entry<Integer,Card> entry:cardsInPlay.entrySet())
         {
-            if(!c.getIsActivated())
-                return true;
+            if(entry.getValue() instanceof CreatureCard)
+            {
+                CreatureCard c = (CreatureCard) entry.getValue();
+                if(!c.getIsActivated())
+                    return true;
+                else
+                    return false;             
+            }      
         }
-        return false;
-    }
-    
-
-    
+        return false;        
+    } 
 }

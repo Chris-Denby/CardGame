@@ -42,6 +42,7 @@ public class PlayerHand extends JLayeredPane
     GameWindow gameWindow;
     ResourcePanel resourcePanel;
     private int discardTimeLimit = 10;
+    private int cardOverlap=0;
     
     public PlayerHand(int containerWidth, int containerHeight, PlayArea area, boolean isOpponents, GameWindow window, ResourcePanel panel)
     {
@@ -104,7 +105,7 @@ public class PlayerHand extends JLayeredPane
                 @Override
                 public void mouseExited(MouseEvent e) {}
             });
-            
+            highlightPlayableCards();
             return true;
         }
         return false;
@@ -140,12 +141,14 @@ public class PlayerHand extends JLayeredPane
     
     public void removeCard(Card card)
     {
+        card.setIsPlayable(false);
         cardsInHand.remove(card);
         this.remove(card);
         resizeHand();
         layers--;
         //remove mouse listener assigned when card was added
         //card.removeMouseListener(card.getMouseListeners()[0]);
+        highlightPlayableCards();
     }
     
     public void setDeckArea(Deck deck)
@@ -155,13 +158,11 @@ public class PlayerHand extends JLayeredPane
         deck.setBounds(spacing,spacing,deck.getWidth(),deck.getHeight());
         //set the points where cards are added relative to the deck area
         origin = new Point(deck.getWidth()+(spacing*2), deck.getY());
-        Integer num = 0;
-        //this.add(deck);
-        this.add(deck,num);
+        this.add(deck,0);
     }
     
     public void resizeHand()
-    {
+    {     
         origin.x = (deck.getWidth()+(Math.round((height-deck.getHeight())/2)*2));
         
         //@index parameter is the hard that was taken from the hand
@@ -172,11 +173,22 @@ public class PlayerHand extends JLayeredPane
             layers--;
             card.setBounds(origin.x, origin.y,card.getWidth(),card.getHeight());
             this.add(card,layers);
-            origin.x += card.getWidth()-10;
+            origin.x += card.getWidth()-cardOverlap;
             layers++;
             repaint();
             revalidate();
         }  
+    }
+    
+    public void highlightPlayableCards()
+    {
+        for(Card c:cardsInHand)
+        {
+            if(c.getPlayCost()<=resourcePanel.getAmount() && gameWindow.getIsPlayerTurn())
+                c.setIsPlayable(true);
+            else if(c.getPlayCost()>resourcePanel.getAmount() | !gameWindow.getIsPlayerTurn() )
+                c.setIsPlayable(false);
+        }
     }
     
     public void playCard(Card card, boolean isOpponents)
@@ -192,17 +204,13 @@ public class PlayerHand extends JLayeredPane
             card.setCardLocation(CardLocation.PLAYER_HAND);   
         else
             card.setCardLocation(CardLocation.OPPONENT_HAND);
-        
-        
 
         resourcePanel.useResources(card.getPlayCost());
         playArea.addCard(card);
         
         this.removeCard(card);
         card.removeFromPlayerHand();
-        
-        
-        
+
         //***************
         //send message to connected server/client
         if(!isOpponents)
@@ -211,8 +219,7 @@ public class PlayerHand extends JLayeredPane
             message.setText("OPPONENT_PLAY_CARD");
             message.setCard(card);
             gameWindow.sendMessage(message);
-        }
-        
+        }   
     }
     
     public Deck getDeck()

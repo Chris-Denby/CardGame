@@ -62,6 +62,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     transient private boolean isSelected = false;
     private int imageID;
     private ETBeffect etbEffect;
+    private boolean isPlayable;
     JLabel cardNameLabel;
     JPanel topPanel;
     ImagePanel pictureBox;
@@ -86,10 +87,10 @@ public class Card extends JPanel implements Serializable, Cloneable
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
 
-        //topPanel.setBackground(Color.lightGray);
-        //bodyBox.setBackground(Color.lightGray);
-        //pictureBox.setBackground(Color.PINK);
-        //bottomPanel.setBackground(Color.lightGray);
+        topPanel.setBackground(Color.white);
+        bodyBox.setBackground(Color.white);
+        pictureBox.setBackground(Color.pink);
+        bottomPanel.setBackground(Color.white);
         
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
@@ -108,7 +109,6 @@ public class Card extends JPanel implements Serializable, Cloneable
 
         topPanel.setLayout(new BorderLayout());
         topPanel.add(cardNameLabel,BorderLayout.WEST);
-        //topPanel.add(fillPanel,BorderLayout.CENTER);
         topPanel.add(playCostLabel, BorderLayout.EAST);
         
         innerPanel.add(topPanel); 
@@ -243,7 +243,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     public void setIsActivated(boolean is)
     {
         if(is)
-        backgroundColor = Color.darkGray;
+        backgroundColor = Color.GRAY;
         else
             backgroundColor = Color.white;
         
@@ -339,6 +339,24 @@ public class Card extends JPanel implements Serializable, Cloneable
         
         **/
     }
+    
+    public void setIsPlayable(boolean is)
+    {
+        isPlayable = is; 
+        
+        if(is && isFaceUp)
+            backgroundColor = Color.GREEN;
+        else if (!is)
+        {
+            if(isFaceUp)
+                this.setFaceUp(true);
+            else
+                setFaceUp(false);
+        }
+        repaint();
+        revalidate();
+    }
+    
      
     @Override
     public void paintComponent(Graphics g) 
