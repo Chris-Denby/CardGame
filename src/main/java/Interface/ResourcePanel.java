@@ -100,8 +100,8 @@ public class ResourcePanel extends JPanel
             //determine start x.y pos of token from width
             spacing = Math.round((width-tokenWidth)/2);
             this.setPreferredSize(new Dimension(width,width));
-            resourceImage = gameWindow.getImageFromCache(000);
-            resourceImage = resourceImage.getScaledInstance(tokenWidth, tokenWidth, SCALE_DEFAULT);
+            //resourceImage = gameWindow.getImageFromCache(000);
+            //resourceImage = resourceImage.getScaledInstance(tokenWidth, tokenWidth, SCALE_DEFAULT);
         }
         
         @Override

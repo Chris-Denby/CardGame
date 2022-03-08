@@ -7,6 +7,7 @@ package Interface;
 
 import Interface.Cards.Card;
 import java.io.Serializable;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -19,6 +20,7 @@ public class Message implements Serializable
 	private String text;
         private String reply;
         private Card card;
+        //private JSONObject jsonObject;
 
         public Message()
         {

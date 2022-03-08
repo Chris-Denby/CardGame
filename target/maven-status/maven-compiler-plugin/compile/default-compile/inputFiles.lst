@@ -3,6 +3,7 @@ C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\PlayA
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\ResourcePanel.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\DiscardPile.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\Card.java
+C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\IPlayable.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\SpellCard.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\NetCode\TCPServer.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\ImagePanel.java
@@ -11,12 +12,13 @@ C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Start
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\ApplicationWindow.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\CardEvent.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Constants.java
-C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\PlayerBox.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Main.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\GameWindow.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Message.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\NetCode\TCPClient.java
+C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\IAttackable.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\PlayerHand.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Database\JSONHelper.java
+C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Cards\PlayerBox.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\Interface\Deck.java
 C:\Users\chris\Documents\NetBeansProjects\CardGame\src\main\java\NetCode\TCPServerManyThreads.java

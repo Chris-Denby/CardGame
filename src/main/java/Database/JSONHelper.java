@@ -42,7 +42,8 @@ public class JSONHelper
 {
     
     FileWriter file;
-    String filePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
+    //String filePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
+    String filePath = "";
     String fileName = "cards.json";
     
     
@@ -93,8 +94,12 @@ public class JSONHelper
     
     public void writeJSONFile(JSONObject jObject)
     {
+        
+        File existingFile = new File(filePath+fileName);
+        existingFile.delete();
+
         try{
-            file = new FileWriter(filePath + fileName);
+            file = new FileWriter(filePath + fileName,false);
             file.write(jObject.toJSONString());
         }
         catch(IOException e)
@@ -112,6 +117,7 @@ public class JSONHelper
                 e.printStackTrace();
             }
         }
+
     }
     
     public List<Card> readJSONFile(String recordName)
@@ -124,13 +130,17 @@ public class JSONHelper
         try {
             JSONObject jsonObject = (JSONObject) jsonParser.parse(new FileReader(filePath+fileName));
             array = (JSONArray) jsonObject.get(recordName);
-        } catch (IOException ex) 
+            
+            
+        } 
+        catch (IOException ex) 
         {
             Logger.getLogger(JSONHelper.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) 
         {
             Logger.getLogger(JSONHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         
         Iterator iter = array.iterator();
         while(iter.hasNext())

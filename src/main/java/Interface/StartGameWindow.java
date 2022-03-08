@@ -54,10 +54,10 @@ public class StartGameWindow extends JPanel
         this.add(startClientButton);
         this.add(startServerButton);
         
-        //JSONHelper jh = new JSONHelper();
-        //jh.createCardLists();
+        JSONHelper jh = new JSONHelper();
+        jh.createCardLists();
         
-        loadImageCache();
+        //loadImageCache();
         
         
         

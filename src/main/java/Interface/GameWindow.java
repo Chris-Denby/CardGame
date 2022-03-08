@@ -39,6 +39,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
 
@@ -115,11 +116,18 @@ public class GameWindow extends JPanel
         centrePanel.setLayout(new BoxLayout(centrePanel, BoxLayout.PAGE_AXIS));
         centrePanel.add(opponentsPlayArea, BorderLayout.CENTER);
         centrePanel.add(playerPlayArea);
+        
+        JScrollPane scrollPane = new JScrollPane(playerHand);
+        //scrollPane.setWheelScrollingEnabled(true);
+        //scrollPane.setPreferredSize(new Dimension(10,(int) Math.round((this.getHeight()/16)*5)));
+        //scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
+        
         this.add(gameControlPanel, BorderLayout.WEST);
         this.add(resourcePanel,BorderLayout.EAST);
         this.add(centrePanel, BorderLayout.CENTER);
-        this.add(playerHand, BorderLayout.PAGE_END);
+        //this.add(playerHand, BorderLayout.PAGE_END);
+        this.add(scrollPane, BorderLayout.PAGE_END);
         
         playerHand.setDeckArea(playerDeck);    
         opponentsHand.setDeckArea(opponentsDeck);

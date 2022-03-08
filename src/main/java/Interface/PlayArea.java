@@ -217,12 +217,16 @@ public class PlayArea extends JPanel
         if(card.getETBeffect()==null)
             return;
 
-        switch(card.getETBeffect())
+        String effectName = card.getETBeffect().toString().split("_")[0];
+        switch(effectName)
         {
-            case TAUNT:
+            case "TAUNT":
+            break;
+            
+            case "xxxx":
             break;
                 
-            case BUFF_1:
+            case "BUFF":
                 int buffBy = Integer.parseInt(card.getETBeffect().toString().split("_")[1]);
                 BiConsumer<Integer,Card> buffConsumer = (i,c)-> {
                     //for each creature card in play, increase power by buff value
@@ -230,6 +234,10 @@ public class PlayArea extends JPanel
                                 ((CreatureCard) c).setPower(((CreatureCard) c).getPower()+buffBy);};
                 cardsInPlay.forEach(buffConsumer);
             break;
+            
+            
+            
+            
         }        
     }
     

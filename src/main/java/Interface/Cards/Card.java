@@ -313,7 +313,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void setImage(Image img)
     {
-        pictureBox.setImage(img);
+        //pictureBox.setImage(img);
     }
     
     public void setBodyText(String text)    

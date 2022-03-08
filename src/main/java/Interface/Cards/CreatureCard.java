@@ -124,14 +124,4 @@ public class CreatureCard extends Card
         //set picture box
         return clone;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }
