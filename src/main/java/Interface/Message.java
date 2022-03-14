@@ -17,44 +17,43 @@ import org.json.simple.JSONObject;
 // Should implement serializable for instances of this class to be written to streams.
 public class Message implements Serializable
  {
-	private String text;
-        private String reply;
-        private Card card;
-        //private JSONObject jsonObject;
+    private String text;
+    private String reply;
+    private JSONObject jsonCard;
 
-        public Message()
-        {
-            
-        }
+    public Message()
+    {
 
-	public String getText() 
-        {
-            return text;
-	}
+    }
 
-	public void setText(String text) 
-        {
-            this.text=text;
-	}
+    public String getText() 
+    {
+        return text;
+    }
+
+    public void setText(String text) 
+    {
+        this.text=text;
+    }
+
+    public String getReply() 
+    {
+        return reply;
+    }
+
+    public void setReply(String text) 
+    {
+        this.reply=text;
+    }
+
+    public JSONObject getJsonCard() {
+        return jsonCard;
+    }
+
+    public void setJsonCard(JSONObject jsonCard) {
+        this.jsonCard = jsonCard;
+    }
         
-        public String getReply() 
-        {
-            return reply;
-        }
-
-        public void setReply(String text) 
-        {
-            this.reply=text;
-	}
         
-        public void setCard(Card c)
-        {
-            card = c;
-        }
-        
-        public Card getCard()
-        {
-            return card;
-        }
   }
 

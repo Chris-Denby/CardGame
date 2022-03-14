@@ -70,8 +70,7 @@ public class Deck extends JLayeredPane
         {
             Message m = new Message();
             m.setText("OPPONENT_ADD_CARD_TO_DECK");
-            m.setCard(card);
-            gameWindow.sendMessage(m); 
+            gameWindow.sendMessage(m,card); 
             card.setCardLocation(CardLocation.PLAYER_HAND);
         }
         else
@@ -102,7 +101,7 @@ public class Deck extends JLayeredPane
             {
                 Message m = new Message();
                 m.setText("OPPONENT_DRAW_CARD");
-                gameWindow.sendMessage(m);
+                gameWindow.sendMessage(m,null);
             }
         }       
     }

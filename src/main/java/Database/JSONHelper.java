@@ -10,6 +10,7 @@ import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants;
 import Interface.Constants.ETBeffect;
+import Interface.Constants.SpellEffect;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -52,46 +53,6 @@ public class JSONHelper
         
     }
 
-    public JSONObject getJSONCardList (List<Card> cardList)
-    {
-        //to pack multiple child json items
-        //put child jasons in parent json
-        //if I want to append, add more json objects to existing key
-
-        //temp holder for iterating
-        JSONObject cardJSON;
-        //array is the 3rd level child of 2nd level child 'cardsJSON'
-        JSONArray allCardsJSONArray = new JSONArray();
-        //2nd level child
-        JSONObject cardsJSON = new JSONObject();
-        
-        for(Card c:cardList)
-        {
-        //create json object
-            cardJSON = new JSONObject();
-            //add key/value pairs for the card
-            if(c instanceof CreatureCard)
-            {
-                cardJSON.put("type",c.getClass().toString());
-                cardJSON.put("power",((CreatureCard) c).getPower());
-                cardJSON.put("toughness",((CreatureCard) c).getToughness());
-                cardJSON.put("etbEffect", c.getETBeffect().toString());
-            }
-            if(c instanceof SpellCard)
-            {
-                //cardJSON.put("effect", ((SpellCard) c).getEffect());
-            }
-            cardJSON.put("id",c.getCardID());
-            cardJSON.put("name",c.getName());
-            cardJSON.put("cost",c.getPlayCost());
-
-           //add card to parent json record
-           allCardsJSONArray.add(cardJSON);
-        }
-        cardsJSON.put("cards", allCardsJSONArray);
-        return cardsJSON;
-    }
-    
     public void writeJSONFile(JSONObject jObject)
     {
         
@@ -342,5 +303,60 @@ public class JSONHelper
 
         this.writeJSONFile(cardsJSON);
     }
+    
+    public JSONObject convertCardToJSON(Card c)
+    {
+        //convert card object to JSON object
+        JSONObject cardJSON = new JSONObject();
+        //add key/value pairs for the card
+        if(c instanceof CreatureCard)
+        {
+            cardJSON.put("power",((CreatureCard) c).getPower());
+            cardJSON.put("toughness",((CreatureCard) c).getToughness());
+            cardJSON.put("etbEffect", c.getETBeffect().toString());
+        }
+        if(c instanceof SpellCard)
+        {
+            cardJSON.put("effect", ((SpellCard) c).getEffect());
+        }
+        cardJSON.put("id",(int) c.getCardID());
+        cardJSON.put("name",c.getName());
+        cardJSON.put("cost",c.getPlayCost());
+        cardJSON.put("type",c.getClass().toString());
+        
+
+        
+        
+        return cardJSON;
+    }
+    
+    public Card convertJSONtoCard(JSONObject o)
+    {
+        Card card = null;
+
+        if(o.get("type").equals("class Interface.Cards.CreatureCard"))
+        {
+            card = new CreatureCard("",1);
+            CreatureCard cCard = (CreatureCard) card; 
+            cCard.setPower((int) o.get("power")); 
+            cCard.setToughness((int) o.get("toughness")); 
+            cCard.setETBeffect(ETBeffect.valueOf((String)o.get("etbEffect")));
+        }
+        else
+        if(o.get("type").equals("class Interface.Cards.SpellCard"))
+        {
+            card = new SpellCard("",1);
+            SpellCard sCard = (SpellCard) card;
+            sCard.setEffect(SpellEffect.valueOf(o.get("effect").toString()));
+        } 
+        
+        //card.setImageID((int) o.get("imageID"));
+        card.setName((String)o.get("name"));
+        card.setCardID((int) o.get("id"));
+        card.setPlayCost((int) o.get("cost")); 
+
+        return card;
+    }
+    
 
 }

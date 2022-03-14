@@ -189,12 +189,14 @@ public class PlayArea extends JPanel
     {
         if(cardsInPlay.containsKey(card.getCardID()))
         {
+            System.out.println("removing card from play area");
             cardSubPanel.remove(cardsInPlay.get(card.getCardID()));
             addToDiscardPile(card);
             cardsInPlay.remove(card.getCardID()); 
             revalidate();
             repaint();
         }
+        System.out.println("cant find card in play area");
     }
     
     public void addToDiscardPile(Card card)
@@ -251,8 +253,7 @@ public class PlayArea extends JPanel
             this.card = card;
             this.container = container;
         }
-        
-        
+
         @Override
         public void mouseClicked(MouseEvent e) 
         {
@@ -299,6 +300,7 @@ public class PlayArea extends JPanel
                 //if mouse 3 (right button) clicked
                 //gameWindow.zoomInCard(card);
                 System.out.println(card.getCardID());
+                System.out.println(card.getPlayArea().toString());
             }
         }
 

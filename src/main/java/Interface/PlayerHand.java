@@ -94,7 +94,7 @@ public class PlayerHand extends JLayeredPane
                                     gameWindow.passTurn();     
                             }
                             else
-                                playCard(card,false);
+                                playCard(card.getCardID(),false);
                         }
                     }
                 }
@@ -126,15 +126,14 @@ public class PlayerHand extends JLayeredPane
             resizeHand();
             layers--;
             //remove mouse listener assigned when card was added
-            card.removeMouseListener(card.getMouseListeners()[0]);
+            //card.removeMouseListener(card.getMouseListeners()[0]);
             playArea.addToDiscardPile(card);
             
             if(!isOpponents)
             {
                 Message message = new Message();
                 message.setText("PLAYER_DISCARD_CARD");
-                message.setCard(card);
-                gameWindow.sendMessage(message);
+                gameWindow.sendMessage(message,card);
             }
         }    
     }
@@ -191,10 +190,14 @@ public class PlayerHand extends JLayeredPane
         }
     }
     
-    public void playCard(Card card, boolean isOpponents)
+    public void playCard(int cardID, boolean isOpponents)
     {
-        
-        System.out.println(card.getPlayerHand().toString());
+        Card card = null;
+        for(Card c:cardsInHand)
+        {
+            if(c.getCardID()==cardID)
+                card = c;
+        }
         
         //if the cost of hte card exceeds available resources - exit method
         if(card.getPlayCost()>resourcePanel.getAmount())
@@ -217,8 +220,7 @@ public class PlayerHand extends JLayeredPane
         {
             Message message = new Message();
             message.setText("OPPONENT_PLAY_CARD");
-            message.setCard(card);
-            gameWindow.sendMessage(message);
+            gameWindow.sendMessage(message,card);
         }   
     }
     

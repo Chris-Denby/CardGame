@@ -73,7 +73,6 @@ public class Card extends JPanel implements Serializable, Cloneable
     Image cardBack;
 
     
-
     public Card(String cardName, int imageId)
     {
         this.cardName = cardName;
@@ -356,6 +355,12 @@ public class Card extends JPanel implements Serializable, Cloneable
         repaint();
         revalidate();
     }
+
+    public PlayArea getPlayArea() {
+        return playArea;
+    }
+    
+    
     
      
     @Override
