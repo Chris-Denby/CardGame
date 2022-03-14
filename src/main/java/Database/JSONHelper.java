@@ -43,7 +43,6 @@ public class JSONHelper
 {
     
     FileWriter file;
-    //String filePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
     String filePath = "";
     String fileName = "cards.json";
     
@@ -155,7 +154,7 @@ public class JSONHelper
         
         
         //player 1 card list
-        for(int x=0;x<60;x++)
+        for(int x=0;x<Constants.DECK_SIZE;x++)
         {
             JSONObject cardJSON = null;
             

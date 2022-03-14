@@ -34,11 +34,17 @@ import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import org.json.simple.JSONObject;
@@ -79,6 +85,7 @@ public class GameWindow extends JPanel
     private StartGameWindow startGameWindow;
     private Timer combatTimer;
     private JSONHelper jsonHelper;
+    
     
     //constructor
     public GameWindow(JTabbedPane pane, StartGameWindow startGameWindow)
@@ -150,12 +157,12 @@ public class GameWindow extends JPanel
             {
                 if(netClient!=null)
                 {
-                    playerDeck.populateDeckAndDeal(true);
+                    playerDeck.populateDeck(true);
                     isPlayerTurn = true;
                     passTurn();
                 }
                 else
-                    playerDeck.populateDeckAndDeal(false);
+                    playerDeck.populateDeck(false);
             }
         };
         timer.schedule(tt, 1500); 
@@ -371,6 +378,12 @@ public class GameWindow extends JPanel
         }
     }
     
+    public void dealHandListener()
+    {
+        if(opponentsDeck.getCardsInDeck().size()==Constants.DECK_SIZE && playerDeck.getCardsInDeck().size()==Constants.DECK_SIZE)
+        playerHand.dealHand();
+    }
+    
     public Card getPlayerLocalCard(int id)
     {
         if(playerPlayArea.getCardsInPlayArea().containsKey(id))
@@ -494,6 +507,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run() {
                         origin.takeDamage(target.getPower());
+                        //playCreatureAttackLandSound();
                         //release current card event
                         cardEvent = null;
                         hideDrawLineGlassPane();
@@ -502,7 +516,8 @@ public class GameWindow extends JPanel
                 TimerTask originDamageTask = new TimerTask() {
                     @Override
                     public void run() {
-                        target.takeDamage(origin.getPower()); 
+                        target.takeDamage(origin.getPower());
+                        //playCreatureAttackSwingSound();
                         combatTimer.schedule(targetDamageTask, 500);
                     }
                 };
@@ -882,6 +897,7 @@ public class GameWindow extends JPanel
         if(message.getText().equals("OPPONENT_ADD_CARD_TO_DECK"))
         {
             opponentsDeck.addCard(messageCard);
+            this.dealHandListener();
         }
         else
         if(message.getText().equals("OPPONENT_PLAY_CARD"))
@@ -1048,7 +1064,114 @@ public class GameWindow extends JPanel
             }
         }        
     }
-           
+    
+    
+    
+    
+    
+    
+    
+    public void playBurnSpellSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/fireball.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    public void playDrawCardSpellSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/fireball.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    public void playCreatureAttackSwingSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/attack_swing.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    public void playCreatureAttackLandSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/attack_swing.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+     
     public class DrawLineGlassPane extends JComponent
     {
         Point originCardPoint;
@@ -1114,4 +1237,5 @@ public class GameWindow extends JPanel
         }
         
     }
+    
 }

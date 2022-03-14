@@ -106,7 +106,7 @@ public class Deck extends JLayeredPane
         }       
     }
         
-    public void populateDeckAndDeal(boolean isPlayer1)
+    public void populateDeck(boolean isPlayer1)
     {
         //read cards from JSON DB
         //populate users deck  from JSON 
@@ -128,7 +128,7 @@ public class Deck extends JLayeredPane
             addCard(c);
         }
         //deal out first hand
-        playerHand.dealHand();
+        //playerHand.dealHand();
     }
     
     public void shuffleDeck()
@@ -146,5 +146,5 @@ public class Deck extends JLayeredPane
     public List<Card> getCardsInDeck()
     {
         return cardsInDeck;
-    }  
+    } 
 }
