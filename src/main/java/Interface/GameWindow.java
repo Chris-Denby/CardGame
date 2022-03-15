@@ -36,6 +36,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -85,6 +86,8 @@ public class GameWindow extends JPanel
     private StartGameWindow startGameWindow;
     private Timer combatTimer;
     private JSONHelper jsonHelper;
+    private List<Card> player1CardList;
+    private List<Card> player2CardList;
     
     
     //constructor
@@ -897,7 +900,7 @@ public class GameWindow extends JPanel
         if(message.getText().equals("OPPONENT_ADD_CARD_TO_DECK"))
         {
             opponentsDeck.addCard(messageCard);
-            this.dealHandListener();
+            //this.dealHandListener();
         }
         else
         if(message.getText().equals("OPPONENT_PLAY_CARD"))

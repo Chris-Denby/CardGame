@@ -19,6 +19,7 @@ import javax.swing.JLayeredPane;
 import Interface.Constants.CardLocation;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -95,8 +96,7 @@ public class Deck extends JLayeredPane
         //add new card to play area from the top of the deck
         if(playerHand.addCard(cardsInDeck.get(cardsInDeck.size()-1)))
         {
-            removeCard(cardsInDeck.get(cardsInDeck.size()-1));
-            //System.out.println(cardsInDeck.size() + " cards remaining");  
+            removeCard(cardsInDeck.get(cardsInDeck.size()-1)); 
             if(!isOpponents)
             {
                 Message m = new Message();
@@ -118,6 +118,7 @@ public class Deck extends JLayeredPane
             cardList = h.readJSONFile("player1Cards");
         else
             cardList = h.readJSONFile("player2Cards");
+        
 
         Collections.shuffle(cardList);
  
@@ -128,7 +129,7 @@ public class Deck extends JLayeredPane
             addCard(c);
         }
         //deal out first hand
-        //playerHand.dealHand();
+        playerHand.dealHand();
     }
     
     public void shuffleDeck()

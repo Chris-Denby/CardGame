@@ -16,6 +16,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -41,6 +42,9 @@ public class StartGameWindow extends JPanel
     
     HashMap<Integer,Image> imageCache = new HashMap<Integer,Image>();
     JSONHelper jsonHelper = new JSONHelper();
+    
+    private List<Card> player1CardList;
+    private List<Card> player2CardList;
     
     JButton startLocalButton = new JButton("Start local game");
     JButton startClientButton = new JButton("Join net game");
@@ -219,8 +223,16 @@ public class StartGameWindow extends JPanel
         
     }
     
+    public void loadCardCache()
+    {
+        player1CardList = jsonHelper.readJSONFile("player1Cards");
+        player2CardList = jsonHelper.readJSONFile("player2Cards");
+    }
+    
     public Image getImageFromCache(int imageID)
     {
         return imageCache.get(imageID);
     }
+    
+    
 }
