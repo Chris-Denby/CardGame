@@ -10,6 +10,7 @@ import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
+import Interface.Constants.DeathEffect;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
 import java.awt.Container;
@@ -171,7 +172,7 @@ public class PlayArea extends JPanel
             //this.revalidate();
             //this.repaint();
             
-            triggerETeffect(card);
+            triggerETBEffect(card);
             
             if(card instanceof SpellCard)
             {
@@ -223,35 +224,65 @@ public class PlayArea extends JPanel
         return cardsInPlay;
     }
     
-    public void triggerETeffect(Card card)
+    public void triggerETBEffect(Card card)
     {
         if(card.getETBeffect()==null)
             return;
 
-        String effectName = card.getETBeffect().toString().split("_")[0];
-        switch(effectName)
+        //String effectName = card.getETBeffect().toString().split("_")[0];
+        switch(card.getETBeffect())
         {
-            case "TAUNT":
-            break;
-            
-            case "xxxx":
+            case Taunt:
             break;
                 
-            case "BUFF":
-                int buffBy = Integer.parseInt(card.getETBeffect().toString().split("_")[1]);
-                BiConsumer<Integer,Card> buffConsumer = (i,c)-> {
-                    //for each creature card in play, increase power by buff value
-                    if(c instanceof CreatureCard && c.getCardID()!=c.getCardID())
-                                ((CreatureCard) c).setPower(((CreatureCard) c).getPower()+buffBy);};
-                cardsInPlay.forEach(buffConsumer);
-            break;
-            
-            
-            
-            
+            case Buff_Power:
+                for(Card c:cardsInPlay.values()){
+                    if(c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
+                        CreatureCard ccard = (CreatureCard) c;
+                        ccard.setBuffed(true,card.getPlayCost());
+                        }
+                }
+            break;  
         }        
     }
     
+    public void triggerDeathFffect(Card card)
+    {
+        
+        //trigger death effects
+        if(card.getDeathEffect()!=null)
+        {
+            //String deathEffectName = card.getDeathEffect().toString().split("_")[0];
+            switch(card.getDeathEffect())
+            {
+                case Gain_Life:
+                    this.playerBoxPanel.gainLife(card.getPlayCost());
+                break;
+            }
+        }
+        
+        //remove ETB buffs
+        if(card.getETBeffect()!=null)
+        {
+            //String ETBeffectName = card.getETBeffect().toString().split("_")[0];
+            switch(card.getETBeffect())
+            {
+                case Taunt:
+                break;
+
+                case Buff_Power:
+                    for(Card c:cardsInPlay.values()){
+                        if(c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
+                            CreatureCard ccard = (CreatureCard) c;
+                            ccard.setBuffed(false,card.getPlayCost());
+                            }
+                    }
+                    //for each creature card in play, increase power by buff value
+                break;  
+            } 
+        }
+    }
+        
     public class CardMouseListener implements MouseListener
     {
         private Container container;
@@ -275,7 +306,7 @@ public class PlayArea extends JPanel
         }
 
         @Override
-        public void mouseReleased(MouseEvent e) { 
+        public void mouseReleased(MouseEvent e) {                     
             //only allow mouse events while its the players turn, or if its the declare blockers phase
             if(e.getButton()==MouseEvent.BUTTON1 && !gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.DECLARE_BLOCKERS && !card.getIsActivated() && card.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
             {

@@ -9,6 +9,7 @@ import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants;
+import Interface.Constants.DeathEffect;
 import Interface.Constants.ETBeffect;
 import Interface.Constants.SpellEffect;
 import java.io.File;
@@ -118,6 +119,7 @@ public class JSONHelper
                 cCard.setPower(Integer.parseInt(Long.toString((Long)o.get("power")))); 
                 cCard.setToughness(Integer.parseInt(Long.toString((Long)o.get("toughness")))); 
                 cCard.setETBeffect(ETBeffect.valueOf((String)o.get("etbEffect")));
+                cCard.setDeathEffect(DeathEffect.valueOf((String)o.get("deathEffect")));
                 cardsList.add(cCard);
             }
             else
@@ -150,8 +152,8 @@ public class JSONHelper
         JSONArray player1CardsJSONArray = new JSONArray();
         JSONArray player2CardsJSONArray = new JSONArray();
         
-        List<ETBeffect> effectsList = Arrays.asList(ETBeffect.values());
-        
+        List<ETBeffect> ETBeffectsList = Arrays.asList(ETBeffect.values());
+        List<DeathEffect> deathEffectsList = Arrays.asList(DeathEffect.values());
         
         //player 1 card list
         for(int x=0;x<Constants.DECK_SIZE;x++)
@@ -167,8 +169,10 @@ public class JSONHelper
                 c.setPower(ThreadLocalRandom.current().nextInt(1,8));
                 c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
                 c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8)); 
-                c.setETBeffect(effectsList.get(ThreadLocalRandom.current().nextInt(0,effectsList.size())));
+                c.setETBeffect(ETBeffectsList.get(ThreadLocalRandom.current().nextInt(0,ETBeffectsList.size())));
+                c.setDeathEffect(deathEffectsList.get(ThreadLocalRandom.current().nextInt(0,deathEffectsList.size())));
 
+                
                 //create json object
                 cardJSON = new JSONObject();
 
@@ -180,6 +184,7 @@ public class JSONHelper
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
                 cardJSON.put("imageID",c.getImageID());
                 cardJSON.put("etbEffect",c.getETBeffect().toString());
+                cardJSON.put("deathEffect",c.getDeathEffect().toString());
             }
             else
             if(x>=40&& x<50)
@@ -239,8 +244,9 @@ public class JSONHelper
                 c.setPower(ThreadLocalRandom.current().nextInt(1,8));
                 c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
                 c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8)); 
-                c.setETBeffect(effectsList.get(ThreadLocalRandom.current().nextInt(0,effectsList.size())));
-
+                c.setETBeffect(ETBeffectsList.get(ThreadLocalRandom.current().nextInt(0,ETBeffectsList.size())));
+                c.setDeathEffect(deathEffectsList.get(ThreadLocalRandom.current().nextInt(0,deathEffectsList.size())));
+                
                 //create json object
                 cardJSON = new JSONObject();
 
@@ -252,6 +258,7 @@ public class JSONHelper
                 cardJSON.put("toughness",((CreatureCard) c).getToughness());
                 cardJSON.put("imageID",c.getImageID());
                 cardJSON.put("etbEffect",c.getETBeffect().toString());
+                cardJSON.put("deathEffect",c.getDeathEffect().toString());
             }
             else
             if(x>=40&& x<50)
@@ -313,6 +320,7 @@ public class JSONHelper
             cardJSON.put("power",((CreatureCard) c).getPower());
             cardJSON.put("toughness",((CreatureCard) c).getToughness());
             cardJSON.put("etbEffect", c.getETBeffect().toString());
+            cardJSON.put("deathEffect", c.getDeathEffect().toString());
         }
         if(c instanceof SpellCard)
         {
@@ -340,6 +348,7 @@ public class JSONHelper
             cCard.setPower((int) o.get("power")); 
             cCard.setToughness((int) o.get("toughness")); 
             cCard.setETBeffect(ETBeffect.valueOf((String)o.get("etbEffect")));
+            cCard.setDeathEffect(DeathEffect.valueOf((String)o.get("deathEffect")));
         }
         else
         if(o.get("type").equals("class Interface.Cards.SpellCard"))

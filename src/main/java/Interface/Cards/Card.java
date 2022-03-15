@@ -15,6 +15,7 @@ import java.io.Serializable;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import Interface.Constants.CardLocation;
+import Interface.Constants.DeathEffect;
 import Interface.Constants.ETBeffect;
 import Interface.PlayArea;
 import Interface.PlayerHand;
@@ -56,12 +57,13 @@ public class Card extends JPanel implements Serializable, Cloneable
     transient PlayerHand playerHand;
     transient Dimension dimension = new Dimension(width,height);
     transient int headingFontSize =8;
-    transient int bodyFontSize = 6;
+    transient int bodyFontSize = 8;
     transient Font headingFont = new Font("Arial",Font.BOLD,headingFontSize);
-    transient Font bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
+    transient Font bodyFont = new Font("Arial",Font.PLAIN,bodyFontSize);
     transient private boolean isSelected = false;
     private int imageID;
     private ETBeffect etbEffect;
+    private DeathEffect deathEffect;
     private boolean isPlayable;
     JLabel cardNameLabel;
     JPanel topPanel;
@@ -72,7 +74,6 @@ public class Card extends JPanel implements Serializable, Cloneable
     JPanel innerPanel;
     Image cardBack;
 
-    
     public Card(String cardName, int imageId)
     {
         this.cardName = cardName;
@@ -99,8 +100,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         cardNameLabel = new JLabel(this.cardName,SwingConstants.LEFT);
         playCostLabel = new JLabel(""+playCost,SwingConstants.RIGHT);
                 
-        headingFont = new Font("Arial",Font.BOLD,headingFontSize);
-        bodyFont = new Font("Arial",Font.BOLD,bodyFontSize);
         
         innerPanel.setLayout(new BoxLayout(innerPanel,BoxLayout.Y_AXIS));
         innerPanel.setBackground(Color.WHITE);
@@ -121,16 +120,25 @@ public class Card extends JPanel implements Serializable, Cloneable
     {
         return playerHand;
     }
-    
+
+    public DeathEffect getDeathEffect() {
+        return deathEffect;
+    }
+
+    public void setDeathEffect(DeathEffect deathEffect) {
+        this.deathEffect = deathEffect;
+        if(this.getDeathEffect()!=DeathEffect.NONE)
+            setBodyText(this.getDeathEffect().toString());
+        
+    }
+
     public ETBeffect getETBeffect()
     {
         return etbEffect;
     }
     
-    public void setETBeffect(ETBeffect effect)
-    {
-        etbEffect = effect;
-        
+    public void setETBeffect(ETBeffect effect) {
+        etbEffect = effect;        
         if(this.getETBeffect()!=ETBeffect.NONE)
             setBodyText(this.getETBeffect().toString());
     }
@@ -217,9 +225,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
         bottomPanel.setPreferredSize(new Dimension(innerWidth,Math.round(innerHeight/10)*1));
         
-        headingFont = new Font("Arial",Font.BOLD,8);
-        bodyFont = new Font("Arial",Font.PLAIN,8);
-        
         cardNameLabel.setFont(headingFont);
         playCostLabel.setFont(headingFont);
         bodyBox.setFont(bodyFont);
@@ -277,14 +282,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         location = l;
         if(location==CardLocation.PLAYER_PLAY_AREA | location==CardLocation.OPPONENT_PLAY_AREA)
         {
-            headingFontSize = 8;
-            bodyFontSize = 6;
             this.remove(topPanel);
-        }
-        else
-        {
-            headingFontSize = 8;
-            bodyFontSize = 6;
         }
         revalidate(); 
         repaint();
@@ -317,7 +315,14 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void setBodyText(String text)    
     {
-        bodyBox.setText(text);
+        String textToAdd = text.replace('_', ' ');
+        StringBuilder sb = new StringBuilder(bodyBox.getText());
+        if(!bodyBox.getText().equals(""))
+            sb.append("\n");
+        
+        sb.append(textToAdd);
+        
+        bodyBox.setText(sb.toString());
         
         /**
 

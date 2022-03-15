@@ -9,6 +9,8 @@ import Interface.Constants;
 import Interface.Constants.CardLocation;
 import Interface.Constants.ETBeffect;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import javax.swing.JLabel;
@@ -24,6 +26,8 @@ public class CreatureCard extends Card
     private int toughness = 1;
     private JLabel powerLabel;
     private JLabel toughnessLabel;
+    private Font modifiedStatFont = new Font("Arial",Font.BOLD,headingFontSize+2);
+    private boolean isBuffed = false;
     
     public CreatureCard(String cardName, int imageID) 
     {
@@ -40,12 +44,7 @@ public class CreatureCard extends Card
         bottomPanel.add(powerLabel,BorderLayout.WEST);
         bottomPanel.add(toughnessLabel, BorderLayout.EAST);     
     }
-    
-    @Override
-    public void setBodyText(String text)    
-    {
-        bodyBox.setText(text);
-    }   
+     
     
     public int getPower() 
     {
@@ -56,6 +55,26 @@ public class CreatureCard extends Card
     {
         this.power = power;
         powerLabel.setText(power+"");
+        
+    }
+
+    public void setBuffed(boolean is, int buff) 
+    {
+        isBuffed = is;
+        if(is)
+        {
+            this.power = power + buff;
+            powerLabel.setText(power+"");
+            powerLabel.setFont(modifiedStatFont);
+            powerLabel.setForeground(Color.BLUE);
+        }
+        else
+        {
+            this.power = power - buff;
+            powerLabel.setText(power+"");
+            powerLabel.setFont(headingFont);
+            powerLabel.setForeground(Color.BLACK);
+        }
     }
 
     public int getToughness() 
@@ -72,9 +91,6 @@ public class CreatureCard extends Card
     public void setLocation(CardLocation l)
     {
         super.setCardLocation(l);
-        powerLabel.setFont(headingFont);
-        toughnessLabel.setFont(headingFont);
-        revalidate();
     }
     
     public void setFaceUp(boolean is)
@@ -86,8 +102,6 @@ public class CreatureCard extends Card
 
     public void takeDamage(int damage)
     {
-        System.out.println("I took damage - " + this.getName() + " " + this.getPlayCost() + " " + this.getCardLocation());
-        
         if(this.toughness-damage<0)
             this.toughness = 0;
         else
@@ -97,8 +111,8 @@ public class CreatureCard extends Card
         
         if(toughness<=0)
         {
-            System.out.println("I died");
             //if toughness is reduced to 0 or below - it dies
+            this.playArea.triggerDeathFffect(this);
             playArea.removeCard(this);
         }
         
@@ -107,8 +121,8 @@ public class CreatureCard extends Card
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        powerLabel.setFont(headingFont);
-        toughnessLabel.setFont(headingFont);        
+        powerLabel.setFont(bodyFont);
+        toughnessLabel.setFont(bodyFont);        
    
     }
     

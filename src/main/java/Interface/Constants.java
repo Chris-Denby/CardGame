@@ -53,9 +53,14 @@ public class Constants
     public static enum ETBeffect
     {
         NONE,
-        TAUNT,
-        GAIN_LIFE,
-        BUFF_1
+        Taunt,
+        Buff_Power;
+    }
+    
+    public static enum DeathEffect
+    {
+        Gain_Life,
+        NONE;
     }
     
     

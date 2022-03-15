@@ -89,6 +89,11 @@ public class PlayerBox extends JPanel
         return playerHealth;
     }
     
+    public void gainLife(int life)
+    {
+        setPlayerHealth(getPlayerHealth()+life);
+    }
+    
     @Override
     public void paintComponent(Graphics g) 
     {
