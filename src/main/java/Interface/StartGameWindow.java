@@ -58,13 +58,7 @@ public class StartGameWindow extends JPanel
         this.add(startClientButton);
         this.add(startServerButton);
         
-        JSONHelper jh = new JSONHelper();
-        jh.createCardLists();
-        
-        //loadImageCache();
-        
-        
-        
+        JSONHelper jh = new JSONHelper();        
         
         startClientButton.addActionListener((new ActionListener() 
         {
@@ -221,12 +215,6 @@ public class StartGameWindow extends JPanel
         catch(Exception ex){
             System.out.println("image read failed:\n"+ex.getMessage());} 
         
-    }
-    
-    public void loadCardCache()
-    {
-        player1CardList = jsonHelper.readJSONFile("player1Cards");
-        player2CardList = jsonHelper.readJSONFile("player2Cards");
     }
     
     public Image getImageFromCache(int imageID)

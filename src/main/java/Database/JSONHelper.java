@@ -146,7 +146,46 @@ public class JSONHelper
         return cardsList;
     }
     
-    public void createCardLists()
+    public List<Card> createCardLists()
+    {
+        List<Card> cardList = new ArrayList<Card>();
+        List<ETBeffect> ETBeffectsList = Arrays.asList(ETBeffect.values());
+        List<DeathEffect> deathEffectsList = Arrays.asList(DeathEffect.values());
+        List<SpellEffect> spellEffectsList = Arrays.asList(SpellEffect.values());
+        
+        for(int x=0;x<Constants.DECK_SIZE;x++)
+        {
+            Card card = null;
+            if(x<=40)
+            {
+                card = new CreatureCard("",1);
+                CreatureCard c = (CreatureCard) card;
+                c.setName("Minion");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPower(ThreadLocalRandom.current().nextInt(1,8));
+                c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8)); 
+                c.setETBeffect(ETBeffectsList.get(ThreadLocalRandom.current().nextInt(0,ETBeffectsList.size())));
+                c.setDeathEffect(deathEffectsList.get(ThreadLocalRandom.current().nextInt(0,deathEffectsList.size())));
+            }
+            else
+            if(x>40 && x<=60)
+            {
+                card = new SpellCard("",1);
+                SpellCard c = (SpellCard) card;
+                c.setName("Spell");
+                c.setImageID(ThreadLocalRandom.current().nextInt(1,7));
+                c.setCardID(System.identityHashCode(c));
+                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
+                c.setEffect(spellEffectsList.get(ThreadLocalRandom.current().nextInt(0,spellEffectsList.size())));              
+            }
+           cardList.add(card);
+        }
+        return cardList;
+    }
+    
+    public void createCardListsOLD()
     {
         JSONObject cardsJSON = new JSONObject();
         JSONArray player1CardsJSONArray = new JSONArray();

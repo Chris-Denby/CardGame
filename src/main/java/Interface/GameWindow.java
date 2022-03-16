@@ -86,8 +86,8 @@ public class GameWindow extends JPanel
     private StartGameWindow startGameWindow;
     private Timer combatTimer;
     private JSONHelper jsonHelper;
-    private List<Card> player1CardList;
-    private List<Card> player2CardList;
+    
+
     
     
     //constructor
@@ -105,6 +105,7 @@ public class GameWindow extends JPanel
         this.setMinimumSize(dimensions);
         this.setLayout(borderLayout);
         jsonHelper = new JSONHelper();
+        
                 
         //INITIALISE COMPONENTS
         resourcePanel = new ResourcePanel(getWidth(),getHeight(),this);
@@ -158,14 +159,13 @@ public class GameWindow extends JPanel
             @Override
             public void run() 
             {
+                playerDeck.populateDeck(jsonHelper.createCardLists());
                 if(netClient!=null)
                 {
-                    playerDeck.populateDeck(true);
+                    //if this window is the server
                     isPlayerTurn = true;
                     passTurn();
                 }
-                else
-                    playerDeck.populateDeck(false);
             }
         };
         timer.schedule(tt, 1500); 

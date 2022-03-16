@@ -64,6 +64,8 @@ public class Deck extends JLayeredPane
         card.applySize(playerHand.getHeight());
         card.setBounds(origin.x+offset,origin.y,card.getWidth()-1,card.getHeight()-1);  
         offset+=1;
+        //card.setImage(gameWindow.getImageFromCache(c.getImageID()));
+        //card.setCardBack((gameWindow.getImageFromCache(999)));
         
         //***************
         //send message to connected server/client
@@ -106,26 +108,12 @@ public class Deck extends JLayeredPane
         }       
     }
         
-    public void populateDeck(boolean isPlayer1)
+    public void populateDeck(List<Card> list)
     {
-        //read cards from JSON DB
-        //populate users deck  from JSON 
+        Collections.shuffle(list);
         
-        JSONHelper h = new JSONHelper(); 
-        List<Card> cardList;
-
-        if(isPlayer1)
-            cardList = h.readJSONFile("player1Cards");
-        else
-            cardList = h.readJSONFile("player2Cards");
-        
-
-        Collections.shuffle(cardList);
- 
-        for(Card c:cardList)
+        for(Card c:list)
         {
-            c.setImage(gameWindow.getImageFromCache(c.getImageID()));
-            //c.setCardBack((gameWindow.getImageFromCache(999)));
             addCard(c);
         }
         //deal out first hand
@@ -143,6 +131,7 @@ public class Deck extends JLayeredPane
             layer++;
         }
     }
+
     
     public List<Card> getCardsInDeck()
     {
