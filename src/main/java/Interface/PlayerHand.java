@@ -70,6 +70,7 @@ public class PlayerHand extends JLayeredPane
     {
         if(!cardsInHand.contains(card))
         {
+            playAddCardSound();
             card.setPlayerHand(this);
             cardsInHand.add(card);
             card.applySize(height);
@@ -105,6 +106,10 @@ public class PlayerHand extends JLayeredPane
                             else
                                 playCard(card.getCardID(),false);
                         }
+                    }
+                    if(e.getButton()==MouseEvent.BUTTON3)
+                    {
+                        
                     }
                 }
 
@@ -142,7 +147,7 @@ public class PlayerHand extends JLayeredPane
             {
                 Message message = new Message();
                 message.setText("PLAYER_DISCARD_CARD");
-                gameWindow.sendMessage(message,card);
+                gameWindow.sendMessage(message,gameWindow.getJsonHelper().convertCardToJSON(card));
             }
         }    
     }
@@ -199,20 +204,19 @@ public class PlayerHand extends JLayeredPane
         }
     }
     
-    public void playCard(int cardID, boolean isOpponents)
+    public void playCard(int cardID, boolean isOpponent)
     {
         Card card = null;
+
         for(Card c:cardsInHand)
-        {
             if(c.getCardID()==cardID)
                 card = c;
-        }
         
         //if the cost of hte card exceeds available resources - exit method
         if(card.getPlayCost()>resourcePanel.getAmount())
             return;
          
-        if(!isOpponents)
+        if(!isOpponent)
             card.setCardLocation(CardLocation.PLAYER_HAND);   
         else
             card.setCardLocation(CardLocation.OPPONENT_HAND);
@@ -229,7 +233,7 @@ public class PlayerHand extends JLayeredPane
         {
             Message message = new Message();
             message.setText("OPPONENT_PLAY_CARD");
-            gameWindow.sendMessage(message,card);
+            gameWindow.sendMessage(message,gameWindow.getJsonHelper().convertCardToJSON(card));
         }   
     }
     
@@ -241,14 +245,14 @@ public class PlayerHand extends JLayeredPane
     public void dealHand()
     {
         for(int x=0;x<maxHandSize;x++)
-            deck.drawCard();
+            deck.drawCard(false);
     }
     
     public void drawCards(int num)
     {
         //draw cards * the number passed as parameter
         for(int x=0;x<num;x++)
-            this.deck.drawCard();
+            this.deck.drawCard(true);
     }
     
     public int getNumCards()
@@ -279,7 +283,7 @@ public class PlayerHand extends JLayeredPane
         }
     }
     
-    public void playBurnSound()
+    public void playAddCardSound()
     {
         AudioInputStream audioInputStream = null;
         try {

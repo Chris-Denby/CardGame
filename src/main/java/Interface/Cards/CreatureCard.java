@@ -36,9 +36,12 @@ public class CreatureCard extends Card
         
         powerLabel = new JLabel(power+"");
         powerLabel.setFont(headingFont);
-        //powerLabel.setVerticalAlignment(SwingConstants.CENTER);
         toughnessLabel = new JLabel(toughness+"");
-        toughnessLabel.setFont(headingFont);        
+        toughnessLabel.setFont(headingFont);
+        powerLabel.setForeground(Color.WHITE);
+        toughnessLabel.setForeground(Color.WHITE);
+        
+        
 
         bottomPanel.setLayout(new BorderLayout());
         bottomPanel.add(powerLabel,BorderLayout.WEST);

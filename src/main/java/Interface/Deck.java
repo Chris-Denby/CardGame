@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -60,7 +61,6 @@ public class Deck extends JLayeredPane
     
     public void addCard(Card card)
     { 
-        //card.setSize(Math.round(height*0.75f),height);
         card.applySize(playerHand.getHeight());
         card.setBounds(origin.x+offset,origin.y,card.getWidth()-1,card.getHeight()-1);  
         offset+=1;
@@ -71,9 +71,6 @@ public class Deck extends JLayeredPane
         //send message to connected server/client
         if(!isOpponents)
         {
-            Message m = new Message();
-            m.setText("OPPONENT_ADD_CARD_TO_DECK");
-            gameWindow.sendMessage(m,card); 
             card.setCardLocation(CardLocation.PLAYER_HAND);
         }
         else
@@ -93,13 +90,15 @@ public class Deck extends JLayeredPane
         layer--;
     }
     
-    public void drawCard()
+    public void drawCard(boolean sendMessage)
     {
+        //sendMessage parameter is so that a message isnt sent on the first deal - so as not to clog up TCP messages
+        
         //add new card to play area from the top of the deck
         if(playerHand.addCard(cardsInDeck.get(cardsInDeck.size()-1)))
         {
             removeCard(cardsInDeck.get(cardsInDeck.size()-1)); 
-            if(!isOpponents)
+            if(!isOpponents && sendMessage)
             {
                 Message m = new Message();
                 m.setText("OPPONENT_DRAW_CARD");
@@ -108,14 +107,25 @@ public class Deck extends JLayeredPane
         }       
     }
         
-    public void populateDeck(List<Card> list)
+    public void populateDeckAndDeal(List<Card> list)
     {
-        Collections.shuffle(list);
-        
+        //add cards to deck
         for(Card c:list)
         {
+            c.setImage(gameWindow.getImageFromCache(c.getImageID()));
             addCard(c);
         }
+        
+        //if not opponent
+        //send the deck to the opponent
+        //and deal out your first hand
+        if(!this.isOpponents)
+        {
+
+            JSONObject obj = gameWindow.getJsonHelper().getCardListJSON(list);
+            gameWindow.sendMessage(new Message("OPPONENTS_DECKLIST"),obj);
+        }
+        
         //deal out first hand
         playerHand.dealHand();
     }

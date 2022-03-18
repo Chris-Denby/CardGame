@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -39,26 +40,27 @@ public class StartGameWindow extends JPanel
     JTabbedPane parentTabbedPane;
     private TCPClient netClient;
     private TCPServer netServer;
+    private JFrame applicationWindow;
     
     HashMap<Integer,Image> imageCache = new HashMap<Integer,Image>();
     JSONHelper jsonHelper = new JSONHelper();
-    
-    private List<Card> player1CardList;
-    private List<Card> player2CardList;
     
     JButton startLocalButton = new JButton("Start local game");
     JButton startClientButton = new JButton("Join net game");
     JButton startServerButton = new JButton("Host net game");
     
-    public StartGameWindow(JTabbedPane pane)
+    public StartGameWindow(JTabbedPane pane, JFrame appWindow)
     {
+        applicationWindow = appWindow;
         self = this;
         parentTabbedPane = pane;
-        this.add(startLocalButton);
+        //this.add(startLocalButton);
         this.add(startClientButton);
         this.add(startServerButton);
         
-        JSONHelper jh = new JSONHelper();        
+        JSONHelper jh = new JSONHelper();  
+        
+        loadImageCache();
         
         startClientButton.addActionListener((new ActionListener() 
         {
@@ -66,6 +68,7 @@ public class StartGameWindow extends JPanel
             public void actionPerformed(ActionEvent e) 
             {
                 showIPAddressDialog();
+                
             }
         }));   
         
@@ -75,7 +78,7 @@ public class StartGameWindow extends JPanel
             public void actionPerformed(ActionEvent e) 
             {
                startServer(); 
-               startServerButton.setText("Server Started");
+               startServerButton.setText("Server Started");               
             }
         }));
         
@@ -113,6 +116,7 @@ public class StartGameWindow extends JPanel
                     if(netServer.isConnected())
                     {
                         startGame(netServer);
+                        applicationWindow.setTitle(applicationWindow.getTitle() + " - SERVER");
                     }
                 } 
                 catch (InterruptedException ex) 
@@ -150,7 +154,8 @@ public class StartGameWindow extends JPanel
                     netClient = (TCPClient) get();
                     if(netClient.isConnected())
                     {
-                        startGame(netClient);    
+                        startGame(netClient);
+                        applicationWindow.setTitle(applicationWindow.getTitle() + " - CLIENT");
                     } 
                 } 
                 catch (InterruptedException ex) 
@@ -194,27 +199,24 @@ public class StartGameWindow extends JPanel
         
     }
     
-    public void loadImageCache()
+     public void loadImageCache()
     {
-        try{
-            for(Card c:jsonHelper.readJSONFile("player1Cards")){
-                Image img = ImageIO.read(new File(Constants.imagePath+c.getImageID()+".jpg"));
-                img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
-                imageCache.put(c.getImageID(), img);
-            }
-
-            for(Card cc:jsonHelper.readJSONFile("player2Cards")){
-                Image img = ImageIO.read(new File(Constants.imagePath+cc.getImageID()+".jpg"));
-                img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
-                imageCache.put(cc.getImageID(), img);
-            } 
-            
-
-            imageCache.put(000, ImageIO.read(new File(Constants.imagePath+"resource.png")));
-        }
-        catch(Exception ex){
-            System.out.println("image read failed:\n"+ex.getMessage());} 
+        Image img;
+        File imageFolder = new File("images");
+        System.out.println(imageFolder.exists());
         
+        for(File file:imageFolder.listFiles())
+        {
+             try{
+                String filename = file.getName().substring(0, file.getName().length()-4);
+                System.out.println("filename: " + filename);
+                img = ImageIO.read(file);
+                //img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
+                imageCache.put(Integer.parseInt(filename), img);
+            } catch (IOException ex) {
+                Logger.getLogger(StartGameWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }  
+        }
     }
     
     public Image getImageFromCache(int imageID)

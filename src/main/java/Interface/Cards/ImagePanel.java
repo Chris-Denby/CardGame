@@ -52,7 +52,7 @@ public class ImagePanel extends JPanel
         if(image!=null)
         {
             //image = image.getScaledInstance(this.getWidth(), this.getHeight(), SCALE_DEFAULT);
-            graphics.drawImage(image, 0, 0, this);
+            //graphics.drawImage(image, 0, 0, this);
         }
     }
     

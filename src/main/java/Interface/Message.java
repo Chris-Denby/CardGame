@@ -25,6 +25,11 @@ public class Message implements Serializable
     {
 
     }
+    
+    public Message(String message)
+    {
+        setText(message);        
+    }
 
     public String getText() 
     {

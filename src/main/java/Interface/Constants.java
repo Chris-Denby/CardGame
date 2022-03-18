@@ -19,7 +19,7 @@ public class Constants
     public static final int turnTimeLimit = 10;
     public static final int discardTimeLimit = 10;
     public static final int DECK_SIZE = 60;
-    public static String JSONpath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\cards.json";
+    public static final double cardAspectRatio = 0.715;
     public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
     
     public static enum CardLocation

@@ -5,6 +5,7 @@
  */
 package Interface.Cards;
 
+import Interface.Constants;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,6 +18,7 @@ import javax.swing.JPanel;
 import Interface.Constants.CardLocation;
 import Interface.Constants.DeathEffect;
 import Interface.Constants.ETBeffect;
+import Interface.InnerCardPanel;
 import Interface.PlayArea;
 import Interface.PlayerHand;
 import java.awt.BorderLayout;
@@ -46,7 +48,8 @@ public class Card extends JPanel implements Serializable, Cloneable
     private int shadowGap = 4;
     private int shadowOffset = 4;
     private int shadowAlpha = 150; //transparency from (0-255)
-    private Color backgroundColor = Color.WHITE;
+    private Color cardBaseColor = new Color(38,38,38,255);
+    private Color backgroundColor = cardBaseColor;
     private boolean isActivated = false;
     private String cardName;
     private int cardID;
@@ -71,7 +74,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     JPanel bottomPanel;
     JLabel playCostLabel;
     JTextPane bodyBox;
-    JPanel innerPanel;
+    InnerCardPanel innerPanel;
     Image cardBack;
 
     public Card(String cardName, int imageId)
@@ -79,7 +82,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         this.cardName = cardName;
         this.imageID = imageID;
         
-        innerPanel = new JPanel();
+        innerPanel = new InnerCardPanel();
                 
         topPanel = new JPanel();
         bottomPanel = new JPanel();
@@ -87,22 +90,28 @@ public class Card extends JPanel implements Serializable, Cloneable
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
 
-        topPanel.setBackground(Color.white);
-        bodyBox.setBackground(Color.white);
-        pictureBox.setBackground(Color.pink);
-        bottomPanel.setBackground(Color.white);
+        topPanel.setBackground(new Color(0,0,0,100));
+        bottomPanel.setBackground(new Color(0,0,0,100));
+        pictureBox.setBackground(new Color(255,255,255,0));
+        bodyBox.setBackground(new Color(255,255,255,180));
+        innerPanel.setBackground(new Color(0,102,102));
         
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
         bodyBox.setVisible(isFaceUp);        
         bottomPanel.setVisible(isFaceUp);
+
         
         cardNameLabel = new JLabel(this.cardName,SwingConstants.LEFT);
+        cardNameLabel.setForeground(Color.WHITE);
         playCostLabel = new JLabel(""+playCost,SwingConstants.RIGHT);
+        playCostLabel.setForeground(Color.WHITE);
                 
+
         
+
         innerPanel.setLayout(new BoxLayout(innerPanel,BoxLayout.Y_AXIS));
-        innerPanel.setBackground(Color.WHITE);
+
         this.add(innerPanel);
 
         topPanel.setLayout(new BorderLayout());
@@ -183,7 +192,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     {
         this.isFaceUp = is;
         if(isFaceUp){
-            this.backgroundColor = Color.WHITE;
+            this.backgroundColor =  cardBaseColor;
         }
         else{
             this.backgroundColor = Color.GRAY;
@@ -198,9 +207,11 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void applySize(int h)
     {  
-        this.height = (int) Math.round(h*0.75);
+        //parameter 'h' is the container height of hte card.
+        
+        this.height = (int) Math.round(h*0.75); //resize the card to be a fraction of its container height
         this.setOpaque(false); //makes this panel transparent
-        width = (int) Math.round(height*0.75);
+        width = (int) Math.round(height*Constants.cardAspectRatio);
         arcSize = (int) Math.round(height/20);
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));
@@ -237,7 +248,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         if(is)
         backgroundColor = Color.orange;
         else
-            backgroundColor = Color.white;
+            backgroundColor = cardBaseColor;
         
         isSelected = is;
         repaint();
@@ -249,7 +260,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         if(is)
         backgroundColor = Color.GRAY;
         else
-            backgroundColor = Color.white;
+            backgroundColor = cardBaseColor;
         
         isActivated = is;
         repaint();
@@ -311,6 +322,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     public void setImage(Image img)
     {
         //pictureBox.setImage(img);
+        innerPanel.setImage(img);
     }
     
     public void setBodyText(String text)    
@@ -422,5 +434,14 @@ public class Card extends JPanel implements Serializable, Cloneable
         clone.setImage(img);
         //set picture box
         return clone;
+    }
+    
+    public void getCardSize()
+    {
+        int w = width-shadowGap;
+        int h = height-shadowGap;
+        
+        System.out.println(innerPanel.getHeight() + ", " + innerPanel.getWidth());
+        
     }
 }

@@ -37,7 +37,7 @@ public class ApplicationWindow extends JFrame
     public ApplicationWindow()
     {
         tabbedPane = new JTabbedPane();
-        StartGameWindow startGameWindow = new StartGameWindow(tabbedPane);
+        StartGameWindow startGameWindow = new StartGameWindow(tabbedPane,this);
         tabbedPane.addTab("Game Type", startGameWindow);
         this.add(tabbedPane);
         

@@ -48,6 +48,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 
@@ -151,15 +152,15 @@ public class GameWindow extends JPanel
         //MAKE THE JFRAME VISIBLE
         setVisible(true); 
         
-        //TRIGGER ACTIONS
         
-        Timer timer = new Timer();
-        
+
+        Timer timer = new Timer();       
         TimerTask tt = new TimerTask() {
             @Override
             public void run() 
-            {
-                playerDeck.populateDeck(jsonHelper.createCardLists());
+            {    
+                //populate players deck
+                playerDeck.populateDeckAndDeal(jsonHelper.createCardLists());
                 if(netClient!=null)
                 {
                     //if this window is the server
@@ -175,7 +176,11 @@ public class GameWindow extends JPanel
     {
         return gameControlPanel;
     }
-    
+
+    public JSONHelper getJsonHelper() {
+        return jsonHelper;
+    }
+
     public void createCardEvent(Card card)
     {        
         //@@ Parameter originCarnd - the player hand which fired the method
@@ -222,7 +227,7 @@ public class GameWindow extends JPanel
             {
                 Message message = new Message();
                 message.setText("OPPONENT_ACTIVATE_CARD");
-                sendMessage(message,card);
+                sendMessage(message,jsonHelper.convertCardToJSON(card));
             }
         }       
         else
@@ -266,7 +271,7 @@ public class GameWindow extends JPanel
             {
                 Message message = new Message();
                 message.setText("OPPONENT_ACTIVATE_CARD");
-                sendMessage(message,card);
+                sendMessage(message,jsonHelper.convertCardToJSON(card));
             }
         }
         //if turn phase is delcare blockers
@@ -285,7 +290,7 @@ public class GameWindow extends JPanel
             //send message to connected server/client
             Message message = new Message();
             message.setText("OPPONENT_DECLARED_BLOCKER");
-            sendMessage(message,card);
+            sendMessage(message,jsonHelper.convertCardToJSON(card));
             }
             
             //after blocker declared
@@ -381,12 +386,6 @@ public class GameWindow extends JPanel
         }
     }
     
-    public void dealHandListener()
-    {
-        if(opponentsDeck.getCardsInDeck().size()==Constants.DECK_SIZE && playerDeck.getCardsInDeck().size()==Constants.DECK_SIZE)
-        playerHand.dealHand();
-    }
-    
     public Card getPlayerLocalCard(int id)
     {
         if(playerPlayArea.getCardsInPlayArea().containsKey(id))
@@ -474,6 +473,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run()
                     {
+                        playBurnSpellSound();
                         if(cardEvent.getTargetCard() instanceof CreatureCard)
                         {
                             CreatureCard ccard;
@@ -510,7 +510,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run() {
                         origin.takeDamage(target.getPower());
-                        //playCreatureAttackLandSound();
+                        playCreatureAttackLandSound();
                         //release current card event
                         cardEvent = null;
                         hideDrawLineGlassPane();
@@ -520,7 +520,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run() {
                         target.takeDamage(origin.getPower());
-                        //playCreatureAttackSwingSound();
+                        playCreatureAttackSwingSound();
                         combatTimer.schedule(targetDamageTask, 500);
                     }
                 };
@@ -673,7 +673,7 @@ public class GameWindow extends JPanel
             
             //draw card at the start of the turn - except the first turn of the game
             if(turnCycleIncrementor>0)
-                playerDeck.drawCard();     
+                playerDeck.drawCard(true);     
         }
         
         //replenish resources back to turn amount
@@ -849,11 +849,10 @@ public class GameWindow extends JPanel
         client.setGameWindow(this);
     }
     
-    public void sendMessage(Message message, Card card)
-    {        
-        
-        if(card!=null){
-            message.setJsonCard(jsonHelper.convertCardToJSON(card));
+    public void sendMessage(Message message, JSONObject o)
+    {
+        if(o!=null){
+            message.setJsonCard(o);
         }
         
         if(netServer!=null)
@@ -869,8 +868,7 @@ public class GameWindow extends JPanel
     public void recieveMessage(Message message)
     {   
         Card messageCard = null;
-        
-        if(message.getJsonCard()!=null)
+        if(message.getJsonCard()!=null && !message.getText().equals("OPPONENTS_DECKLIST"))
         {        
             //convert from JSON to card
             messageCard = this.jsonHelper.convertJSONtoCard(message.getJsonCard());            
@@ -890,17 +888,19 @@ public class GameWindow extends JPanel
                 messageCard.setPlayerHand(opponentsHand);  
             }
         }
-            
-
+        if(message.getText().equals("OPPONENTS_DECKLIST"))
+        {
+            this.opponentsDeck.populateDeckAndDeal(jsonHelper.readCardListJSON(message.getJsonCard()));      
+        }
+        else
         if(message.getText().equals("OPPONENT_DRAW_CARD"))
         {
-            opponentsDeck.drawCard();
+            opponentsDeck.drawCard(true);
         }
         else
         if(message.getText().equals("OPPONENT_ADD_CARD_TO_DECK"))
         {
             opponentsDeck.addCard(messageCard);
-            //this.dealHandListener();
         }
         else
         if(message.getText().equals("OPPONENT_PLAY_CARD"))

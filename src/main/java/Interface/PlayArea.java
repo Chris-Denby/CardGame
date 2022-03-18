@@ -152,7 +152,8 @@ public class PlayArea extends JPanel
     {       
         if(!cardsInPlay.containsKey(card.getCardID()))
         {
-            //playCardSound();
+                
+            playCardSound();
             //set card location
             if(isOpponent)
                 card.setCardLocation(CardLocation.OPPONENT_PLAY_AREA);
@@ -191,6 +192,8 @@ public class PlayArea extends JPanel
                 timer.schedule(tt, 1000);
                 
             }
+            //System.out.println(this.cardSubPanel.getComponent(0).getHeight() + ", " + this.cardSubPanel.getComponent(0).getWidth());
+             
         }
     }
     
@@ -215,7 +218,7 @@ public class PlayArea extends JPanel
         
     public void selectCard(Card card)
     {
-        //playSelectCardSound();
+        playSelectCardSound();
         gameWindow.createCardEvent(card);   
     }
     
@@ -248,7 +251,6 @@ public class PlayArea extends JPanel
     
     public void triggerDeathFffect(Card card)
     {
-        
         //trigger death effects
         if(card.getDeathEffect()!=null)
         {
@@ -308,6 +310,9 @@ public class PlayArea extends JPanel
         @Override
         public void mouseReleased(MouseEvent e) {                     
             //only allow mouse events while its the players turn, or if its the declare blockers phase
+            if(e.getButton()==MouseEvent.BUTTON1 && gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
+                return;
+                       
             if(e.getButton()==MouseEvent.BUTTON1 && !gameWindow.getIsPlayerTurn() && gameWindow.getTurnPhase()==TurnPhase.DECLARE_BLOCKERS && !card.getIsActivated() && card.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
             {
                 //if mouse 1 clicked
@@ -338,9 +343,8 @@ public class PlayArea extends JPanel
             if(e.getButton()==MouseEvent.BUTTON3)
             {
                 //if mouse 3 (right button) clicked
-                //gameWindow.zoomInCard(card);
-                System.out.println(card.getCardID());
-                System.out.println(card.getPlayArea().toString());
+                gameWindow.zoomInCard(card);
+                card.getCardSize();
             }
         }
 
