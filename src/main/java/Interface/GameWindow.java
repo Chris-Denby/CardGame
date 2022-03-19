@@ -518,10 +518,9 @@ public class GameWindow extends JPanel
                     @Override
                     public void run() {
                         origin.takeDamage(target.getPower());
-                        playCreatureAttackLandSound();
                         //release current card event
                         cardEvent = null;
-                        hideDrawLineGlassPane();
+
                     }
                 };
                 TimerTask originDamageTask = new TimerTask() {
@@ -529,6 +528,7 @@ public class GameWindow extends JPanel
                     public void run() {
                         target.takeDamage(origin.getPower());
                         playCreatureAttackSwingSound();
+                        hideDrawLineGlassPane();
                         combatTimer.schedule(targetDamageTask, 500);
                     }
                 };
@@ -556,43 +556,62 @@ public class GameWindow extends JPanel
                     blockerPower = 0;
                     blockerToughness = 0;
                 }
-
-
-                TimerTask creatureDamageTask = new TimerTask(){
-                    @Override
-                    public void run(){
-                        if(blocker!=null)
-                        {
-                            blocker.takeDamage(originPower);
-                            origin.takeDamage(blockerPower);
-                        }
-                    } 
-                };
+                
+                //if blocker has been declared
                 if(blocker!=null)
-                    combatTimer.schedule(creatureDamageTask, 1000);  
-
-                TimerTask playerDamageTask = new TimerTask() {
-                    @Override
-                    public void run() 
-                    {
-                        if(originPower-blockerToughness>0)                       
-                            target.takeDamage(originPower-blockerToughness);
-
-                        //if card event execution reduced player health to 0 or below
-                        if(playerPlayArea.getPlayerBoxPanel().getPlayerHealth()<=0)
-                        {
-                            
-                            //if player is <=0 health and opponent is >0
-                            //player loses the game
-                            loseGame();
+                {
+                    TimerTask originDamageTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            origin.takeDamage(blockerPower);
+                            //release current card event
+                            cardEvent = null;
                         }
-                        
-                        hideDrawLineGlassPane();
-                        //release current card event
-                        cardEvent = null;
-                    }
-                };
-                combatTimer.schedule(playerDamageTask, 1000);  
+                    };                
+                    TimerTask targetDamageTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            blocker.takeDamage(originPower);
+                            combatTimer.schedule(originDamageTask, 500);
+                            hideDrawLineGlassPane();
+                        }
+                    };
+                    combatTimer.schedule(targetDamageTask, 500);
+                }   
+                //if no blocker has been delared
+                else
+                {
+                    TimerTask playerDamageTask = new TimerTask(){
+                        @Override
+                        public void run() 
+                        {
+                            if(originPower-blockerToughness>0)                       
+                               target.takeDamage(originPower-blockerToughness);
+
+                            //if card event execution reduced player health to 0 or below
+                            if(playerPlayArea.getPlayerBoxPanel().getPlayerHealth()<=0)
+                            {
+                                //if player is <=0 health and opponent is >0
+                                //player loses the game
+                                loseGame();
+                            }
+
+                            hideDrawLineGlassPane();
+                            //release current card event
+                            cardEvent = null;
+                        }
+                    };
+                    TimerTask creatureAttackTask = new TimerTask(){
+                        @Override
+                        public void run() 
+                        {
+                            playCreatureAttackSwingSound();
+                            combatTimer.schedule(playerDamageTask, 500);
+                            hideDrawLineGlassPane();
+                        }
+                    };
+                    combatTimer.schedule(creatureAttackTask,500);  
+                }
             }
         }
 

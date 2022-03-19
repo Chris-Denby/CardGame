@@ -135,6 +135,7 @@ public class PlayerHand extends JLayeredPane
     {
         if(cardsInHand.contains(card))
         {
+            playDiscardCardSound();
             int index = cardsInHand.indexOf(card);
             cardsInHand.remove(card);
             this.remove(card);
@@ -216,7 +217,7 @@ public class PlayerHand extends JLayeredPane
         //and the maxmimum num of cards are in play
         //dont allow the card to be played
         if(card instanceof CreatureCard && playArea.getNumCardsInPlayArea()==Constants.maxCaradsInPlayArea){
-            playPlayAreaFullSound();
+            playAreaFullSound();
             return;
         }
         
@@ -315,10 +316,55 @@ public class PlayerHand extends JLayeredPane
             }
         }
     }
-    
-    public void playPlayAreaFullSound()
+
+    public void playAreaFullSound()
     {
-        
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/playAreaFull.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+        public void playDiscardCardSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/discardCard.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
     
 }

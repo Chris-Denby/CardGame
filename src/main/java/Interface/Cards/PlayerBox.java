@@ -6,6 +6,7 @@
 package Interface.Cards;
 
 import Interface.Constants;
+import Interface.PlayArea;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +15,15 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -94,6 +104,7 @@ public class PlayerBox extends JPanel
     public void takeDamage(int damage)
     {
         setPlayerHealth(playerHealth-damage);
+        playPlayerDamagedSound();
     }
     
     public int getPlayerHealth()
@@ -104,6 +115,31 @@ public class PlayerBox extends JPanel
     public void gainLife(int life)
     {
         setPlayerHealth(getPlayerHealth()+life);
+    }
+    
+    public void playPlayerDamagedSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/playerDamaged.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
     
     @Override
