@@ -46,7 +46,7 @@ public class GameControlPanel extends JPanel
     {
         gameWindow = window;
         height = containerHeight;
-        width = Math.round(containerWidth/4);
+        width = Math.round(containerWidth/3);
         
         turnTimerTask = new TimerTask() 
         {

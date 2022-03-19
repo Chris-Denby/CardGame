@@ -15,6 +15,10 @@ import Interface.Constants.TurnPhase;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -73,18 +77,20 @@ public class PlayArea extends JPanel
         gameWindow = window;
         this.isOpponent = isOpponent;
         width = containerWidth;
-        
+        this.setOpaque(false);
         //height is the container minus the who player and opponents hands
         height = (int) containerHeight-Math.round((containerHeight/16)*3); 
         this.setPreferredSize(new Dimension(width,height));
         this.setOpaque(false); 
         
         cardSubPanel = new JPanel();
+        cardSubPanel.setOpaque(false);
         Dimension cardSubPanelDimension = new Dimension(width,Math.round(height/10)*6);
         cardSubPanel.setPreferredSize(cardSubPanelDimension);
         cardSubPanel.setSize(cardSubPanelDimension);
         
         playerSubPanel = new JPanel();
+        playerSubPanel.setOpaque(false);
         Dimension playerSubPanelDimension = new Dimension(width,Math.round(height/10)*4);
         playerSubPanel.setPreferredSize(playerSubPanelDimension);
         playerSubPanel.setSize(playerSubPanelDimension);
@@ -577,6 +583,8 @@ public class PlayArea extends JPanel
             }
         }
     }
+    
+
     
     
     

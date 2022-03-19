@@ -51,6 +51,7 @@ public class CreatureCard extends Card
         toughnessLabel.setFont(headingFont);
         powerLabel.setForeground(Color.WHITE);
         toughnessLabel.setForeground(Color.WHITE);
+        toughnessLabel.setOpaque(false);
         
         
 
@@ -135,10 +136,11 @@ public class CreatureCard extends Card
             this.playArea.triggerDeathFffect(this);
             playArea.removeCard(this);
         }
-        
+        repaint();
+        revalidate();
     }
     
-        public void playTakeDamageSound()
+    public void playTakeDamageSound()
     {
         AudioInputStream audioInputStream = null;
         try {

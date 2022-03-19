@@ -23,7 +23,6 @@ import Interface.PlayArea;
 import Interface.PlayerHand;
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.awt.GridBagLayout;
 import java.awt.Image;
 import javax.swing.BoxLayout;
 import javax.swing.JTextPane;
@@ -44,7 +43,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     private int height;
     private int arcSize;
     private int strokeSize = 1;
-    private Color shadowColor = new Color(0,0,0,80);
+    private Color shadowColor = Constants.shadowColor;
     private boolean dropShadow = true;
     private boolean highQuality = true;
     private int shadowGap = 4;

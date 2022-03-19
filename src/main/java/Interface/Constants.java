@@ -13,7 +13,7 @@ import java.awt.Color;
  */
 public class Constants 
 {
-    public static final int windowWidth = 800;
+    public static final int windowWidth = 900;
     public static final int windowHeight = 800;
     public static final int maxHandSize = 7;
     public static final int maxResourceAmount = 7;
@@ -27,6 +27,7 @@ public class Constants
     public static final double cardAspectRatio = 0.715;
     public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
     public static final Color cardBaseColor = new Color(38,38,38,255);
+    public static final Color shadowColor = new Color(0,0,0,80);
     
     public static enum CardLocation
     {

@@ -10,7 +10,6 @@ import Interface.PlayArea;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -26,7 +25,6 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 /**
  *
@@ -45,15 +43,15 @@ public class PlayerBox extends JPanel
     
     private int arcSize;
     private int strokeSize = 1;
-    private Color shadowColor = Color.DARK_GRAY;
+    private Color shadowColor = Constants.shadowColor;
     private int shadowGap = 4;
     private int shadowOffset = 4;
-    private int shadowAlpha = 150; //transparency from (0-255)
     private Color backgroundColor = Constants.cardBaseColor;
     private boolean isSelected = false;
     
     public PlayerBox(int containerHeight, boolean isOpponent)
     {
+        
         this.isOpponent = isOpponent;
         this.height = (int) Math.round(containerHeight*0.75);
         this.width = this.height;
@@ -64,8 +62,10 @@ public class PlayerBox extends JPanel
         playerNameLabel = new JLabel();
         playerHealthLabel = new JLabel();
         playerHealthLabel.setForeground(Color.WHITE);
+        playerHealthLabel.setBackground(new Color(0,0,0,200));
         this.add(playerHealthLabel);
         setPlayerHealth(Constants.defaultPlayerHealth);
+        setOpaque(false);
     }
     
     public void setImage (Image img)

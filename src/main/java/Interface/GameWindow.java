@@ -26,7 +26,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingWorker;
 import Interface.Constants.CardLocation;
 import Interface.Constants.SpellEffect;
 import Interface.Constants.TurnPhase;
@@ -36,19 +35,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 
@@ -69,7 +67,7 @@ public class GameWindow extends JPanel
     private Deck opponentsDeck;
     private GameControlPanel gameControlPanel;
     private ResourcePanel resourcePanel;
-    private JPanel centrePanel;
+    private CentrePanel centrePanel;
     private Deque<CardEvent> cardEventStack = new ArrayDeque<CardEvent>();
     private CardEvent cardEvent = null;
     private JRootPane rootPane;
@@ -124,19 +122,17 @@ public class GameWindow extends JPanel
         gameControlPanel = new GameControlPanel(this.getHeight(), this.getWidth(),this);
         
         
+        
         //ADD COMPONENTS        
         this.add(opponentsHand, BorderLayout.PAGE_START);
         
-        centrePanel = new JPanel();
+        centrePanel = new CentrePanel();
         centrePanel.setOpaque(false);
         centrePanel.setLayout(new BoxLayout(centrePanel, BoxLayout.PAGE_AXIS));
         centrePanel.add(opponentsPlayArea, BorderLayout.CENTER);
         centrePanel.add(playerPlayArea);
         
         JScrollPane scrollPane = new JScrollPane(playerHand);
-        //scrollPane.setWheelScrollingEnabled(true);
-        //scrollPane.setPreferredSize(new Dimension(10,(int) Math.round((this.getHeight()/16)*5)));
-        //scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
         
         this.add(gameControlPanel, BorderLayout.WEST);
@@ -152,6 +148,10 @@ public class GameWindow extends JPanel
         opponentsDeck.setEnabled(false);
         //MAKE THE JFRAME VISIBLE
         setVisible(true); 
+        
+        playAmbientSound();
+        playMusic();
+        centrePanel.setImage(getImageFromCache(000));
         
         
 
@@ -1329,6 +1329,76 @@ public class GameWindow extends JPanel
             });
         }
         
+    }
+    
+   
+    
+    public void playAmbientSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/ambientSound1.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.loop(100);
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    public void playMusic()
+    {
+        int songNum = ThreadLocalRandom.current().nextInt(1,5);
+        String soundName = "sounds/music_" + songNum +".wav";
+        AudioInputStream audioInputStream = null;
+        try {
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            setVolume(clip,0.2f);
+            clip.loop(100);       
+
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+       
+    }
+    
+    public float getVolume(Clip clip) 
+    {
+        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
+        return (float) Math.pow(10f, gainControl.getValue() / 20f);
+    }
+
+    public void setVolume(Clip clip, float volume) 
+    {
+        if (volume < 0f || volume > 1f)
+            throw new IllegalArgumentException("Volume not valid: " + volume);
+        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
+        gainControl.setValue(20f * (float) Math.log10(volume));
     }
     
 }
