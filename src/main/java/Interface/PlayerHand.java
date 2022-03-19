@@ -6,6 +6,7 @@
 package Interface;
 
 import Interface.Cards.Card;
+import Interface.Cards.CreatureCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
 import java.awt.Color;
@@ -207,10 +208,17 @@ public class PlayerHand extends JLayeredPane
     public void playCard(int cardID, boolean isOpponent)
     {
         Card card = null;
-
         for(Card c:cardsInHand)
             if(c.getCardID()==cardID)
                 card = c;
+        
+        //if the played card is a creature
+        //and the maxmimum num of cards are in play
+        //dont allow the card to be played
+        if(card instanceof CreatureCard && playArea.getNumCardsInPlayArea()==Constants.maxCaradsInPlayArea){
+            playPlayAreaFullSound();
+            return;
+        }
         
         //if the cost of hte card exceeds available resources - exit method
         if(card.getPlayCost()>resourcePanel.getAmount())
@@ -306,6 +314,11 @@ public class PlayerHand extends JLayeredPane
                 Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    public void playPlayAreaFullSound()
+    {
+        
     }
     
 }

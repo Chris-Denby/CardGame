@@ -32,6 +32,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +63,8 @@ public class PlayArea extends JPanel
     PlayerBox playerBox;
             
     //ArrayList<Card> cardsInPlay = new ArrayList<Card>();
-    private HashMap<Integer,Card> cardsInPlay = new HashMap<Integer,Card>();
+    private LinkedHashMap<Integer,Card> cardsInPlay = new LinkedHashMap<Integer,Card>();
+    private ArrayList<Card> cardList;
     private Deque<CardEvent> cardEventStack = new ArrayDeque<CardEvent>();
     ArrayList<Card> discardPile = new ArrayList<Card>();
  
@@ -136,6 +139,11 @@ public class PlayArea extends JPanel
             public void mouseExited(MouseEvent e) {
             }
         });
+    }
+    
+    public int getNumCardsInPlayArea()
+    {
+        return cardsInPlay.size();
     }
     
     public PlayerBox getPlayerBoxPanel()
@@ -242,12 +250,25 @@ public class PlayArea extends JPanel
                 
             case Buff_Power:
                 playBuffSound(true);
-                for(Card c:cardsInPlay.values()){
-                    if(c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
+                cardList = new ArrayList<Card>(cardsInPlay.values());
+                int buffValue = Math.round(card.getPlayCost()/Constants.buffModifier);
+                if(buffValue<1)
+                    buffValue = 1;
+                //for(Card c:cardsInPlay.values()){
+                for(int x=0; x<cardList.size();x++)
+                {       
+                    int playedCardIndex = cardList.indexOf(card);
+                    Card c = cardList.get(x);
+                    //buff only creatures <buff distance> to the left
+                    if(x>=(playedCardIndex-Constants.buffDistance) && c.getCardID()!=card.getCardID() && c instanceof CreatureCard)
+                    {
+                        System.out.println("buff creature by " + buffValue);
                         CreatureCard ccard = (CreatureCard) c;
-                        ccard.setBuffed(true,card.getPlayCost());
-                        }
+                        ccard.setBuffed(buffValue);
+                    }
                 }
+                
+                
             break;  
         }        
     }
@@ -278,11 +299,24 @@ public class PlayArea extends JPanel
 
                 case Buff_Power:
                     playBuffSound(false);
-                    for(Card c:cardsInPlay.values()){
-                        if(c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
+                    cardList = new ArrayList<Card>(cardsInPlay.values());
+                    int buffValue = Math.round(card.getPlayCost()/Constants.buffModifier);
+                    if(buffValue<1)
+                        buffValue = 1;
+                    buffValue = buffValue*-1;
+                    
+                    System.out.println("debuff by = " + buffValue);
+                    
+                    for(Card c:cardsInPlay.values())
+                    {  
+                        int x = cardList.indexOf(c);
+                        int indexOfBuffer = cardList.indexOf(card);
+                        
+                        if(x>=(indexOfBuffer-Constants.buffDistance) &&c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
                             CreatureCard ccard = (CreatureCard) c;
                             if(ccard.getIsBuffed())
-                                ccard.setBuffed(false,card.getPlayCost());
+                                System.out.println("found buffed card to debuff");
+                                ccard.setBuffed(buffValue);
                             }
                     }
                     //for each creature card in play, increase power by buff value

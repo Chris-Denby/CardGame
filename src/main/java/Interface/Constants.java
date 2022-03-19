@@ -20,6 +20,9 @@ public class Constants
     public static final int defaultPlayerHealth = 20;
     public static final int turnTimeLimit = 10;
     public static final int discardTimeLimit = 10;
+    public static final int maxCaradsInPlayArea = 14;
+    public static final int buffDistance = 2;
+    public static final int buffModifier = 2;
     public static final int DECK_SIZE = 60;
     public static final double cardAspectRatio = 0.715;
     public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";

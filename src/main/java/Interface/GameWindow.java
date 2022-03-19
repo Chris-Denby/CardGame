@@ -320,6 +320,11 @@ public class GameWindow extends JPanel
             //and they have no available blockers
             //skip blocking without their input
             
+            if(cardEvent.getOriginCard() instanceof SpellCard)
+            {
+                executeCardEvent();
+            }
+            else if(cardEvent.getOriginCard() instanceof CreatureCard)            
             if(!isPlayerTurn)
                 if(!playerPlayArea.checkForAvailableBlockers())
                     passOnBlocking();
@@ -488,7 +493,8 @@ public class GameWindow extends JPanel
                         }
                         if(cardEvent.getTargetPlayerBox()!=null)
                         {
-                            cardEvent.getTargetPlayerBox().takeDamage(cardEvent.getOriginCard().getPlayCost()); 
+                            cardEvent.getTargetPlayerBox().takeDamage(cardEvent.getOriginCard().getPlayCost());
+                            System.out.println("player takes " + cardEvent.getOriginCard().getPlayCost() + " damage from spell");
                         }
                         event.getOriginCard().removeFromPlayArea();
                         //release current card event

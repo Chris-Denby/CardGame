@@ -28,6 +28,7 @@ public class CreatureCard extends Card
     private JLabel toughnessLabel;
     private Font modifiedStatFont = new Font("Arial",Font.BOLD,headingFontSize+2);
     private boolean isBuffed = false;
+    private int buffedBy = 0;
     
     public CreatureCard(String cardName, int imageID) 
     {
@@ -51,7 +52,7 @@ public class CreatureCard extends Card
     
     public int getPower() 
     {
-        return power;
+        return power + buffedBy;
     }
 
     public void setPower(int power) 
@@ -66,22 +67,23 @@ public class CreatureCard extends Card
         return isBuffed;
     }
 
-    public void setBuffed(boolean is, int buff) 
+    public void setBuffed(int buff) 
     {
-        isBuffed = is;
-        if(is)
+        buffedBy = buffedBy + buff;
+        powerLabel.setText(getPower()+"");
+        
+        if(buffedBy>0)
         {
-            this.power = power + buff;
-            powerLabel.setText(power+"");
+            isBuffed = true;
             powerLabel.setForeground(Color.ORANGE);
         }
         else
         {
+            isBuffed = false;
+            powerLabel.setForeground(Color.WHITE);
             
-            this.power = power - buff;
-            powerLabel.setText(power+"");
-            powerLabel.setForeground(Color.BLACK);
         }
+        System.out.println("my power is now " + power + ", and is buffed by " + buffedBy);
     }
 
     public int getToughness() 
