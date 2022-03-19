@@ -179,6 +179,17 @@ public class StartGameWindow extends JPanel
         parentTabbedPane.setSelectedIndex(1);
     }
     
+    public void stopNetworkGame(int clientType)
+    {
+        //0 = client
+        //1 = server
+        
+        if(clientType==0)
+            netClient.closeConnection();    
+        else
+            netServer.closeConnection();
+    }
+    
     private void startGame(TCPClient client)
     {
         parentTabbedPane.addTab("Game", new GameWindow(parentTabbedPane, client,this));
@@ -211,7 +222,6 @@ public class StartGameWindow extends JPanel
                 String filename = file.getName().substring(0, file.getName().length()-4);
                 System.out.println("filename: " + filename);
                 img = ImageIO.read(file);
-                //img = img.getScaledInstance(-1, 100, SCALE_DEFAULT);
                 imageCache.put(Integer.parseInt(filename), img);
             } catch (IOException ex) {
                 Logger.getLogger(StartGameWindow.class.getName()).log(Level.SEVERE, null, ex);

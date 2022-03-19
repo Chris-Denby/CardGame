@@ -52,9 +52,9 @@ public class SpellCard extends Card
                 setBodyText("Deal "+ playCost +" damage");
                 return;
                 
-            case HEAL_DAMAGE:
-                setBodyText("Heal "+ playCost +" damage");
-                return;
+            //case HEAL_DAMAGE:
+                //setBodyText("Heal "+ playCost +" damage");
+                //return;
         }
     }
     
@@ -68,7 +68,6 @@ public class SpellCard extends Card
         super.paintComponent(g);   
     }
     
-    @Override
     public SpellCard getClone(Image img)
     {
         //this method creates a deep copy of the card and returns it

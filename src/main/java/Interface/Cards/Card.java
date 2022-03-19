@@ -28,6 +28,8 @@ import java.awt.Image;
 import javax.swing.BoxLayout;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 
 
@@ -42,13 +44,13 @@ public class Card extends JPanel implements Serializable, Cloneable
     private int height;
     private int arcSize;
     private int strokeSize = 1;
-    private Color shadowColor = Color.DARK_GRAY;
+    private Color shadowColor = new Color(0,0,0,80);
     private boolean dropShadow = true;
     private boolean highQuality = true;
     private int shadowGap = 4;
     private int shadowOffset = 4;
     private int shadowAlpha = 150; //transparency from (0-255)
-    private Color cardBaseColor = new Color(38,38,38,255);
+    private Color cardBaseColor = Constants.cardBaseColor;
     private Color backgroundColor = cardBaseColor;
     private boolean isActivated = false;
     private String cardName;
@@ -76,6 +78,8 @@ public class Card extends JPanel implements Serializable, Cloneable
     JTextPane bodyBox;
     InnerCardPanel innerPanel;
     Image cardBack;
+    Image cardImage;
+    boolean zoomed = false;
 
     public Card(String cardName, int imageId)
     {
@@ -87,6 +91,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         topPanel = new JPanel();
         bottomPanel = new JPanel();
         bodyBox = new JTextPane();
+        setBodyText("Basic Creature");
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
 
@@ -206,42 +211,55 @@ public class Card extends JPanel implements Serializable, Cloneable
     }
     
     public void applySize(int h)
-    {  
+    {
         //parameter 'h' is the container height of hte card.
         
+        //SET RECTANGLE 
         this.height = (int) Math.round(h*0.75); //resize the card to be a fraction of its container height
         this.setOpaque(false); //makes this panel transparent
-        width = (int) Math.round(height*Constants.cardAspectRatio);
+        this.width = (int) Math.round(height*Constants.cardAspectRatio);
         arcSize = (int) Math.round(height/20);
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));
         this.setSize(new Dimension(width,height));
         
         this.setLayout(null);
-                
-        //Dimension innerPanelDimensions = new Dimension(width-shadowGap-arcSize-arcSize,height-shadowGap-arcSize);  
-        //innerPanel.setPreferredSize(innerPanelDimensions);
 
-        int innerWidth = innerPanel.getWidth();
-        int innerHeight = innerPanel.getHeight();
-        
+
+
         innerPanel.setBounds(
-            (width-innerWidth-shadowOffset+strokeSize+strokeSize)/2,
-            (height-innerHeight-shadowOffset+strokeSize+strokeSize)/2,
-            width-shadowGap-arcSize-arcSize,
-            height-shadowGap-arcSize-arcSize);
-
+                arcSize,
+                arcSize,
+                width-shadowGap-arcSize-arcSize,    //width
+                height-shadowGap-arcSize-arcSize);  //height
+        
+        int innerWidth = innerPanel.getBounds().width;
+        int innerHeight = innerPanel.getBounds().height;
+        
+        if(cardImage!=null){
+            cardImage = cardImage.getScaledInstance(innerWidth, innerHeight, Image.SCALE_DEFAULT);
+            this.setImage(cardImage);
+        }
+        
+        
         topPanel.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*1)));
         pictureBox.setPreferredSize(new Dimension(innerWidth,Math.round((innerHeight/10)*4)));
         bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
         bottomPanel.setPreferredSize(new Dimension(innerWidth,Math.round(innerHeight/10)*1));
+        
+        
+        if(zoomed){
+            headingFont = new Font("Arial",Font.BOLD,20);
+            bodyFont = new Font("Arial",Font.PLAIN,20); 
+        }
         
         cardNameLabel.setFont(headingFont);
         playCostLabel.setFont(headingFont);
         bodyBox.setFont(bodyFont);
         
         repaint();
-    }        
+     
+    }      
 
     public void setIsSelected(boolean is)
     {
@@ -321,19 +339,36 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void setImage(Image img)
     {
-        //pictureBox.setImage(img);
-        innerPanel.setImage(img);
+        cardImage = img;
+        innerPanel.setImage(cardImage);
     }
     
     public void setBodyText(String text)    
     {
+        
+
+        SimpleAttributeSet attribs = new SimpleAttributeSet();
+        StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setFontFamily(attribs, "SansSerif");
+        StyleConstants.setFontSize(attribs, bodyFontSize);
+        bodyBox.setParagraphAttributes(attribs, true);
+
+        if(text.equals("Basic Creature"))
+        {
+            bodyBox.setText(text);
+            return;
+        }
+        
+        if(bodyBox.getText().equals("Basic Creature"))
+            bodyBox.setText("");
+            
         String textToAdd = text.replace('_', ' ');
         StringBuilder sb = new StringBuilder(bodyBox.getText());
         if(!bodyBox.getText().equals(""))
             sb.append("\n");
         
         sb.append(textToAdd);
-        
+ 
         bodyBox.setText(sb.toString());
         
         /**
@@ -377,10 +412,15 @@ public class Card extends JPanel implements Serializable, Cloneable
         return playArea;
     }
     
+    public void setZoomed(boolean is)
+    {
+        zoomed = is;
+    }
     
     
      
     @Override
+    
     public void paintComponent(Graphics g) 
     {
         super.paintComponent(g);
@@ -425,16 +465,6 @@ public class Card extends JPanel implements Serializable, Cloneable
     {
         return location;
     }   
-    
-    public Card getClone(Image img)
-    {
-        //this method creates a deep copy of the card and returns it
-        Card clone = new Card(cardName,imageID);
-        clone.setPlayCost(playCost);
-        clone.setImage(img);
-        //set picture box
-        return clone;
-    }
     
     public void getCardSize()
     {

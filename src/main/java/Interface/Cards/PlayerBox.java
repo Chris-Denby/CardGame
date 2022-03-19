@@ -12,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,19 +31,21 @@ public class PlayerBox extends JPanel
     private JLabel playerHealthLabel;
     private boolean isOpponent;
     
+    Image image = null;
+    
     private int arcSize;
     private int strokeSize = 1;
     private Color shadowColor = Color.DARK_GRAY;
     private int shadowGap = 4;
     private int shadowOffset = 4;
     private int shadowAlpha = 150; //transparency from (0-255)
-    private Color backgroundColor = Color.WHITE;
+    private Color backgroundColor = Constants.cardBaseColor;
     private boolean isSelected = false;
     
     public PlayerBox(int containerHeight, boolean isOpponent)
     {
         this.isOpponent = isOpponent;
-        this.height = (int) Math.round(containerHeight*0.5);
+        this.height = (int) Math.round(containerHeight*0.75);
         this.width = this.height;
         this.setMinimumSize(new Dimension(width,height));
         this.setPreferredSize(new Dimension(width,height));
@@ -50,9 +53,18 @@ public class PlayerBox extends JPanel
         arcSize = (int) Math.round(height/10);
         playerNameLabel = new JLabel();
         playerHealthLabel = new JLabel();
+        playerHealthLabel.setForeground(Color.WHITE);
         this.add(playerHealthLabel);
         setPlayerHealth(Constants.defaultPlayerHealth);
     }
+    
+    public void setImage (Image img)
+    {
+        image = img;
+        repaint();
+        revalidate();
+    }
+    
     
     public boolean getIsOpponent()
     {
@@ -63,8 +75,8 @@ public class PlayerBox extends JPanel
     {
         this.playerHealth = health;
         this.playerHealthLabel.setText(playerHealth+"");
-        repaint();
-        revalidate();
+        //repaint();
+        //revalidate();
     }
     
     public void setIsSelected(boolean selected)
@@ -123,7 +135,14 @@ public class PlayerBox extends JPanel
         graphics.setColor(strokeColor);
         graphics.setStroke(new BasicStroke(strokeSize));
         graphics.drawRoundRect(0,0,width-shadowGap,height-shadowGap,arcSize,arcSize);
-        graphics.setStroke(new BasicStroke());    
+        graphics.setStroke(new BasicStroke()); 
+        if(image!=null)
+        {
+            int gap = 5;
+            int roundRectWidthHeight = width-shadowGap;
+            image = image.getScaledInstance(roundRectWidthHeight-(gap*2), roundRectWidthHeight-(gap*2), Image.SCALE_DEFAULT);
+            graphics.drawImage(image, gap+strokeSize,gap+strokeSize, this);
+        }
     }
     
     

@@ -34,9 +34,9 @@ public class CreatureCard extends Card
         super(cardName,imageID);
         
         
-        powerLabel = new JLabel(power+"");
+        powerLabel = new JLabel();
         powerLabel.setFont(headingFont);
-        toughnessLabel = new JLabel(toughness+"");
+        toughnessLabel = new JLabel();
         toughnessLabel.setFont(headingFont);
         powerLabel.setForeground(Color.WHITE);
         toughnessLabel.setForeground(Color.WHITE);
@@ -60,6 +60,11 @@ public class CreatureCard extends Card
         powerLabel.setText(power+"");
         
     }
+    
+    public boolean getIsBuffed()
+    {
+        return isBuffed;
+    }
 
     public void setBuffed(boolean is, int buff) 
     {
@@ -68,14 +73,13 @@ public class CreatureCard extends Card
         {
             this.power = power + buff;
             powerLabel.setText(power+"");
-            powerLabel.setFont(modifiedStatFont);
-            powerLabel.setForeground(Color.BLUE);
+            powerLabel.setForeground(Color.ORANGE);
         }
         else
         {
+            
             this.power = power - buff;
             powerLabel.setText(power+"");
-            powerLabel.setFont(headingFont);
             powerLabel.setForeground(Color.BLACK);
         }
     }
@@ -129,7 +133,6 @@ public class CreatureCard extends Card
    
     }
     
-    @Override
     public CreatureCard getClone(Image img)
     {
         //this method creates a deep copy of the card and returns it
@@ -138,6 +141,8 @@ public class CreatureCard extends Card
         clone.setPlayCost(getPlayCost());
         clone.setPower(power);
         clone.setToughness(toughness);
+        clone.setETBeffect(getETBeffect());
+        clone.setDeathEffect(getDeathEffect());
         //set picture box
         return clone;
     }

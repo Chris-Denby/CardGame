@@ -37,6 +37,7 @@ Interface\GameWindow$6.class
 Interface\Constants$ETBeffect.class
 Interface\GameWindow.class
 Interface\PlayArea$PlayerBoxMouseListener.class
+Interface\PlayArea$3.class
 Main.class
 Interface\Cards\IPlayable.class
 Interface\GameWindow$2.class
@@ -52,7 +53,9 @@ Interface\GameControlPanel$3.class
 Interface\GameWindow$3.class
 Interface\PlayArea$2.class
 Interface\Constants$CardLocation.class
+Interface\Constants$DeathEffect.class
 Interface\Constants$SpellEffect.class
+Interface\InnerCardPanel.class
 Interface\Deck.class
 NetCode\TCPServer.class
 Interface\ResourcePanel$Resource.class

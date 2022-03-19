@@ -287,7 +287,7 @@ public class PlayerHand extends JLayeredPane
     {
         AudioInputStream audioInputStream = null;
         try {
-            String soundName = "sounds/cardSlide5.wav";
+            String soundName = "sounds/addCard.wav";
             audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);

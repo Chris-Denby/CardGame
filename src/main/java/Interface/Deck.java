@@ -112,6 +112,7 @@ public class Deck extends JLayeredPane
         //add cards to deck
         for(Card c:list)
         {
+            
             c.setImage(gameWindow.getImageFromCache(c.getImageID()));
             addCard(c);
         }

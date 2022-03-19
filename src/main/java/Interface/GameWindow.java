@@ -88,6 +88,7 @@ public class GameWindow extends JPanel
     private Timer combatTimer;
     private JSONHelper jsonHelper;
     
+    
 
     
     
@@ -455,6 +456,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run()
                     {
+                        playDrawCardSpellSound();
                         if(isPlayerTurn)
                             playerHand.drawCards(spellCard.getPlayCost());
                         
@@ -645,6 +647,7 @@ public class GameWindow extends JPanel
 
     public void passTurn()
     {   
+        playPassTurnSound();
         gameControlPanel.setTurnPhaseLabelText(turnPhase);  
         //gameControlPanel.startTurnTimer();
                
@@ -872,9 +875,7 @@ public class GameWindow extends JPanel
         {        
             //convert from JSON to card
             messageCard = this.jsonHelper.convertJSONtoCard(message.getJsonCard());            
-            //messageCard.setImage(getImageFromCache(messageCard.getImageID()));
-            //messageCard.setCardBack((getImageFromCache(999)));
-            
+
             if(this.getPlayerLocalCard(messageCard.getCardID())!=null){
                 messageCard = this.getPlayerLocalCard(messageCard.getCardID());
                 messageCard.setPlayArea(playerPlayArea);
@@ -964,6 +965,11 @@ public class GameWindow extends JPanel
         {
             executeCardEvent();            
         }
+        else
+        if(message.getText().equals("OPPONENT_RESIGNED"))
+        {
+            winGame();
+        }
     }
     
     public int getTurnNumber()
@@ -1045,7 +1051,8 @@ public class GameWindow extends JPanel
     {
         if(cardZoomGlassPane==null)
         {
-            Card zoomedCard = zoomedCard = card.getClone(getImageFromCache(card.getImageID()));
+            CreatureCard cc = (CreatureCard) card;
+            CreatureCard zoomedCard = cc.getClone(getImageFromCache(card.getImageID()));
             //if glass pane is currently hidden
             //show zoomed in card glass pane
             rootPane = this.getRootPane();
@@ -1067,13 +1074,7 @@ public class GameWindow extends JPanel
             }
         }        
     }
-    
-    
-    
-    
-    
-    
-    
+
     public void playBurnSpellSound()
     {
         AudioInputStream audioInputStream = null;
@@ -1097,13 +1098,13 @@ public class GameWindow extends JPanel
                 Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }
+    }    
     
     public void playDrawCardSpellSound()
     {
         AudioInputStream audioInputStream = null;
         try {
-            String soundName = "sounds/fireball.wav";
+            String soundName = "sounds/drawCardSpell.wav";
             audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
@@ -1124,11 +1125,61 @@ public class GameWindow extends JPanel
         }
     }
     
+    public void playGainLifeSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/gainLife.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    } 
+    
+    public void playPassTurnSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/passTurn.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    } 
+    
     public void playCreatureAttackSwingSound()
     {
         AudioInputStream audioInputStream = null;
         try {
-            String soundName = "sounds/attack_swing.wav";
+            String soundName = "sounds/attackSwing.wav";
             audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
@@ -1153,7 +1204,7 @@ public class GameWindow extends JPanel
     {
         AudioInputStream audioInputStream = null;
         try {
-            String soundName = "sounds/attack_swing.wav";
+            String soundName = "sounds/attackLand.wav";
             audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
@@ -1174,6 +1225,18 @@ public class GameWindow extends JPanel
         }
     }
     
+    public void closeGameWindow()
+    {
+        sendMessage(new Message("OPPONENT_RESIGNED"),null);
+        //remove game window
+        parentTabbedPane.remove(this); 
+                
+        //close network connections
+        if(netServer!=null)
+            startGameWindow.stopNetworkGame(1);
+        else if(netClient!=null)
+            startGameWindow.stopNetworkGame(0); 
+    }   
      
     public class DrawLineGlassPane extends JComponent
     {
@@ -1206,8 +1269,10 @@ public class GameWindow extends JPanel
             setSize(centrePanel.getWidth(), centrePanel.getHeight());
             setVisible(true);
             setBackground(overlayColor);
+            card.setZoomed(true);
             //card.setImage(getImageFromCache(card.getImageID()));
             //resize clone of card to be zoomed            
+            //card.applySize((int) Math.round(centrePanel.getHeight()*0.6));
             card.applySize((int) Math.round(centrePanel.getHeight()*0.6));
             //set card location on screen
             card.setBounds((gameControlPanel.getWidth() + (int) Math.round(card.getWidth()/5)), 

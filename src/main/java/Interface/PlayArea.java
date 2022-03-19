@@ -32,6 +32,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioInputStream;
@@ -57,7 +58,7 @@ public class PlayArea extends JPanel
     private boolean isPlayerTurn;
     JPanel cardSubPanel;
     JPanel playerSubPanel;
-    PlayerBox playerBoxPanel;
+    PlayerBox playerBox;
             
     //ArrayList<Card> cardsInPlay = new ArrayList<Card>();
     private HashMap<Integer,Card> cardsInPlay = new HashMap<Integer,Card>();
@@ -98,9 +99,10 @@ public class PlayArea extends JPanel
             this.add(cardSubPanel);
         }   
         
-        playerBoxPanel = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent);
-        playerBoxPanel.addMouseListener(new PlayerBoxMouseListener(playerBoxPanel,this));
-        playerSubPanel.add(playerBoxPanel,Component.CENTER_ALIGNMENT);
+        playerBox = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent);
+        playerBox.setImage(gameWindow.getImageFromCache(ThreadLocalRandom.current().nextInt(1001,1003)));
+        playerBox.addMouseListener(new PlayerBoxMouseListener(playerBox,this));
+        playerSubPanel.add(playerBox,Component.CENTER_ALIGNMENT);
         
         
         this.addMouseListener(new MouseListener() {
@@ -138,7 +140,7 @@ public class PlayArea extends JPanel
     
     public PlayerBox getPlayerBoxPanel()
     {
-        return playerBoxPanel;
+        return playerBox;
     }
     
     public void setIsPlayerTurn(boolean is)
@@ -239,6 +241,7 @@ public class PlayArea extends JPanel
             break;
                 
             case Buff_Power:
+                playBuffSound(true);
                 for(Card c:cardsInPlay.values()){
                     if(c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
                         CreatureCard ccard = (CreatureCard) c;
@@ -258,7 +261,8 @@ public class PlayArea extends JPanel
             switch(card.getDeathEffect())
             {
                 case Gain_Life:
-                    this.playerBoxPanel.gainLife(card.getPlayCost());
+                    playGainLifeSound();
+                    this.playerBox.gainLife(card.getPlayCost());
                 break;
             }
         }
@@ -273,10 +277,12 @@ public class PlayArea extends JPanel
                 break;
 
                 case Buff_Power:
+                    playBuffSound(false);
                     for(Card c:cardsInPlay.values()){
                         if(c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
                             CreatureCard ccard = (CreatureCard) c;
-                            ccard.setBuffed(false,card.getPlayCost());
+                            if(ccard.getIsBuffed())
+                                ccard.setBuffed(false,card.getPlayCost());
                             }
                     }
                     //for each creature card in play, increase power by buff value
@@ -384,10 +390,18 @@ public class PlayArea extends JPanel
         @Override
         public void mouseReleased(MouseEvent e) { 
             //only allow mouse events while its the players
-            if(gameWindow.getIsPlayerTurn())
+            if(e.getButton()==MouseEvent.BUTTON1)
             {
-                gameWindow.createCardEvent(playerBox);           
+                if(gameWindow.getIsPlayerTurn())
+                {
+                    gameWindow.createCardEvent(playerBox);           
+                }               
             }
+            if(e.getButton()==MouseEvent.BUTTON3)
+            {
+                System.out.println(playerBox.getHeight() + ", " + playerBox.getWidth()); 
+            }
+
         }
 
         @Override
@@ -429,7 +443,7 @@ public class PlayArea extends JPanel
     {
         AudioInputStream audioInputStream = null;
         try {
-            String soundName = "sounds/cardPlace1.wav";
+            String soundName = "sounds/playCard.wav";
             audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
@@ -474,4 +488,63 @@ public class PlayArea extends JPanel
             }
         }
     }
+    
+    public void playGainLifeSound()
+    {
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/gainLife.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    public void playBuffSound(boolean buffed)
+    {
+        String soundName;
+        if(buffed)
+            soundName = "sounds/buffSound.wav";
+        else
+            soundName = "sounds/debuffSound.wav";
+        
+        AudioInputStream audioInputStream = null;
+        try {
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    
+    
+    
 }

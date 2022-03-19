@@ -33,7 +33,7 @@ public class InnerCardPanel extends JPanel
         Graphics2D graphics = (Graphics2D) g;
         
         //graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_SPEED);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY);
         
         if(image!=null)
         {

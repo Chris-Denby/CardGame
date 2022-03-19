@@ -29,8 +29,6 @@ import javax.swing.JTabbedPane;
  */
 public class ApplicationWindow extends JFrame
 {
-    private TCPClient netClient;
-    private TCPServerManyThreads netServer;
     JTabbedPane tabbedPane;
     
     //constructor

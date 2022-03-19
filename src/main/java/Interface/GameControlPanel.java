@@ -29,6 +29,7 @@ public class GameControlPanel extends JPanel
     private GameWindow gameWindow;
     private JButton passTurnButton;
     private JButton resolveButton;
+    private JButton resignButton;
     private JLabel turnLabel;
     private JLabel turnNumberLabel;
     private JLabel turnPhaseLabel;
@@ -91,6 +92,7 @@ public class GameControlPanel extends JPanel
         
         passTurnButton = new JButton("Pass Turn");
         resolveButton = new JButton("Resolve Event");
+        resignButton = new JButton("Resign");
         passTurnButton.setEnabled(false);
         resolveButton.setEnabled(false);
         turnLabel = new JLabel();
@@ -105,6 +107,7 @@ public class GameControlPanel extends JPanel
         this.add(turnPhaseLabel);
         this.add(notificationLabel);
         this.add(turnTimeLabel);
+        this.add(resignButton);
         
         resolveButton.setEnabled(false);
         
@@ -137,6 +140,14 @@ public class GameControlPanel extends JPanel
                         gameWindow.passTurn();
                 //else
                     //startDiscardTimer();                    
+            }
+        });
+        
+        resignButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) 
+            {
+                gameWindow.closeGameWindow();
             }
         });
     }

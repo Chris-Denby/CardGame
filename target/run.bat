@@ -1,1 +1,0 @@
-java -jar CardGame-1.0-SNAPSHOT-shaded.jar

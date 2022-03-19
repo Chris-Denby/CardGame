@@ -5,6 +5,8 @@
  */
 package Interface;
 
+import java.awt.Color;
+
 /**
  *
  * @author chris
@@ -12,7 +14,7 @@ package Interface;
 public class Constants 
 {
     public static final int windowWidth = 800;
-    public static final int windowHeight = 700;
+    public static final int windowHeight = 800;
     public static final int maxHandSize = 7;
     public static final int maxResourceAmount = 7;
     public static final int defaultPlayerHealth = 20;
@@ -21,6 +23,7 @@ public class Constants
     public static final int DECK_SIZE = 60;
     public static final double cardAspectRatio = 0.715;
     public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
+    public static final Color cardBaseColor = new Color(38,38,38,255);
     
     public static enum CardLocation
     {
@@ -47,7 +50,7 @@ public class Constants
     {
         DRAW_CARD,
         DEAL_DAMAGE,
-        HEAL_DAMAGE
+        //HEAL_DAMAGE
     }
     
     public static enum ETBeffect
