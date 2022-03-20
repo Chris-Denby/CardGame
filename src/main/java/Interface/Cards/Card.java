@@ -369,25 +369,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         sb.append(textToAdd);
  
         bodyBox.setText(sb.toString());
-        
-        /**
-
-        StyledDocument doc = (StyledDocument) bodyBox.getDocument();
-        Style style = doc.addStyle("style", null);
-        
-        StyleConstants.setFontSize(style , bodyFontSize);
-        StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
-        
-        //doc.setParagraphAttributes(0, doc.getLength(), set , true);
-        //doc.setCharacterAttributes(0, doc.getLength(), set, false);
-        
-        try {
-            doc.insertString(doc.getLength(), text, style);
-        } catch (BadLocationException ex) {
-            Logger.getLogger(Card.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        **/
     }
     
     public void setIsPlayable(boolean is)
@@ -414,6 +395,62 @@ public class Card extends JPanel implements Serializable, Cloneable
     public void setZoomed(boolean is)
     {
         zoomed = is;
+        if(is)
+        {
+            SimpleAttributeSet attribs = new SimpleAttributeSet();
+            StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_CENTER);
+            StyleConstants.setFontFamily(attribs, "SansSerif");
+            StyleConstants.setFontSize(attribs, bodyFontSize);
+            bodyBox.setParagraphAttributes(attribs, true);
+            
+            
+            String etbString = etbEffect.toString().replace('_', ' ');
+            String deathString = deathEffect.toString().replace('_', ' ');
+            String etbDescription;
+            String deathDescription;
+            StringBuilder sb = new StringBuilder();
+            
+            //ETB EFFECT
+            if(etbEffect==ETBeffect.Buff_Power)
+            {
+                int buffValue = Math.round(getPlayCost()/Constants.buffModifier);
+                if(buffValue<1)
+                    buffValue = 1;
+                
+                etbDescription = "Increases the power of the two left minions by " + buffValue + " while in play";
+                sb.append(etbString);
+                sb.append("\n");
+                sb.append(etbDescription);
+                sb.append("\n");
+                sb.append("\n");
+
+            }
+            else if(etbEffect==ETBeffect.Taunt)
+            {
+                etbDescription = "Is not yet implemented";
+                sb.append(etbString);
+                sb.append("\n");
+                sb.append(etbDescription);
+                sb.append("\n");
+                sb.append("\n");
+            }
+
+            //DEATH EFFECT
+            if(deathEffect==DeathEffect.Gain_Life)
+            {
+                deathDescription = "When destroyed, gain " + getPlayCost() + " life";
+                sb.append("\n");
+                sb.append(deathDescription);
+            }
+            
+            if(etbEffect==ETBeffect.NONE && deathEffect == DeathEffect.NONE)
+            {
+                sb.append("Basic Minion");
+                sb.append("\n");
+                sb.append("This minion has no abilities");    
+            }
+            bodyBox.setText(sb.toString());
+        }
     }
     
     
