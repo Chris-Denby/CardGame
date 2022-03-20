@@ -472,8 +472,6 @@ public class Card extends JPanel implements Serializable, Cloneable
             bodyBox.setText(sb.toString());
         }
     }
-    
-    
      
     @Override
     public void paintComponent(Graphics g) 
@@ -511,7 +509,6 @@ public class Card extends JPanel implements Serializable, Cloneable
             Card other = (Card) object;
             if(this.cardID == other.getCardID())
                 return true;
-  
         }
         return false;
     }

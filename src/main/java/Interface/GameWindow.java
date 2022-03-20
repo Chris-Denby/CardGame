@@ -250,6 +250,11 @@ public class GameWindow extends JPanel
             if(cardEvent.getOriginCard().getCardID()==card.getCardID())
                 return;
             
+            //if the target card is a spell - abandon method
+            if(card instanceof SpellCard)
+                return;
+            
+            
             //set selected card as the target card
             cardEvent.addTargetCard(card);
             cardEvent.getTargetCard().setIsSelected(true);
@@ -310,9 +315,14 @@ public class GameWindow extends JPanel
     {
         //if the event already created
         //if a target card has not been set in the event
-        //if a target player has not been set in th event        
+        //if a target player has not been set in th event  
+        
         if(cardEvent != null && cardEvent.getTargetCard()==null & cardEvent.getTargetPlayerBox()==null)
         {
+            
+            if(this.isPlayerTurn && !playerBox.getIsOpponent())
+                return;
+                
             playerBox.setIsSelected(true);
             cardEvent.addTargetPlayerBox(playerBox);
             
