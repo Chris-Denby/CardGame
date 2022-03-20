@@ -90,7 +90,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         topPanel = new JPanel();
         bottomPanel = new JPanel();
         bodyBox = new JTextPane();
-        setBodyText("Basic Minion");
+        setBodyText("Basic");
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
 
@@ -352,13 +352,13 @@ public class Card extends JPanel implements Serializable, Cloneable
         StyleConstants.setFontSize(attribs, bodyFontSize);
         bodyBox.setParagraphAttributes(attribs, true);
 
-        if(text.equals("Basic Creature"))
+        if(text.equals("Basic"))
         {
             bodyBox.setText(text);
             return;
         }
         
-        if(bodyBox.getText().equals("Basic Creature"))
+        if(bodyBox.getText().equals("Basic"))
             bodyBox.setText("");
             
         String textToAdd = text.replace('_', ' ');
@@ -369,6 +369,25 @@ public class Card extends JPanel implements Serializable, Cloneable
         sb.append(textToAdd);
  
         bodyBox.setText(sb.toString());
+        
+        /**
+
+        StyledDocument doc = (StyledDocument) bodyBox.getDocument();
+        Style style = doc.addStyle("style", null);
+        
+        StyleConstants.setFontSize(style , bodyFontSize);
+        StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
+        
+        //doc.setParagraphAttributes(0, doc.getLength(), set , true);
+        //doc.setCharacterAttributes(0, doc.getLength(), set, false);
+        
+        try {
+            doc.insertString(doc.getLength(), text, style);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(Card.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        **/
     }
     
     public void setIsPlayable(boolean is)
@@ -457,7 +476,6 @@ public class Card extends JPanel implements Serializable, Cloneable
     
      
     @Override
-    
     public void paintComponent(Graphics g) 
     {
         super.paintComponent(g);
