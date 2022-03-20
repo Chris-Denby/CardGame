@@ -286,8 +286,10 @@ public class GameWindow extends JPanel
         {
             //add blocker to card event
             cardEvent.addBlockingCard(card);
+
             
             //show blocker selected
+            drawPointer(cardEvent.getOriginCard(),cardEvent.getBlockingCard());
             card.setIsSelected(true);
             
             if(!isPlayerTurn)
@@ -324,15 +326,24 @@ public class GameWindow extends JPanel
             //and they have no available blockers
             //skip blocking without their input
             
+            
+            //if origin is a spell, execute
             if(cardEvent.getOriginCard() instanceof SpellCard)
             {
                 executeCardEvent();
             }
-            else if(cardEvent.getOriginCard() instanceof CreatureCard)            
-            if(!isPlayerTurn)
-                if(!playerPlayArea.checkForAvailableBlockers())
-                    passOnBlocking();
-                
+            
+            //if the origin is a creature
+            else if(cardEvent.getOriginCard() instanceof CreatureCard) 
+                //and it isnt the players turn
+                requestResolveCombat();
+                if(!isPlayerTurn)
+                    //and there is no creatures available to block
+                    if(!playerPlayArea.checkForAvailableBlockers()){
+                        passOnBlocking();
+                    }
+            
+            
             
             //***************
             //send message to connected server/client
@@ -1036,11 +1047,7 @@ public class GameWindow extends JPanel
         else
         if(phase==TurnPhase.COMBAT_PHASE)
         {
-            if(isPlayerTurn)
-                gameControlPanel.enableResolveButton(true);
-                
-            else
-                gameControlPanel.enableResolveButton(false);
+
         }
         else
         if(phase==TurnPhase.DECLARE_BLOCKERS)

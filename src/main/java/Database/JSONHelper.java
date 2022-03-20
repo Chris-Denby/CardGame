@@ -46,7 +46,7 @@ public class JSONHelper
     
     FileWriter file;
     String filePath = "";
-    String fileName = "cards.json";
+    String fileName = "decklist.json";
     
     
     public JSONHelper()
