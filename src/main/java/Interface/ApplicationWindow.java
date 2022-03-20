@@ -5,21 +5,10 @@
  */
 package Interface;
 
-import NetCode.TCPClient;
-import NetCode.TCPServerManyThreads;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 
@@ -51,7 +40,6 @@ public class ApplicationWindow extends JFrame
         this.addComponentListener(new ComponentAdapter() 
         {  
                 public void componentResized(ComponentEvent evt) {
-                    System.out.println("Resized");
                     repaintGlass();
                 }
         });

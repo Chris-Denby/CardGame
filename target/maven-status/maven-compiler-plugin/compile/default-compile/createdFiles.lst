@@ -21,7 +21,6 @@ Interface\GameControlPanel$5.class
 Interface\GameWindow$7.class
 Interface\Constants$TurnPhase.class
 Interface\PlayArea.class
-NetCode\TCPServerManyThreads.class
 Interface\GameWindow$CardZoomGlassPane.class
 Interface\StartGameWindow$1.class
 Interface\StartGameWindow.class
@@ -49,7 +48,6 @@ Interface\GameControlPanel$2.class
 Interface\ApplicationWindow$1.class
 Interface\Constants.class
 Interface\StartGameWindow$3.class
-NetCode\Connection.class
 Interface\GameControlPanel$3.class
 Interface\GameWindow$3.class
 Interface\GameWindow$9.class

@@ -71,7 +71,7 @@ public class PlayerHand extends JLayeredPane
     {
         if(!cardsInHand.contains(card))
         {
-            playAddCardSound();
+            gameWindow.playSound("addCard");
             card.setPlayerHand(this);
             cardsInHand.add(card);
             card.applySize(height);
@@ -135,7 +135,7 @@ public class PlayerHand extends JLayeredPane
     {
         if(cardsInHand.contains(card))
         {
-            playDiscardCardSound();
+            gameWindow.playSound("discardCard");
             int index = cardsInHand.indexOf(card);
             cardsInHand.remove(card);
             this.remove(card);
@@ -217,7 +217,7 @@ public class PlayerHand extends JLayeredPane
         //and the maxmimum num of cards are in play
         //dont allow the card to be played
         if(card instanceof CreatureCard && playArea.getNumCardsInPlayArea()==Constants.maxCaradsInPlayArea){
-            playAreaFullSound();
+            gameWindow.playSound("playAreaFull");
             return;
         }
         
@@ -292,80 +292,12 @@ public class PlayerHand extends JLayeredPane
         }
     }
     
-    public void playAddCardSound()
+    public GameWindow getGameWindow()
     {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/addCard.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    public void playAreaFullSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/playAreaFull.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+        return gameWindow;
     }
     
-        public void playDiscardCardSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/discardCard.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
+    
     
 }
 

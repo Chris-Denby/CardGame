@@ -122,7 +122,7 @@ public class CreatureCard extends Card
 
     public void takeDamage(int damage)
     {
-        playTakeDamageSound();
+        playerHand.getGameWindow().playSound("attackLand");
         if(this.toughness-damage<0)
             this.toughness = 0;
         else
@@ -138,31 +138,6 @@ public class CreatureCard extends Card
         }
         repaint();
         revalidate();
-    }
-    
-    public void playTakeDamageSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/attackLand.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
     }
     
     @Override

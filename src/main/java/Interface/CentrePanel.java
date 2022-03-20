@@ -25,7 +25,7 @@ public class CentrePanel extends JPanel
         image = img;
         repaint();
         revalidate();
-        System.out.println("centre panel -- " + this.getHeight() + ", " + this.getWidth());
+        //System.out.println("centre panel -- " + this.getHeight() + ", " + this.getWidth());
     }
     
     @Override

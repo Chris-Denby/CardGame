@@ -44,6 +44,8 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JScrollPane;
@@ -85,6 +87,8 @@ public class GameWindow extends JPanel
     private StartGameWindow startGameWindow;
     private Timer combatTimer;
     private JSONHelper jsonHelper;
+    private Clip musicClip;
+    private Clip ambientSoundClip;
     
     
 
@@ -461,7 +465,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run()
                     {
-                        playDrawCardSpellSound();
+                        playSound("drawCardSpell");
                         if(isPlayerTurn)
                             playerHand.drawCards(spellCard.getPlayCost());
                         
@@ -480,7 +484,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run()
                     {
-                        playBurnSpellSound();
+                        playSound("fireball");
                         if(cardEvent.getTargetCard() instanceof CreatureCard)
                         {
                             CreatureCard ccard;
@@ -494,7 +498,6 @@ public class GameWindow extends JPanel
                         if(cardEvent.getTargetPlayerBox()!=null)
                         {
                             cardEvent.getTargetPlayerBox().takeDamage(cardEvent.getOriginCard().getPlayCost());
-                            System.out.println("player takes " + cardEvent.getOriginCard().getPlayCost() + " damage from spell");
                         }
                         event.getOriginCard().removeFromPlayArea();
                         //release current card event
@@ -527,7 +530,7 @@ public class GameWindow extends JPanel
                     @Override
                     public void run() {
                         target.takeDamage(origin.getPower());
-                        playCreatureAttackSwingSound();
+                        playSound("attackSwing");
                         hideDrawLineGlassPane();
                         combatTimer.schedule(targetDamageTask, 500);
                     }
@@ -605,7 +608,7 @@ public class GameWindow extends JPanel
                         @Override
                         public void run() 
                         {
-                            playCreatureAttackSwingSound();
+                            playSound("attackSwing");
                             combatTimer.schedule(playerDamageTask, 500);
                             hideDrawLineGlassPane();
                         }
@@ -672,7 +675,7 @@ public class GameWindow extends JPanel
 
     public void passTurn()
     {   
-        playPassTurnSound();
+        playSound("passTurn");
         gameControlPanel.setTurnPhaseLabelText(turnPhase);  
         //gameControlPanel.startTurnTimer();
                
@@ -1099,162 +1102,13 @@ public class GameWindow extends JPanel
             }
         }        
     }
-
-    public void playBurnSpellSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/fireball.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }    
-    
-    public void playDrawCardSpellSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/drawCardSpell.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
-    public void playGainLifeSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/gainLife.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    } 
-    
-    public void playPassTurnSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/passTurn.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    } 
-    
-    public void playCreatureAttackSwingSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/attackSwing.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
-    public void playCreatureAttackLandSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/attackLand.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
     
     public void closeGameWindow()
     {
         sendMessage(new Message("OPPONENT_RESIGNED"),null);
         //remove game window
         parentTabbedPane.remove(this); 
+        musicClip.close();
                 
         //close network connections
         if(netServer!=null)
@@ -1331,17 +1185,57 @@ public class GameWindow extends JPanel
         
     }
     
+    public void playSound(String soundFileName)
+    {
+        AudioInputStream audioInputStream = null;
+        final Clip clip;
+        try {
+            String soundName = "sounds/"+soundFileName+".wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+            
+            clip.addLineListener(new LineListener() {
+                public void update(LineEvent myLineEvent) {
+                    if(myLineEvent.getType() == LineEvent.Type.STOP){
+                        clip.close();
+                    }
+                }
+            });
+            
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }    
    
-    
     public void playAmbientSound()
     {
         AudioInputStream audioInputStream = null;
         try {
             String soundName = "sounds/ambientSound1.wav";
             audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.loop(100);
+            ambientSoundClip = AudioSystem.getClip();
+            ambientSoundClip.open(audioInputStream);
+            ambientSoundClip.loop(100);
+            
+            ambientSoundClip.addLineListener(new LineListener() {
+                public void update(LineEvent myLineEvent) {
+                    if(myLineEvent.getType() == LineEvent.Type.STOP)
+                        ambientSoundClip.close();
+                }
+            });
         } 
         catch (UnsupportedAudioFileException ex) {
             Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
@@ -1360,15 +1254,22 @@ public class GameWindow extends JPanel
     
     public void playMusic()
     {
-        int songNum = ThreadLocalRandom.current().nextInt(1,5);
+        int songNum = ThreadLocalRandom.current().nextInt(1,4);
         String soundName = "sounds/music_" + songNum +".wav";
         AudioInputStream audioInputStream = null;
         try {
             audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            setVolume(clip,0.2f);
-            clip.loop(100);       
+            musicClip = AudioSystem.getClip();
+            musicClip.open(audioInputStream);
+            setVolume(musicClip,0.4f);
+            musicClip.loop(100);    
+            
+            musicClip.addLineListener(new LineListener() {
+                public void update(LineEvent myLineEvent) {
+                    if(myLineEvent.getType() == LineEvent.Type.STOP)
+                        musicClip.close();
+                }
+            });
 
         } 
         catch (UnsupportedAudioFileException ex) {

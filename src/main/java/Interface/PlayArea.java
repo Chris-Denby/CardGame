@@ -108,7 +108,7 @@ public class PlayArea extends JPanel
             this.add(cardSubPanel);
         }   
         
-        playerBox = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent);
+        playerBox = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent, this);
         playerBox.setImage(gameWindow.getImageFromCache(ThreadLocalRandom.current().nextInt(1001,1003)));
         playerBox.addMouseListener(new PlayerBoxMouseListener(playerBox,this));
         playerSubPanel.add(playerBox,Component.CENTER_ALIGNMENT);
@@ -147,6 +147,11 @@ public class PlayArea extends JPanel
         });
     }
     
+    public GameWindow getGameWindow()
+    {
+        return gameWindow;
+    }
+    
     public int getNumCardsInPlayArea()
     {
         return cardsInPlay.size();
@@ -169,7 +174,7 @@ public class PlayArea extends JPanel
         if(!cardsInPlay.containsKey(card.getCardID()))
         {
                 
-            playCardSound();
+            gameWindow.playSound("playCard");
             //set card location
             if(isOpponent)
                 card.setCardLocation(CardLocation.OPPONENT_PLAY_AREA);
@@ -208,7 +213,6 @@ public class PlayArea extends JPanel
                 timer.schedule(tt, 1000);
                 
             }
-            //System.out.println(this.cardSubPanel.getComponent(0).getHeight() + ", " + this.cardSubPanel.getComponent(0).getWidth());
              
         }
     }
@@ -217,14 +221,12 @@ public class PlayArea extends JPanel
     {
         if(cardsInPlay.containsKey(card.getCardID()))
         {
-            System.out.println("removing card from play area");
             cardSubPanel.remove(cardsInPlay.get(card.getCardID()));
             addToDiscardPile(card);
             cardsInPlay.remove(card.getCardID()); 
             revalidate();
             repaint();
         }
-        System.out.println("cant find card in play area");
     }
     
     public void addToDiscardPile(Card card)
@@ -234,7 +236,7 @@ public class PlayArea extends JPanel
         
     public void selectCard(Card card)
     {
-        playSelectCardSound();
+        gameWindow.playSound("selectCard");
         gameWindow.createCardEvent(card);   
     }
     
@@ -255,7 +257,7 @@ public class PlayArea extends JPanel
             break;
                 
             case Buff_Power:
-                playBuffSound(true);
+                gameWindow.playSound("buffSound");
                 cardList = new ArrayList<Card>(cardsInPlay.values());
                 int buffValue = Math.round(card.getPlayCost()/Constants.buffModifier);
                 if(buffValue<1)
@@ -268,7 +270,6 @@ public class PlayArea extends JPanel
                     //buff only creatures <buff distance> to the left
                     if(x>=(playedCardIndex-Constants.buffDistance) && c.getCardID()!=card.getCardID() && c instanceof CreatureCard)
                     {
-                        System.out.println("buff creature by " + buffValue);
                         CreatureCard ccard = (CreatureCard) c;
                         ccard.setBuffed(buffValue);
                     }
@@ -288,7 +289,7 @@ public class PlayArea extends JPanel
             switch(card.getDeathEffect())
             {
                 case Gain_Life:
-                    playGainLifeSound();
+                    gameWindow.playSound("gainLife");
                     this.playerBox.gainLife(card.getPlayCost());
                 break;
             }
@@ -304,14 +305,13 @@ public class PlayArea extends JPanel
                 break;
 
                 case Buff_Power:
-                    playBuffSound(false);
+                    gameWindow.playSound("debuffSound");
                     cardList = new ArrayList<Card>(cardsInPlay.values());
                     int buffValue = Math.round(card.getPlayCost()/Constants.buffModifier);
                     if(buffValue<1)
                         buffValue = 1;
                     buffValue = buffValue*-1;
-                    
-                    System.out.println("debuff by = " + buffValue);
+
                     
                     for(Card c:cardsInPlay.values())
                     {  
@@ -321,7 +321,6 @@ public class PlayArea extends JPanel
                         if(x>=(indexOfBuffer-Constants.buffDistance) &&c.getCardID()!=card.getCardID() && c instanceof CreatureCard){
                             CreatureCard ccard = (CreatureCard) c;
                             if(ccard.getIsBuffed())
-                                System.out.println("found buffed card to debuff");
                                 ccard.setBuffed(buffValue);
                             }
                     }
@@ -439,7 +438,6 @@ public class PlayArea extends JPanel
             }
             if(e.getButton()==MouseEvent.BUTTON3)
             {
-                System.out.println(playerBox.getHeight() + ", " + playerBox.getWidth()); 
             }
 
         }
@@ -479,110 +477,6 @@ public class PlayArea extends JPanel
         return false;        
     } 
     
-    public void playCardSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/playCard.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
-    public void playSelectCardSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/selectCard.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
-    public void playGainLifeSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/gainLife.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
-    public void playBuffSound(boolean buffed)
-    {
-        String soundName;
-        if(buffed)
-            soundName = "sounds/buffSound.wav";
-        else
-            soundName = "sounds/debuffSound.wav";
-        
-        AudioInputStream audioInputStream = null;
-        try {
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
     
 
     

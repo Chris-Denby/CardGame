@@ -101,7 +101,6 @@ public class StartGameWindow extends JPanel
             protected TCPServer doInBackground() throws Exception 
             {
                 netServer = new TCPServer();
-                System.out.println("Server is doInBackground");
                 return netServer;
             }
             
@@ -109,7 +108,6 @@ public class StartGameWindow extends JPanel
             @Override
             public void done()
             {
-                System.out.println("Server is done");
                 try 
                 {
                     netServer = (TCPServer) get();
@@ -141,14 +139,12 @@ public class StartGameWindow extends JPanel
             protected TCPClient doInBackground() throws Exception 
             {
                 netClient = new TCPClient(ipAddress); 
-                System.out.println("client is doInBackground");
                 return netClient;
             }
             
             @Override
             public void done()
             {
-                System.out.println("client is done");
                 try 
                 {
                     netClient = (TCPClient) get();
@@ -214,13 +210,11 @@ public class StartGameWindow extends JPanel
     {
         Image img;
         File imageFolder = new File("images");
-        System.out.println(imageFolder.exists());
         
         for(File file:imageFolder.listFiles())
         {
              try{
                 String filename = file.getName().substring(0, file.getName().length()-4);
-                System.out.println("filename: " + filename);
                 img = ImageIO.read(file);
                 imageCache.put(Integer.parseInt(filename), img);
             } catch (IOException ex) {

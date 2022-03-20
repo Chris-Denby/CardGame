@@ -7,6 +7,7 @@ package Interface.Cards;
 
 import Interface.Constants;
 import Interface.PlayArea;
+import Interface.PlayerHand;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -38,6 +39,7 @@ public class PlayerBox extends JPanel
     private JLabel playerNameLabel;
     private JLabel playerHealthLabel;
     private boolean isOpponent;
+    PlayArea playArea;
     
     Image image = null;
     
@@ -49,7 +51,7 @@ public class PlayerBox extends JPanel
     private Color backgroundColor = Constants.cardBaseColor;
     private boolean isSelected = false;
     
-    public PlayerBox(int containerHeight, boolean isOpponent)
+    public PlayerBox(int containerHeight, boolean isOpponent, PlayArea playArea)
     {
         
         this.isOpponent = isOpponent;
@@ -66,6 +68,7 @@ public class PlayerBox extends JPanel
         this.add(playerHealthLabel);
         setPlayerHealth(Constants.defaultPlayerHealth);
         setOpaque(false);
+        this.playArea = playArea;
     }
     
     public void setImage (Image img)
@@ -104,7 +107,7 @@ public class PlayerBox extends JPanel
     public void takeDamage(int damage)
     {
         setPlayerHealth(playerHealth-damage);
-        playPlayerDamagedSound();
+        playArea.getGameWindow().playSound("playerDamaged");        
     }
     
     public int getPlayerHealth()
@@ -116,32 +119,7 @@ public class PlayerBox extends JPanel
     {
         setPlayerHealth(getPlayerHealth()+life);
     }
-    
-    public void playPlayerDamagedSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/playerDamaged.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
+       
     @Override
     public void paintComponent(Graphics g) 
     {
