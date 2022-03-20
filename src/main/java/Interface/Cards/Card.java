@@ -90,7 +90,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         topPanel = new JPanel();
         bottomPanel = new JPanel();
         bodyBox = new JTextPane();
-        setBodyText("Basic Creature");
+        setBodyText("Basic Minion");
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
 
@@ -439,6 +439,7 @@ public class Card extends JPanel implements Serializable, Cloneable
             if(deathEffect==DeathEffect.Gain_Life)
             {
                 deathDescription = "When destroyed, gain " + getPlayCost() + " life";
+                sb.append(deathString);
                 sb.append("\n");
                 sb.append(deathDescription);
             }
