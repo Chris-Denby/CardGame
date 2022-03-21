@@ -11,6 +11,7 @@ import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.DeathEffect;
+import Interface.Constants.ETBeffect;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
 import java.awt.Container;
@@ -254,6 +255,10 @@ public class PlayArea extends JPanel
         switch(card.getETBeffect())
         {
             case Taunt:
+                //this is a passive ability
+                //taunt works by the attacking player checking if taunt creature is in play
+                //with this classes checkForTauntCreature() method
+                card.showTauntSymbol();
             break;
                 
             case Buff_Power:
@@ -476,6 +481,20 @@ public class PlayArea extends JPanel
         }
         return false;        
     } 
+    
+    public boolean checkForTauntCreature()
+    {
+        cardList = new ArrayList<Card>(cardsInPlay.values());
+        
+        for(Card c:cardList)
+        {
+            //for each creature card player has in play
+            //if a creature without taunt is present, mark it as not attackable
+            if(c instanceof CreatureCard && ((CreatureCard )c).getETBeffect()==ETBeffect.Taunt)
+                return true;
+        }
+        return false;
+    }
     
     
 

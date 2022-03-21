@@ -24,7 +24,11 @@ import Interface.PlayerHand;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.Image;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.text.SimpleAttributeSet;
@@ -79,6 +83,8 @@ public class Card extends JPanel implements Serializable, Cloneable
     Image cardBack;
     Image cardImage;
     boolean zoomed = false;
+    JLabel iconLabel = new JLabel();
+    
 
     public Card(String cardName, int imageId)
     {
@@ -93,6 +99,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         setBodyText("Basic");
         bodyBox.setEditable(false);
         pictureBox = new ImagePanel();
+        pictureBox.add(iconLabel);
 
         topPanel.setBackground(new Color(0,0,0,100));
         bottomPanel.setBackground(new Color(0,0,0,100));
@@ -446,7 +453,7 @@ public class Card extends JPanel implements Serializable, Cloneable
             }
             else if(etbEffect==ETBeffect.Taunt)
             {
-                etbDescription = "Is not yet implemented";
+                etbDescription = "You cannot target minions without taunt while in play";
                 sb.append(etbString);
                 sb.append("\n");
                 sb.append(etbDescription);
@@ -525,5 +532,19 @@ public class Card extends JPanel implements Serializable, Cloneable
         
         System.out.println(innerPanel.getHeight() + ", " + innerPanel.getWidth());
         
+    }
+    
+    public void showTauntSymbol()
+    {
+        //ImageIcon tauntIcon = playerHand.getGameWindow().getImageFromCache();
+        
+        Timer timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run(){
+                //iconLabel.setIcon(tauntIcon);  
+            }
+        };
+        timer.schedule(task, 1000);
     }
 }

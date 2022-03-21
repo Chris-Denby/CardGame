@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
 import Interface.Constants.CardLocation;
+import Interface.Constants.ETBeffect;
 import Interface.Constants.SpellEffect;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
@@ -254,6 +255,26 @@ public class GameWindow extends JPanel
             if(card instanceof SpellCard)
                 return;
             
+
+            if(cardEvent.getOriginCard() instanceof CreatureCard && card instanceof CreatureCard)
+            {
+                //>> PREVENT IF TAUNT PREVENTS ATTACK
+                //if its the players turn
+                //and the creature being attacked doesnt have taunt
+                //and there is a taunt creature in play
+                //RETURN!!
+                
+                if(this.isPlayerTurn 
+                        && ((CreatureCard) card).getETBeffect()!=ETBeffect.Taunt 
+                        && opponentsPlayArea.checkForTauntCreature())
+                {
+                    System.out.println("taunt prevented attack");    
+                    return;
+                }
+            }
+    
+            //add card event to the stack
+            //cardEventStack.addFirst((CardEvent)cardEvent);
             
             //set selected card as the target card
             cardEvent.addTargetCard(card);
@@ -262,18 +283,7 @@ public class GameWindow extends JPanel
             //show glass pane so the arrow can be drawn
             drawPointer(cardEvent.getOriginCard(), cardEvent.getTargetCard());
 
-            if(cardEvent.getOriginCard() instanceof CreatureCard & cardEvent.getTargetCard() instanceof CreatureCard)
-            {
-                executeCardEvent();
-            }
-            else
-            if(cardEvent.getOriginCard() instanceof SpellCard)
-            {
-                executeCardEvent();
-            }
-            //add card event to the stack
-            //cardEventStack.addFirst((CardEvent)cardEvent);
-
+            executeCardEvent();
             
             //***************
             //send message to connected server/client
@@ -319,10 +329,14 @@ public class GameWindow extends JPanel
         
         if(cardEvent != null && cardEvent.getTargetCard()==null & cardEvent.getTargetPlayerBox()==null)
         {
-            
+            //exit method if targeting own player
             if(this.isPlayerTurn && !playerBox.getIsOpponent())
                 return;
-                
+            
+            //exit method if a taunt creature is present
+            if(this.isPlayerTurn && opponentsPlayArea.checkForTauntCreature())
+                return;
+
             playerBox.setIsSelected(true);
             cardEvent.addTargetPlayerBox(playerBox);
             
