@@ -8,23 +8,17 @@ package Interface.Cards;
 import Interface.Constants;
 import Interface.Constants.CardLocation;
 import Interface.Constants.ETBeffect;
-import Interface.PlayArea;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
+import java.util.Timer;
+import java.util.TimerTask;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
 
 /**
  *
@@ -161,4 +155,45 @@ public class CreatureCard extends Card
         //set picture box
         return clone;
     }
+    
+    public void setCardValue()
+    {
+        //determine card value
+        /**
+        max card value = 
+        7 power
+        7 toughness
+        1 ETB
+        1 DE
+        = 16
+        **/
+
+        int cardValue = power + toughness;
+        if(getETBeffect()!=ETBeffect.NONE)
+        cardValue++;
+        if(getDeathEffect()!=Constants.DeathEffect.NONE)
+        cardValue++;
+        
+        int borderStroke = 1;
+        this.cardValue = cardValue;
+        LineBorder border;
+        Color borderColor;
+        if(cardValue<4)
+            borderColor = Constants.commonColor;
+        else if(cardValue>=5 && cardValue<=8)
+            borderColor = Constants.uncommonColor;
+        else if(cardValue>=9 && cardValue<=12)
+            borderColor = Constants.rareColor;
+        else if(cardValue>13 && cardValue<=16)
+            borderColor = Constants.mythicColor;
+        else
+            borderColor = Color.white;
+        
+        border = new LineBorder(borderColor,borderStroke);
+        innerPanel.setBorder(border);
+        
+        cardNameLabel.setForeground(borderColor);
+    }
+    
+
 }

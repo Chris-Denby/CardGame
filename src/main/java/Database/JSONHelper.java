@@ -53,7 +53,8 @@ public class JSONHelper
     {
         
     }
-
+        
+    /**
     public void writeJSONFile(JSONObject jObject)
     {
         
@@ -81,6 +82,8 @@ public class JSONHelper
         }
 
     }
+    **/
+    
     
     public List<Card> readCardListJSON(JSONObject jsonObject)
     {
@@ -128,10 +131,13 @@ public class JSONHelper
     
     public List<Card> createCardLists()
     {
+        
         List<Card> cardList = new ArrayList<Card>();
         List<ETBeffect> ETBeffectsList = Arrays.asList(ETBeffect.values());
         List<DeathEffect> deathEffectsList = Arrays.asList(DeathEffect.values());
         List<SpellEffect> spellEffectsList = Arrays.asList(SpellEffect.values());
+        int statLowerLimit = 1;
+        int statUpperLimit = 7;
         
         for(int x=0;x<Constants.DECK_SIZE;x++)
         {
@@ -140,30 +146,69 @@ public class JSONHelper
             {
                 card = new CreatureCard("",1);
                 CreatureCard c = (CreatureCard) card;
+                
+                
+                //SET MANA CURVE
+                if(x<=20){
+                    statLowerLimit = 1;
+                    statUpperLimit = 3;
+                }
+                else{
+                    statLowerLimit = 3;
+                    statUpperLimit = 8;
+                }
+                    
+                c.setPower(ThreadLocalRandom.current().nextInt(statLowerLimit,statUpperLimit));
+                c.setToughness(ThreadLocalRandom.current().nextInt(statLowerLimit,statUpperLimit));
+                
+                
+                //SET CARD EFFECTS (25% chance of getting an effect)
+                int numOfETB = ETBeffectsList.size()-1;
+                int numOfDE = deathEffectsList.size()-1;
+                int y = ThreadLocalRandom.current().nextInt(0,numOfETB*3);
+                if(y<=numOfETB)
+                    c.setETBeffect(ETBeffectsList.get(y));
+                y = ThreadLocalRandom.current().nextInt(0,numOfDE*3);
+                if(y<=numOfDE)
+                    c.setDeathEffect(deathEffectsList.get(y));
+                        
+
                 c.setName("Minion");
                 c.setImageID(ThreadLocalRandom.current().nextInt(1,46));
-                c.setCardID(System.identityHashCode(c));
-                c.setPower(ThreadLocalRandom.current().nextInt(1,8));
-                c.setToughness(ThreadLocalRandom.current().nextInt(1,8));
-                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8)); 
-                c.setETBeffect(ETBeffectsList.get(ThreadLocalRandom.current().nextInt(0,ETBeffectsList.size())));
-                c.setDeathEffect(deathEffectsList.get(ThreadLocalRandom.current().nextInt(0,deathEffectsList.size())));
+                c.setCardID(System.identityHashCode(c));                
+                
+                //play cost is calculated by
+                /**
+                 * = ((power + toughness)/2)-2
+                 * minimum of 1
+                 * +1 for each ETB
+                 */
+                                
+                int playCost = Math.round((c.getPower()+c.getToughness())/2);
+                if(c.getETBeffect()!=ETBeffect.NONE)
+                    playCost++;
+                if(c.getDeathEffect()!=DeathEffect.NONE)
+                    playCost++;
+                if(playCost>7)
+                    playCost=7;
+                
+                c.setPlayCost(playCost);
             }
             else
             if(x>40 && x<=60)
             {
                 card = new SpellCard("",1);
-                SpellCard c = (SpellCard) card;
-                c.setName("Spell");
-                c.setCardID(System.identityHashCode(c));
-                c.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
-                c.setEffect(spellEffectsList.get(ThreadLocalRandom.current().nextInt(0,spellEffectsList.size())));  
-                if(c.getEffect()==SpellEffect.DRAW_CARD)                                        
-                    c.setImageID(999);
-                if(c.getEffect()==SpellEffect.DEAL_DAMAGE)
-                    c.setImageID(666);
+                SpellCard sc = (SpellCard) card;
+                sc.setName("Spell");
+                sc.setCardID(System.identityHashCode(sc));
+                sc.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
+                sc.setEffect(spellEffectsList.get(ThreadLocalRandom.current().nextInt(0,spellEffectsList.size())));  
+                if(sc.getEffect()==SpellEffect.DRAW_CARD)                                        
+                    sc.setImageID(999);
+                if(sc.getEffect()==SpellEffect.DEAL_DAMAGE)
+                    sc.setImageID(666);
             }
-           cardList.add(card);
+            cardList.add(card);
         }
         Collections.shuffle(cardList);
         return cardList;
@@ -178,7 +223,7 @@ public class JSONHelper
             playerCardsJSONArray.add(convertCardToJSON(c));
         
         cardsJSON.put("playerCards", playerCardsJSONArray);
-        this.writeJSONFile(cardsJSON);
+        //sthis.writeJSONFile(cardsJSON);
         return cardsJSON;
     }
     

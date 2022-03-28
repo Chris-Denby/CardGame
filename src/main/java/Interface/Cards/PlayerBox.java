@@ -17,6 +17,8 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioInputStream;
@@ -24,6 +26,8 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -107,7 +111,8 @@ public class PlayerBox extends JPanel
     public void takeDamage(int damage)
     {
         setPlayerHealth(playerHealth-damage);
-        playArea.getGameWindow().playSound("playerDamaged");        
+        playArea.getGameWindow().playSound("playerDamaged");  
+               
     }
     
     public int getPlayerHealth()
@@ -154,7 +159,7 @@ public class PlayerBox extends JPanel
         {
             int gap = 5;
             int roundRectWidthHeight = width-shadowGap;
-            image = image.getScaledInstance(roundRectWidthHeight-(gap*2), roundRectWidthHeight-(gap*2), Image.SCALE_DEFAULT);
+            //image = image.getScaledInstance(roundRectWidthHeight-(gap*2), roundRectWidthHeight-(gap*2), Image.SCALE_DEFAULT);
             graphics.drawImage(image, gap+strokeSize,gap+strokeSize, this);
         }
     }

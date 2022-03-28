@@ -6,18 +6,14 @@
 package Interface;
 
 import Database.JSONHelper;
-import Interface.Cards.Card;
 import NetCode.TCPServer;
 import NetCode.TCPClient;
 import java.awt.Image;
-import static java.awt.Image.SCALE_DEFAULT;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -207,8 +203,8 @@ public class StartGameWindow extends JPanel
     }
     
      public void loadImageCache()
-    {
-        Image img;
+    {         
+        Image img = null;
         File imageFolder = new File("images");
         
         for(File file:imageFolder.listFiles())
@@ -221,6 +217,7 @@ public class StartGameWindow extends JPanel
                 Logger.getLogger(StartGameWindow.class.getName()).log(Level.SEVERE, null, ex);
             }  
         }
+        img.flush();
     }
     
     public Image getImageFromCache(int imageID)

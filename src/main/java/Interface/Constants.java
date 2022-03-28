@@ -28,6 +28,11 @@ public class Constants
     public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
     public static final Color cardBaseColor = new Color(38,38,38,255);
     public static final Color shadowColor = new Color(0,0,0,80);
+    public static final Color commonColor = new Color(0,0,0,255);
+    public static final Color uncommonColor = new Color(0,112,221,255);
+    public static final Color rareColor = new Color(163,53,238,255);
+    public static final Color mythicColor = new Color(255,128,0,255);
+    
     
     public static enum CardLocation
     {

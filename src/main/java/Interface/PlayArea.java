@@ -37,6 +37,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,6 +48,9 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 
 /**
  *
@@ -111,6 +115,8 @@ public class PlayArea extends JPanel
         
         playerBox = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent, this);
         playerBox.setImage(gameWindow.getImageFromCache(ThreadLocalRandom.current().nextInt(1001,1003)));
+                
+        
         playerBox.addMouseListener(new PlayerBoxMouseListener(playerBox,this));
         playerSubPanel.add(playerBox,Component.CENTER_ALIGNMENT);
         
@@ -258,7 +264,7 @@ public class PlayArea extends JPanel
                 //this is a passive ability
                 //taunt works by the attacking player checking if taunt creature is in play
                 //with this classes checkForTauntCreature() method
-                card.showTauntSymbol();
+                //card.showTauntSymbol();
             break;
                 
             case Buff_Power:
@@ -278,9 +284,7 @@ public class PlayArea extends JPanel
                         CreatureCard ccard = (CreatureCard) c;
                         ccard.setBuffed(buffValue);
                     }
-                }
-                
-                
+                }   
             break;  
         }        
     }

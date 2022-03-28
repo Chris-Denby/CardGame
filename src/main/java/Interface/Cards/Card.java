@@ -5,6 +5,7 @@
  */
 package Interface.Cards;
 
+import Interface.AssetHelper;
 import Interface.Constants;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -40,9 +41,9 @@ import javax.swing.text.StyleConstants;
  *
  * @author chris
  */
+
 public class Card extends JPanel implements Serializable, Cloneable
 {
-    private String objectID;
     private int width;
     private int height;
     private int arcSize;
@@ -70,20 +71,21 @@ public class Card extends JPanel implements Serializable, Cloneable
     transient Font bodyFont = new Font("Arial",Font.PLAIN,bodyFontSize);
     transient private boolean isSelected = false;
     private int imageID;
-    private ETBeffect etbEffect;
-    private DeathEffect deathEffect;
+    private ETBeffect etbEffect = ETBeffect.NONE;
+    private DeathEffect deathEffect = DeathEffect.NONE;
     private boolean isPlayable;
     JLabel cardNameLabel;
     JPanel topPanel;
     ImagePanel pictureBox;
     JPanel bottomPanel;
     JLabel playCostLabel;
-    JTextPane bodyBox;
+    JPanel bodyBox;
+    JTextPane textBox;
     InnerCardPanel innerPanel;
     Image cardBack;
     Image cardImage;
     boolean zoomed = false;
-    JLabel iconLabel = new JLabel();
+    int cardValue;
     
 
     public Card(String cardName, int imageId)
@@ -95,11 +97,15 @@ public class Card extends JPanel implements Serializable, Cloneable
                 
         topPanel = new JPanel();
         bottomPanel = new JPanel();
-        bodyBox = new JTextPane();
+        bodyBox = new JPanel();
+        textBox = new JTextPane();
+        textBox.setEditable(false);
+        textBox.setOpaque(false);
         setBodyText("Basic");
-        bodyBox.setEditable(false);
+        
+
+        bodyBox.add(textBox);
         pictureBox = new ImagePanel();
-        pictureBox.add(iconLabel);
 
         topPanel.setBackground(new Color(0,0,0,100));
         bottomPanel.setBackground(new Color(0,0,0,100));
@@ -167,6 +173,10 @@ public class Card extends JPanel implements Serializable, Cloneable
     {
         cardBack = img;
     }
+
+    public int getCardValue() {
+        return cardValue;
+    }
     
     public void setImageID(int id)
     {
@@ -230,7 +240,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         this.setSize(new Dimension(width,height));
         
         this.setLayout(null);
-
+        
 
 
         innerPanel.setBounds(
@@ -243,7 +253,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         int innerHeight = innerPanel.getBounds().height;
         
         if(cardImage!=null){
-            cardImage = cardImage.getScaledInstance(innerWidth, innerHeight, Image.SCALE_DEFAULT);
+            //cardImage = cardImage.getScaledInstance(innerWidth, innerHeight, Image.SCALE_DEFAULT);
             this.setImage(cardImage);
         }
         
@@ -252,8 +262,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         pictureBox.setPreferredSize(new Dimension(innerWidth,Math.round((innerHeight/10)*4)));
         bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
         bottomPanel.setPreferredSize(new Dimension(innerWidth,Math.round(innerHeight/10)*1));
-        
-        
+                
         if(zoomed){
             headingFont = new Font("Arial",Font.BOLD,20);
             bodyFont = new Font("Arial",Font.PLAIN,20); 
@@ -357,25 +366,25 @@ public class Card extends JPanel implements Serializable, Cloneable
         StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_CENTER);
         StyleConstants.setFontFamily(attribs, "SansSerif");
         StyleConstants.setFontSize(attribs, bodyFontSize);
-        bodyBox.setParagraphAttributes(attribs, true);
+        textBox.setParagraphAttributes(attribs, true);
 
         if(text.equals("Basic"))
         {
-            bodyBox.setText(text);
+            textBox.setText(text);
             return;
         }
         
-        if(bodyBox.getText().equals("Basic"))
-            bodyBox.setText("");
+        if(textBox.getText().equals("Basic"))
+            textBox.setText("");
             
         String textToAdd = text.replace('_', ' ');
-        StringBuilder sb = new StringBuilder(bodyBox.getText());
-        if(!bodyBox.getText().equals(""))
+        StringBuilder sb = new StringBuilder(textBox.getText());
+        if(!textBox.getText().equals(""))
             sb.append("\n");
         
         sb.append(textToAdd);
  
-        bodyBox.setText(sb.toString());
+        textBox.setText(sb.toString());
         
         /**
 
@@ -427,7 +436,7 @@ public class Card extends JPanel implements Serializable, Cloneable
             StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_CENTER);
             StyleConstants.setFontFamily(attribs, "SansSerif");
             StyleConstants.setFontSize(attribs, bodyFontSize);
-            bodyBox.setParagraphAttributes(attribs, true);
+            textBox.setParagraphAttributes(attribs, true);
             
             
             String etbString = etbEffect.toString().replace('_', ' ');
@@ -476,7 +485,7 @@ public class Card extends JPanel implements Serializable, Cloneable
                 sb.append("\n");
                 sb.append("This minion has no abilities");    
             }
-            bodyBox.setText(sb.toString());
+            textBox.setText(sb.toString());
         }
     }
      
@@ -531,20 +540,36 @@ public class Card extends JPanel implements Serializable, Cloneable
         int h = height-shadowGap;
         
         System.out.println(innerPanel.getHeight() + ", " + innerPanel.getWidth());
-        
     }
     
     public void showTauntSymbol()
     {
-        //ImageIcon tauntIcon = playerHand.getGameWindow().getImageFromCache();
+        //bodyBox.setOpaque(false);
+        bodyBox.remove(textBox);
+        JLabel iconLabel = new JLabel();
+        iconLabel.setIcon(new ImageIcon(
+                playerHand.getGameWindow().getImageFromCache(9966)
+                        //.getScaledInstance(bodyBox.getHeight()-5, bodyBox.getHeight()-5, Image.SCALE_DEFAULT)
+                ));
+
         
         Timer timer = new Timer();
         TimerTask task = new TimerTask() {
             @Override
-            public void run(){
-                //iconLabel.setIcon(tauntIcon);  
+            public void run()
+            {
+                bodyBox.add(iconLabel);  
+                playerHand.getGameWindow().playSound("tauntActivated");
+                repaint();
+                revalidate();
             }
         };
-        timer.schedule(task, 1000);
+        timer.schedule(task, 1000); 
     }
+    
+    
+    
+    
+    
+    
 }

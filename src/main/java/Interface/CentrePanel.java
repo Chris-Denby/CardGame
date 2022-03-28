@@ -39,7 +39,7 @@ public class CentrePanel extends JPanel
         
         if(image!=null)
         {
-            image = image.getScaledInstance(this.getWidth(), this.getHeight(), Image.SCALE_DEFAULT);
+            //image = image.getScaledInstance(this.getWidth(), this.getHeight(), Image.SCALE_DEFAULT);
             graphics.drawImage(image, 0, 0, this);
         }
     }

@@ -34,8 +34,10 @@ import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ThreadLocalRandom;
@@ -49,6 +51,9 @@ import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import org.json.simple.JSONObject;
 
@@ -90,10 +95,8 @@ public class GameWindow extends JPanel
     private JSONHelper jsonHelper;
     private Clip musicClip;
     private Clip ambientSoundClip;
-    
-    
-
-    
+    private AnimationGlassPane animationGlassPane;
+   
     
     //constructor
     public GameWindow(JTabbedPane pane, StartGameWindow startGameWindow)
@@ -266,9 +269,7 @@ public class GameWindow extends JPanel
                 
                 if(this.isPlayerTurn 
                         && ((CreatureCard) card).getETBeffect()!=ETBeffect.Taunt 
-                        && opponentsPlayArea.checkForTauntCreature())
-                {
-                    System.out.println("taunt prevented attack");    
+                        && opponentsPlayArea.checkForTauntCreature()){   
                     return;
                 }
             }
@@ -305,14 +306,15 @@ public class GameWindow extends JPanel
             
             //show blocker selected
             drawPointer(cardEvent.getOriginCard(),cardEvent.getBlockingCard());
+                    
             card.setIsSelected(true);
             
             if(!isPlayerTurn)
             {
-            //send message to connected server/client
-            Message message = new Message();
-            message.setText("OPPONENT_DECLARED_BLOCKER");
-            sendMessage(message,jsonHelper.convertCardToJSON(card));
+                //send message to connected server/client
+                Message message = new Message();
+                message.setText("OPPONENT_DECLARED_BLOCKER");
+                sendMessage(message,jsonHelper.convertCardToJSON(card));
             }
             
             //after blocker declared
@@ -475,6 +477,7 @@ public class GameWindow extends JPanel
     public void executeCardEvent(CardEvent event)
     {   
         TimerTask combatTask = null;
+        Timer timer = new Timer();
 
         Card originCard = event.getOriginCard();
         Card targetCard = event.getTargetCard();
@@ -504,16 +507,17 @@ public class GameWindow extends JPanel
                         if(isPlayerTurn)
                             playerHand.drawCards(spellCard.getPlayCost());
                         
-                        event.getOriginCard().removeFromPlayArea();
+                        originCard.removeFromPlayArea();
                         //release current card event
                         cardEvent = null;
-                        hideDrawLineGlassPane();
+                        //hideDrawLineGlassPane();
                     }
                 };  
             }
             else
             if(spellCard.getEffect()==SpellEffect.DEAL_DAMAGE)
             {   
+                Component target;
                 combatTask = new TimerTask()
                 {
                     @Override
@@ -523,26 +527,31 @@ public class GameWindow extends JPanel
                         if(cardEvent.getTargetCard() instanceof CreatureCard)
                         {
                             CreatureCard ccard;
-                            if(getPlayerLocalCard(cardEvent.getTargetCard().getCardID())!=null)
+                            if(getPlayerLocalCard(cardEvent.getTargetCard().getCardID())!=null){
                                 ccard = (CreatureCard) getPlayerLocalCard(cardEvent.getTargetCard().getCardID());
-                            else
+                            }
+                            else{
                                 ccard = (CreatureCard) cardEvent.getTargetCard();
-
+                            }
                             ccard.takeDamage(cardEvent.getOriginCard().getPlayCost());
+                            drawAnimation("explode",null,ccard);
                         }
                         if(cardEvent.getTargetPlayerBox()!=null)
                         {
                             cardEvent.getTargetPlayerBox().takeDamage(cardEvent.getOriginCard().getPlayCost());
+                            drawAnimation("explode",null,cardEvent.getTargetPlayerBox());
                         }
+                        
+
                         event.getOriginCard().removeFromPlayArea();
                         //release current card event
                         cardEvent = null;
-                        hideDrawLineGlassPane();
+                        //hideDrawLineGlassPane();
                     }
                 };   
             }
             if(combatTask!=null)
-                combatTimer.schedule(combatTask, 1000);
+                timer.schedule(combatTask, 500);
         }
         else
         {
@@ -551,26 +560,19 @@ public class GameWindow extends JPanel
                 //exchange damage between origin and target
                 CreatureCard origin = (CreatureCard) originCard;
                 CreatureCard target = (CreatureCard) targetCard;
-
-                TimerTask targetDamageTask = new TimerTask() {
-                    @Override
-                    public void run() {
-                        origin.takeDamage(target.getPower());
-                        //release current card event
-                        cardEvent = null;
-
-                    }
-                };
+                
                 TimerTask originDamageTask = new TimerTask() {
                     @Override
                     public void run() {
+                        drawAnimation("slash",origin,target);
                         target.takeDamage(origin.getPower());
                         playSound("attackSwing");
-                        hideDrawLineGlassPane();
-                        combatTimer.schedule(targetDamageTask, 500);
+                        origin.takeDamage(target.getPower());
+                        //release current card event
+                        cardEvent = null;
                     }
                 };
-                combatTimer.schedule(originDamageTask, 500);
+                timer.schedule(originDamageTask, 500);
             }
             else
             if(event.getOriginCard() instanceof CreatureCard & event.getTargetPlayerBox() !=null)
@@ -579,11 +581,11 @@ public class GameWindow extends JPanel
                 CreatureCard origin = (CreatureCard) originCard;
                 PlayerBox target = event.getTargetPlayerBox();
                 CreatureCard blocker = (CreatureCard) event.getBlockingCard();
-
-
+                
                 final int originPower = origin.getPower();
                 final int blockerPower;
                 final int blockerToughness;
+
                 if(blocker!=null)
                 {
                     blockerPower = blocker.getPower();
@@ -601,20 +603,16 @@ public class GameWindow extends JPanel
                     TimerTask originDamageTask = new TimerTask() {
                         @Override
                         public void run() {
+                            
+                            drawAnimation("slash",origin,blocker);
+                            blocker.takeDamage(originPower);
+                            playSound("attackSwing");
                             origin.takeDamage(blockerPower);
                             //release current card event
                             cardEvent = null;
                         }
-                    };                
-                    TimerTask targetDamageTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            blocker.takeDamage(originPower);
-                            combatTimer.schedule(originDamageTask, 500);
-                            hideDrawLineGlassPane();
-                        }
-                    };
-                    combatTimer.schedule(targetDamageTask, 500);
+                    };  
+                    timer.schedule(originDamageTask, 500);
                 }   
                 //if no blocker has been delared
                 else
@@ -623,6 +621,9 @@ public class GameWindow extends JPanel
                         @Override
                         public void run() 
                         {
+                            drawAnimation("slash",null,target);
+                            playSound("attackSwing");
+                            
                             if(originPower-blockerToughness>0)                       
                                target.takeDamage(originPower-blockerToughness);
 
@@ -633,22 +634,11 @@ public class GameWindow extends JPanel
                                 //player loses the game
                                 loseGame();
                             }
-
-                            hideDrawLineGlassPane();
                             //release current card event
                             cardEvent = null;
                         }
                     };
-                    TimerTask creatureAttackTask = new TimerTask(){
-                        @Override
-                        public void run() 
-                        {
-                            playSound("attackSwing");
-                            combatTimer.schedule(playerDamageTask, 500);
-                            hideDrawLineGlassPane();
-                        }
-                    };
-                    combatTimer.schedule(creatureAttackTask,500);  
+                    timer.schedule(playerDamageTask,500);  
                 }
             }
         }
@@ -1147,7 +1137,271 @@ public class GameWindow extends JPanel
         else if(netClient!=null)
             startGameWindow.stopNetworkGame(0); 
     }   
-     
+    
+    public void playSound(String soundFileName)
+    {
+        
+        AudioInputStream audioInputStream = null;
+        final Clip clip;
+        try {
+            String soundName = "sounds/"+soundFileName+".wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+            
+            clip.addLineListener(new LineListener() {
+                public void update(LineEvent myLineEvent) {
+                    if(myLineEvent.getType() == LineEvent.Type.STOP){
+                        clip.close();
+                    }
+                }
+            });
+            
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    }    
+   
+    public void playAmbientSound()
+    {
+        
+        AudioInputStream audioInputStream = null;
+        try {
+            String soundName = "sounds/ambientSound1.wav";
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            ambientSoundClip = AudioSystem.getClip();
+            ambientSoundClip.open(audioInputStream);
+            ambientSoundClip.loop(100);
+            
+            ambientSoundClip.addLineListener(new LineListener() {
+                public void update(LineEvent myLineEvent) {
+                    if(myLineEvent.getType() == LineEvent.Type.STOP)
+                        ambientSoundClip.close();
+                }
+            });
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    }
+    
+    public void playMusic()
+    {
+        
+        int songNum = ThreadLocalRandom.current().nextInt(1,4);
+        String soundName = "sounds/music_" + songNum +".wav";
+        AudioInputStream audioInputStream = null;
+        try {
+            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
+            musicClip = AudioSystem.getClip();
+            musicClip.open(audioInputStream);
+            setVolume(musicClip,0.4f);
+            musicClip.loop(100);    
+            
+            musicClip.addLineListener(new LineListener() {
+                public void update(LineEvent myLineEvent) {
+                    if(myLineEvent.getType() == LineEvent.Type.STOP)
+                        musicClip.close();
+                }
+            });
+
+        } 
+        catch (UnsupportedAudioFileException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (LineUnavailableException ex) {
+            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                audioInputStream.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+       
+    }
+    
+    public float getVolume(Clip clip) 
+    {
+        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
+        return (float) Math.pow(10f, gainControl.getValue() / 20f);
+    }
+
+    public void setVolume(Clip clip, float volume) 
+    {
+        if (volume < 0f || volume > 1f)
+            throw new IllegalArgumentException("Volume not valid: " + volume);
+        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
+        gainControl.setValue(20f * (float) Math.log10(volume));
+    }
+    
+    public void drawAnimation(String effect, Component origin, Component target)
+    {
+        rootPane = this.getRootPane();
+        
+        //int horizontalSpacing = gameControlPanel.getWidth();
+        int horizontalSpacing = 0;
+        int originVerticalSpacing = 0;
+        int targetVerticalSpacing = 0;
+        
+        if(target instanceof PlayerBox)
+        {
+            PlayerBox targetPlayer = (PlayerBox) target;
+
+            if(isPlayerTurn)
+                //on the players turn, origin is always from players hand
+                originVerticalSpacing = opponentsHand.getHeight()
+                        + opponentsPlayArea.getHeight()
+                        + target.getHeight()/2;
+            else if(!isPlayerTurn)
+                //if its the opponents turn, origin is always from the opponents hand
+                originVerticalSpacing = opponentsHand.getHeight()
+                        + (opponentsPlayArea.getHeight()/2)
+                        + target.getHeight()/2;
+            
+            
+            //if the target player is the player (me)
+            if(!targetPlayer.getIsOpponent())             
+                 //spacing includes opponents hand
+                targetVerticalSpacing = 
+                        opponentsHand.getHeight()
+                        + opponentsPlayArea.getHeight()
+                        + playerPlayArea.getHeight()/2
+                        + target.getHeight()/2;
+            
+            
+            //if the target player is the opponent
+            if(targetPlayer.getIsOpponent())                             
+                 //spacing includes opponents hand
+                targetVerticalSpacing = 
+                        opponentsHand.getHeight()
+                        + target.getHeight()/2;
+        }
+        
+        
+        if(target instanceof Card)
+        {
+            Card originCard = (Card) origin;
+            Card targetCard = (Card) target;
+            if(isPlayerTurn)
+            {
+                //on the players turn, origin is always from players hand
+                originVerticalSpacing = opponentsHand.getHeight() + opponentsPlayArea.getHeight();
+
+
+                //if target is in player hand, spacing includes opponents hand + play area
+                if(targetCard.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
+                    targetVerticalSpacing = 
+                            opponentsHand.getHeight()
+                            + opponentsPlayArea.getHeight();
+
+                //if target is in opponents hand, spacing includes opponents hand only
+                if(targetCard.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
+                    targetVerticalSpacing = opponentsHand.getHeight()
+                    + (opponentsPlayArea.getHeight()/2);
+            }
+            else if(!isPlayerTurn)
+            {
+                //if its the opponents turn, origin is always from the opponents hand
+                originVerticalSpacing = opponentsHand.getHeight()
+                         + (opponentsPlayArea.getHeight()/2);
+
+
+                //if the target is in the opponents hand, spacing includes opponents hand only
+                if(targetCard.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
+                    targetVerticalSpacing = opponentsHand.getHeight()
+                    + (opponentsPlayArea.getHeight()/2);
+
+
+                //if the target is in the players hand, spacing includes
+                if(targetCard.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
+                    targetVerticalSpacing = 
+                              opponentsHand.getHeight()
+                            + opponentsPlayArea.getHeight();
+            }            
+        }
+        
+
+        //create points for origin and target cards
+        //x = middle of card + horizontal spacing
+        //y = middle of card + vertical spacing determined above
+        Point originPoint = null;
+        Point targetPoint = null;
+        
+        if(origin!=null)
+        originPoint = new Point(origin.getX()+(origin.getWidth()/2)+horizontalSpacing,
+                origin.getY()+(origin.getHeight()/2)+originVerticalSpacing-opponentsHand.getHeight());
+        
+        if(target!=null)
+        targetPoint = new Point(target.getX()+(target.getWidth()/2)+horizontalSpacing,
+                target.getY()+(target.getHeight()/2)+targetVerticalSpacing-opponentsHand.getHeight());
+        
+        animationGlassPane = new AnimationGlassPane(effect,originPoint,targetPoint);
+        rootPane.setGlassPane(animationGlassPane); 
+        Timer t = new Timer();
+        TimerTask task = new TimerTask() 
+        {
+            @Override
+            public void run() 
+            {    
+                animationGlassPane.setVisible(false);
+                animationGlassPane = null;
+
+            }
+        };
+        
+        t.schedule(task, 500);
+    }
+   
+    public class AnimationGlassPane extends JComponent
+    {       
+        public AnimationGlassPane(String effect,Point origin, Point target)
+        {                       
+            if(target!=null){
+                ImageIcon damageAnimation = new ImageIcon(effect+".gif"); 
+                JLabel label = new JLabel(damageAnimation);
+                label.setBounds(target.x,target.y,damageAnimation.getIconWidth(),damageAnimation.getIconHeight());
+                this.add(label);
+            }
+            
+            if(origin!=null){
+                ImageIcon damageAnimation1 = new ImageIcon(effect+".gif");
+                JLabel label1 = new JLabel(damageAnimation1);
+                label1.setBounds(origin.x,origin.y,damageAnimation1.getIconWidth(),damageAnimation1.getIconHeight());
+                this.add(label1);
+            }
+            
+            //this.setOpaque(false);
+            setVisible(true);
+        }     
+    }      
+    
     public class DrawLineGlassPane extends JComponent
     {
         Point originCardPoint;
@@ -1170,7 +1424,7 @@ public class GameWindow extends JPanel
             graphics.drawLine(originCardPoint.x,originCardPoint.y,targetCardPoint.x,targetCardPoint.y);
         } 
     }
-    
+
     public class CardZoomGlassPane extends JComponent
     {
         public CardZoomGlassPane(Card card)
@@ -1214,123 +1468,6 @@ public class GameWindow extends JPanel
             });
         }
         
-    }
-    
-    public void playSound(String soundFileName)
-    {
-        AudioInputStream audioInputStream = null;
-        final Clip clip;
-        try {
-            String soundName = "sounds/"+soundFileName+".wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-            
-            clip.addLineListener(new LineListener() {
-                public void update(LineEvent myLineEvent) {
-                    if(myLineEvent.getType() == LineEvent.Type.STOP){
-                        clip.close();
-                    }
-                }
-            });
-            
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }    
-   
-    public void playAmbientSound()
-    {
-        AudioInputStream audioInputStream = null;
-        try {
-            String soundName = "sounds/ambientSound1.wav";
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            ambientSoundClip = AudioSystem.getClip();
-            ambientSoundClip.open(audioInputStream);
-            ambientSoundClip.loop(100);
-            
-            ambientSoundClip.addLineListener(new LineListener() {
-                public void update(LineEvent myLineEvent) {
-                    if(myLineEvent.getType() == LineEvent.Type.STOP)
-                        ambientSoundClip.close();
-                }
-            });
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
-    public void playMusic()
-    {
-        int songNum = ThreadLocalRandom.current().nextInt(1,4);
-        String soundName = "sounds/music_" + songNum +".wav";
-        AudioInputStream audioInputStream = null;
-        try {
-            audioInputStream = AudioSystem.getAudioInputStream(new File(soundName).getAbsoluteFile());
-            musicClip = AudioSystem.getClip();
-            musicClip.open(audioInputStream);
-            setVolume(musicClip,0.4f);
-            musicClip.loop(100);    
-            
-            musicClip.addLineListener(new LineListener() {
-                public void update(LineEvent myLineEvent) {
-                    if(myLineEvent.getType() == LineEvent.Type.STOP)
-                        musicClip.close();
-                }
-            });
-
-        } 
-        catch (UnsupportedAudioFileException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (LineUnavailableException ex) {
-            Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                audioInputStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-       
-    }
-    
-    public float getVolume(Clip clip) 
-    {
-        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
-        return (float) Math.pow(10f, gainControl.getValue() / 20f);
-    }
-
-    public void setVolume(Clip clip, float volume) 
-    {
-        if (volume < 0f || volume > 1f)
-            throw new IllegalArgumentException("Volume not valid: " + volume);
-        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
-        gainControl.setValue(20f * (float) Math.log10(volume));
     }
     
 }
