@@ -9,33 +9,19 @@ import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants;
-import Interface.Constants.DeathEffect;
-import Interface.Constants.ETBeffect;
+import Interface.Constants.CreatureEffect;
 import Interface.Constants.SpellEffect;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -54,10 +40,9 @@ public class JSONHelper
         
     }
         
-    /**
+    
     public void writeJSONFile(JSONObject jObject)
-    {
-        
+    {        
         File existingFile = new File(filePath+fileName);
         existingFile.delete();
 
@@ -82,7 +67,7 @@ public class JSONHelper
         }
 
     }
-    **/
+    
     
     
     public List<Card> readCardListJSON(JSONObject jsonObject)
@@ -108,10 +93,8 @@ public class JSONHelper
                 cCard.setPlayCost(Integer.parseInt(o.get("cost").toString())); 
                 cCard.setPower(Integer.parseInt(o.get("power").toString()));; 
                 cCard.setToughness(Integer.parseInt(o.get("toughness").toString()));
-                cCard.setETBeffect(ETBeffect.valueOf(o.get("etbEffect").toString()));
-                cCard.setDeathEffect(DeathEffect.valueOf(o.get("deathEffect").toString()))
+                cCard.setCreatureEffect(CreatureEffect.valueOf(o.get("creatureEffect").toString()));
                         
-                        ;
                 cardsList.add(cCard);
             }
             else
@@ -133,11 +116,10 @@ public class JSONHelper
     {
         
         List<Card> cardList = new ArrayList<Card>();
-        List<ETBeffect> ETBeffectsList = Arrays.asList(ETBeffect.values());
-        List<DeathEffect> deathEffectsList = Arrays.asList(DeathEffect.values());
+        List<CreatureEffect> creatureEffectsList = Arrays.asList(CreatureEffect.values());
         List<SpellEffect> spellEffectsList = Arrays.asList(SpellEffect.values());
         int statLowerLimit = 1;
-        int statUpperLimit = 7;
+        int statUpperLimit = Constants.maxResourceAmount;
         
         for(int x=0;x<Constants.DECK_SIZE;x++)
         {
@@ -155,7 +137,7 @@ public class JSONHelper
                 }
                 else{
                     statLowerLimit = 3;
-                    statUpperLimit = 8;
+                    statUpperLimit = Constants.maxResourceAmount;
                 }
                     
                 c.setPower(ThreadLocalRandom.current().nextInt(statLowerLimit,statUpperLimit));
@@ -163,17 +145,12 @@ public class JSONHelper
                 
                 
                 //SET CARD EFFECTS (25% chance of getting an effect)
-                int numOfETB = ETBeffectsList.size()-1;
-                int numOfDE = deathEffectsList.size()-1;
-                int y = ThreadLocalRandom.current().nextInt(0,numOfETB*3);
-                if(y<=numOfETB)
-                    c.setETBeffect(ETBeffectsList.get(y));
-                y = ThreadLocalRandom.current().nextInt(0,numOfDE*3);
-                if(y<=numOfDE)
-                    c.setDeathEffect(deathEffectsList.get(y));
-                        
+                int numOfEffects = creatureEffectsList.size()-1;
+                int y = ThreadLocalRandom.current().nextInt(0,numOfEffects*3);
+                if(y<=numOfEffects)
+                    c.setCreatureEffect(creatureEffectsList.get(y));                        
 
-                c.setName("Minion");
+                c.setName("Creature");
                 c.setImageID(ThreadLocalRandom.current().nextInt(1,46));
                 c.setCardID(System.identityHashCode(c));                
                 
@@ -181,16 +158,14 @@ public class JSONHelper
                 /**
                  * = ((power + toughness)/2)-2
                  * minimum of 1
-                 * +1 for each ETB
+                 * +1 for each effect
                  */
                                 
                 int playCost = Math.round((c.getPower()+c.getToughness())/2);
-                if(c.getETBeffect()!=ETBeffect.NONE)
+                if(c.getCreatureEffect()!=CreatureEffect.NONE)
                     playCost++;
-                if(c.getDeathEffect()!=DeathEffect.NONE)
-                    playCost++;
-                if(playCost>7)
-                    playCost=7;
+                if(playCost>Constants.maxResourceAmount)
+                    playCost=Constants.maxResourceAmount;
                 
                 c.setPlayCost(playCost);
             }
@@ -201,7 +176,7 @@ public class JSONHelper
                 SpellCard sc = (SpellCard) card;
                 sc.setName("Spell");
                 sc.setCardID(System.identityHashCode(sc));
-                sc.setPlayCost(ThreadLocalRandom.current().nextInt(1,8));
+                sc.setPlayCost(ThreadLocalRandom.current().nextInt(1,Constants.maxResourceAmount));
                 sc.setEffect(spellEffectsList.get(ThreadLocalRandom.current().nextInt(0,spellEffectsList.size())));  
                 if(sc.getEffect()==SpellEffect.DRAW_CARD)                                        
                     sc.setImageID(999);
@@ -223,7 +198,7 @@ public class JSONHelper
             playerCardsJSONArray.add(convertCardToJSON(c));
         
         cardsJSON.put("playerCards", playerCardsJSONArray);
-        //sthis.writeJSONFile(cardsJSON);
+        this.writeJSONFile(cardsJSON);
         return cardsJSON;
     }
     
@@ -236,8 +211,7 @@ public class JSONHelper
         {
             cardJSON.put("power",((CreatureCard) c).getPower());
             cardJSON.put("toughness",((CreatureCard) c).getToughness());
-            cardJSON.put("etbEffect", c.getETBeffect().toString());
-            cardJSON.put("deathEffect", c.getDeathEffect().toString());
+            cardJSON.put("creatureEffect", c.getCreatureEffect().toString());
         }
         if(c instanceof SpellCard)
         {
@@ -262,8 +236,7 @@ public class JSONHelper
             CreatureCard cCard = (CreatureCard) card; 
             cCard.setPower((int) o.get("power")); 
             cCard.setToughness((int) o.get("toughness")); 
-            cCard.setETBeffect(ETBeffect.valueOf((String)o.get("etbEffect")));
-            cCard.setDeathEffect(DeathEffect.valueOf((String)o.get("deathEffect")));
+            cCard.setCreatureEffect(CreatureEffect.valueOf((String)o.get("creatureEffect")));
         }
         else
         if(o.get("type").equals("class Interface.Cards.SpellCard"))

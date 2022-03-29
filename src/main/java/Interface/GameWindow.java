@@ -27,17 +27,16 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
 import Interface.Constants.CardLocation;
-import Interface.Constants.ETBeffect;
+import Interface.Constants.CreatureEffect;
 import Interface.Constants.SpellEffect;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ThreadLocalRandom;
@@ -51,7 +50,6 @@ import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -81,6 +79,7 @@ public class GameWindow extends JPanel
     private JRootPane rootPane;
     private DrawLineGlassPane drawLineGlassPane;
     private CardZoomGlassPane cardZoomGlassPane;
+    private EndGameGlassPane endGameGlassPane;
     private boolean isPlayerTurn = false;
     private int turnPasses = 0;
     private int turnNumber = 1;
@@ -268,7 +267,7 @@ public class GameWindow extends JPanel
                 //RETURN!!
                 
                 if(this.isPlayerTurn 
-                        && ((CreatureCard) card).getETBeffect()!=ETBeffect.Taunt 
+                        && ((CreatureCard) card).getCreatureEffect()!=CreatureEffect.Taunt 
                         && opponentsPlayArea.checkForTauntCreature()){   
                     return;
                 }
@@ -1076,10 +1075,12 @@ public class GameWindow extends JPanel
     public void loseGame()
     {
         //you lose the game
+        this.getRootPane().setGlassPane(new EndGameGlassPane(false));
         
         //disable interaction
         this.disablePlay();
         gameControlPanel.endGame(false);
+        
         
         //send message to connected server/client
         Message message = new Message();
@@ -1090,6 +1091,7 @@ public class GameWindow extends JPanel
     public void winGame()
     {
         //you win the games
+        this.getRootPane().setGlassPane(new EndGameGlassPane(true));
         
         //disable interaction
         this.disablePlay();
@@ -1206,7 +1208,6 @@ public class GameWindow extends JPanel
                 Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
     }
     
     public void playMusic()
@@ -1469,5 +1470,38 @@ public class GameWindow extends JPanel
         }
         
     }
+    
+    public class EndGameGlassPane extends JComponent
+    {       
+        public EndGameGlassPane(boolean win)
+        {    
+            JLabel resultLabel = new JLabel();
+            Font font = new Font("Arial",Font.BOLD,64);
+            resultLabel.setFont(font);
+            
+            if(win)
+            {
+                resultLabel.setText("VICTORY");
+                
+            }
+            else
+            {
+                resultLabel.setText("DEFEATED");
+            }
+                
+               
+            this.add(resultLabel);
+            this.setOpaque(false);
+            setVisible(true);
+        }  
+        
+        @Override
+        protected void paintComponent(Graphics g) 
+        {
+            super.paintComponent(g);
+            setForeground(Color.BLACK);
+            this.setBackground(new Color(0,0,0,100));
+        } 
+    } 
     
 }

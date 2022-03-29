@@ -7,17 +7,14 @@ package Interface.Cards;
 
 import Interface.Constants;
 import Interface.Constants.CardLocation;
-import Interface.Constants.ETBeffect;
-import java.awt.BorderLayout;
+import Interface.Constants.CreatureEffect;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.Image;
-import java.util.Timer;
-import java.util.TimerTask;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
 /**
@@ -30,6 +27,7 @@ public class CreatureCard extends Card
     private int toughness = 1;
     private JLabel powerLabel;
     private JLabel toughnessLabel;
+    private Font statFont = new Font("Courier",Font.BOLD,20);
     private Font modifiedStatFont = new Font("Arial",Font.BOLD,headingFontSize+2);
     private boolean isBuffed = false;
     private int buffedBy = 0;
@@ -40,18 +38,26 @@ public class CreatureCard extends Card
         
         
         powerLabel = new JLabel();
-        powerLabel.setFont(headingFont);
+        powerLabel.setFont(statFont);
         toughnessLabel = new JLabel();
-        toughnessLabel.setFont(headingFont);
-        powerLabel.setForeground(Color.WHITE);
-        toughnessLabel.setForeground(Color.WHITE);
+        toughnessLabel.setFont(statFont);
+        powerLabel.setForeground(Color.BLACK);
+        powerLabel.setBackground(new Color(235, 64, 52,100)); //red with reduced opacity
+        toughnessLabel.setForeground(Color.BLACK);
+        toughnessLabel.setBackground(new Color(52, 89, 235,100)); //blue with reduced opacity
         toughnessLabel.setOpaque(false);
+        powerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        toughnessLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        powerLabel.setOpaque(true);
+        toughnessLabel.setOpaque(true);
         
         
 
-        bottomPanel.setLayout(new BorderLayout());
-        bottomPanel.add(powerLabel,BorderLayout.WEST);
-        bottomPanel.add(toughnessLabel, BorderLayout.EAST);     
+        GridLayout gridLayout = new GridLayout(0,2,0,0);
+        bodyBox.setLayout(gridLayout);
+        bodyBox.remove(textBox);
+        bodyBox.add(powerLabel);
+        bodyBox.add(toughnessLabel);     
     }
      
     
@@ -85,7 +91,7 @@ public class CreatureCard extends Card
         else
         {
             isBuffed = false;
-            powerLabel.setForeground(Color.WHITE);
+            powerLabel.setForeground(Color.BLACK);
             
         }
         System.out.println("my power is now " + power + ", and is buffed by " + buffedBy);
@@ -130,15 +136,15 @@ public class CreatureCard extends Card
             this.playArea.triggerDeathFffect(this);
             playArea.removeCard(this);
         }
+        
+        toughnessLabel.setForeground(Color.red);
         repaint();
         revalidate();
     }
     
     @Override
     public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        powerLabel.setFont(bodyFont);
-        toughnessLabel.setFont(bodyFont);        
+        super.paintComponent(g);      
    
     }
     
@@ -150,8 +156,7 @@ public class CreatureCard extends Card
         clone.setPlayCost(getPlayCost());
         clone.setPower(power);
         clone.setToughness(toughness);
-        clone.setETBeffect(getETBeffect());
-        clone.setDeathEffect(getDeathEffect());
+        clone.setCreatureEffect(getCreatureEffect());
         //set picture box
         return clone;
     }
@@ -169,28 +174,28 @@ public class CreatureCard extends Card
         **/
 
         int cardValue = power + toughness;
-        if(getETBeffect()!=ETBeffect.NONE)
-        cardValue++;
-        if(getDeathEffect()!=Constants.DeathEffect.NONE)
+        if(getCreatureEffect()!=CreatureEffect.NONE)
         cardValue++;
         
         int borderStroke = 1;
         this.cardValue = cardValue;
         LineBorder border;
-        Color borderColor;
-        if(cardValue<4)
-            borderColor = Constants.commonColor;
-        else if(cardValue>=5 && cardValue<=8)
-            borderColor = Constants.uncommonColor;
-        else if(cardValue>=9 && cardValue<=12)
-            borderColor = Constants.rareColor;
-        else if(cardValue>13 && cardValue<=16)
-            borderColor = Constants.mythicColor;
-        else
-            borderColor = Color.white;
+        Color borderColor = Constants.commonColor;
         
-        border = new LineBorder(borderColor,borderStroke);
-        innerPanel.setBorder(border);
+        if(getCreatureEffect()!=CreatureEffect.NONE)
+            borderColor = Constants.uncommonColor;
+        
+        if((power+toughness)>Constants.maxResourceAmount-3 && getCreatureEffect()!=CreatureEffect.NONE)
+            borderColor = Constants.rareColor;
+        
+        if((power+toughness)>Constants.maxResourceAmount+3 && getCreatureEffect()!=CreatureEffect.NONE)
+            borderColor = Constants.mythicColor;
+        
+        //dont set border for common cards
+        if(borderColor!=Constants.commonColor){
+            border = new LineBorder(borderColor,borderStroke);
+            innerPanel.setBorder(border);
+        }
         
         cardNameLabel.setForeground(borderColor);
     }

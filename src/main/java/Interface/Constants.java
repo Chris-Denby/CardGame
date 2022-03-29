@@ -17,7 +17,7 @@ public class Constants
     public static final int windowHeight = 800;
     public static final int maxHandSize = 7;
     public static final int maxResourceAmount = 7;
-    public static final int defaultPlayerHealth = 20;
+    public static final int defaultPlayerHealth = 5;
     public static final int turnTimeLimit = 10;
     public static final int discardTimeLimit = 10;
     public static final int maxCaradsInPlayArea = 14;
@@ -28,7 +28,7 @@ public class Constants
     public static String imagePath = "C:\\Users\\chris\\AppData\\Local\\CardGame\\";
     public static final Color cardBaseColor = new Color(38,38,38,255);
     public static final Color shadowColor = new Color(0,0,0,80);
-    public static final Color commonColor = new Color(0,0,0,255);
+    public static final Color commonColor = new Color(255,255,255,255);
     public static final Color uncommonColor = new Color(0,112,221,255);
     public static final Color rareColor = new Color(163,53,238,255);
     public static final Color mythicColor = new Color(255,128,0,255);
@@ -62,17 +62,12 @@ public class Constants
         //HEAL_DAMAGE
     }
     
-    public static enum ETBeffect
+    public static enum CreatureEffect
     {
         NONE,
+        Gain_Life,
         Taunt,
         Buff_Power;
-    }
-    
-    public static enum DeathEffect
-    {
-        Gain_Life,
-        NONE;
     }
     
     

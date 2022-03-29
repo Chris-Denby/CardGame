@@ -17,16 +17,17 @@ import java.io.Serializable;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import Interface.Constants.CardLocation;
-import Interface.Constants.DeathEffect;
-import Interface.Constants.ETBeffect;
+import Interface.Constants.CreatureEffect;
 import Interface.InnerCardPanel;
 import Interface.PlayArea;
 import Interface.PlayerHand;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -60,24 +61,23 @@ public class Card extends JPanel implements Serializable, Cloneable
     private String cardName;
     private int cardID;
     int playCost = 1;
-    transient private CardLocation location;
-    transient private boolean isFaceUp = false;
-    transient PlayArea playArea;
-    transient PlayerHand playerHand;
-    transient Dimension dimension = new Dimension(width,height);
-    transient int headingFontSize =8;
-    transient int bodyFontSize = 8;
-    transient Font headingFont = new Font("Arial",Font.BOLD,headingFontSize);
-    transient Font bodyFont = new Font("Arial",Font.PLAIN,bodyFontSize);
-    transient private boolean isSelected = false;
-    private int imageID;
-    private ETBeffect etbEffect = ETBeffect.NONE;
-    private DeathEffect deathEffect = DeathEffect.NONE;
+    private CardLocation location;
+    private boolean isFaceUp = false;
+    PlayArea playArea;
+    PlayerHand playerHand;
+    Dimension dimension = new Dimension(width,height);
+    int headingFontSize =8;
+    int bodyFontSize = 8;
+    Font headingFont = new Font("Arial",Font.BOLD,headingFontSize);
+    Font bodyFont = new Font("Arial",Font.PLAIN,bodyFontSize);
+    private boolean isSelected = false;
+    int imageID;
+    private CreatureEffect creatureEffect = CreatureEffect.NONE;
     private boolean isPlayable;
     JLabel cardNameLabel;
     JPanel topPanel;
     ImagePanel pictureBox;
-    JPanel bottomPanel;
+    JPanel abilityPanel;
     JLabel playCostLabel;
     JPanel bodyBox;
     JTextPane textBox;
@@ -86,6 +86,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     Image cardImage;
     boolean zoomed = false;
     int cardValue;
+    JLabel abilityLabel;
     
 
     public Card(String cardName, int imageId)
@@ -95,8 +96,17 @@ public class Card extends JPanel implements Serializable, Cloneable
         
         innerPanel = new InnerCardPanel();
                 
+        
         topPanel = new JPanel();
-        bottomPanel = new JPanel();
+        abilityLabel = new JLabel("Basic", SwingConstants.CENTER);
+        abilityPanel = new JPanel();
+        
+        abilityPanel.setLayout(new GridLayout(1,1));
+        abilityLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        abilityLabel.setFont(headingFont);
+        abilityLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        abilityLabel.setOpaque(false);
+        abilityPanel.add(abilityLabel);
         bodyBox = new JPanel();
         textBox = new JTextPane();
         textBox.setEditable(false);
@@ -108,7 +118,8 @@ public class Card extends JPanel implements Serializable, Cloneable
         pictureBox = new ImagePanel();
 
         topPanel.setBackground(new Color(0,0,0,100));
-        bottomPanel.setBackground(new Color(0,0,0,100));
+        abilityPanel.setBackground(new Color(255,255,255,255));
+        //abilityPanel.setBackground(new Color(255,255,255,180));
         pictureBox.setBackground(new Color(255,255,255,0));
         bodyBox.setBackground(new Color(255,255,255,180));
         innerPanel.setBackground(new Color(0,102,102));
@@ -116,7 +127,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
         bodyBox.setVisible(isFaceUp);        
-        bottomPanel.setVisible(isFaceUp);
+        abilityPanel.setVisible(isFaceUp);
 
         
         cardNameLabel = new JLabel(this.cardName,SwingConstants.LEFT);
@@ -137,8 +148,9 @@ public class Card extends JPanel implements Serializable, Cloneable
         
         innerPanel.add(topPanel); 
         innerPanel.add(pictureBox);
+        innerPanel.add(abilityPanel);
         innerPanel.add(bodyBox);
-        innerPanel.add(bottomPanel);
+
 
     }
     
@@ -147,26 +159,17 @@ public class Card extends JPanel implements Serializable, Cloneable
         return playerHand;
     }
 
-    public DeathEffect getDeathEffect() {
-        return deathEffect;
-    }
-
-    public void setDeathEffect(DeathEffect deathEffect) {
-        this.deathEffect = deathEffect;
-        if(this.getDeathEffect()!=DeathEffect.NONE)
-            setBodyText(this.getDeathEffect().toString());
-        
-    }
-
-    public ETBeffect getETBeffect()
+    public CreatureEffect getCreatureEffect()
     {
-        return etbEffect;
+        return this.creatureEffect;
     }
-    
-    public void setETBeffect(ETBeffect effect) {
-        etbEffect = effect;        
-        if(this.getETBeffect()!=ETBeffect.NONE)
-            setBodyText(this.getETBeffect().toString());
+
+    public void setCreatureEffect(CreatureEffect effect) {
+        this.creatureEffect = effect;
+        if(this.getCreatureEffect()!=CreatureEffect.NONE){
+            setBodyText(this.getCreatureEffect().toString());
+            abilityLabel.setText(this.getCreatureEffect().toString());  
+            }
     }
     
     public void setCardBack(Image img)
@@ -223,7 +226,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         topPanel.setVisible(isFaceUp);
         pictureBox.setVisible(isFaceUp);
         bodyBox.setVisible(isFaceUp);
-        bottomPanel.setVisible(isFaceUp);
+        abilityPanel.setVisible(isFaceUp);
     }
     
     public void applySize(int h)
@@ -240,8 +243,6 @@ public class Card extends JPanel implements Serializable, Cloneable
         this.setSize(new Dimension(width,height));
         
         this.setLayout(null);
-        
-
 
         innerPanel.setBounds(
                 arcSize,
@@ -261,7 +262,8 @@ public class Card extends JPanel implements Serializable, Cloneable
         topPanel.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*1)));
         pictureBox.setPreferredSize(new Dimension(innerWidth,Math.round((innerHeight/10)*4)));
         bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
-        bottomPanel.setPreferredSize(new Dimension(innerWidth,Math.round(innerHeight/10)*1));
+        abilityPanel.setPreferredSize(new Dimension(innerWidth,(Math.round(innerHeight/10)*1)+4));
+        
                 
         if(zoomed){
             headingFont = new Font("Arial",Font.BOLD,20);
@@ -360,7 +362,7 @@ public class Card extends JPanel implements Serializable, Cloneable
     
     public void setBodyText(String text)    
     {
-        
+                
 
         SimpleAttributeSet attribs = new SimpleAttributeSet();
         StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_CENTER);
@@ -439,47 +441,45 @@ public class Card extends JPanel implements Serializable, Cloneable
             textBox.setParagraphAttributes(attribs, true);
             
             
-            String etbString = etbEffect.toString().replace('_', ' ');
-            String deathString = deathEffect.toString().replace('_', ' ');
-            String etbDescription;
-            String deathDescription;
+            String effectString = creatureEffect.toString().replace('_', ' ');
+            String effectDescription;
             StringBuilder sb = new StringBuilder();
             
             //ETB EFFECT
-            if(etbEffect==ETBeffect.Buff_Power)
+            if(creatureEffect==CreatureEffect.Buff_Power)
             {
                 int buffValue = Math.round(getPlayCost()/Constants.buffModifier);
                 if(buffValue<1)
                     buffValue = 1;
                 
-                etbDescription = "Increases the power of the two left minions by " + buffValue + " while in play";
-                sb.append(etbString);
+                effectDescription = "Increases the power of the two left minions by " + buffValue + " while in play";
+                sb.append(effectString);
                 sb.append("\n");
-                sb.append(etbDescription);
+                sb.append(effectDescription);
                 sb.append("\n");
                 sb.append("\n");
 
             }
-            else if(etbEffect==ETBeffect.Taunt)
+            else if(creatureEffect==CreatureEffect.Taunt)
             {
-                etbDescription = "You cannot target minions without taunt while in play";
-                sb.append(etbString);
+                effectDescription = "You cannot target minions without taunt while in play";
+                sb.append(effectString);
                 sb.append("\n");
-                sb.append(etbDescription);
+                sb.append(effectDescription);
                 sb.append("\n");
                 sb.append("\n");
             }
 
             //DEATH EFFECT
-            if(deathEffect==DeathEffect.Gain_Life)
+            if(creatureEffect==CreatureEffect.Gain_Life)
             {
-                deathDescription = "When destroyed, gain " + getPlayCost() + " life";
-                sb.append(deathString);
+                effectDescription = "When destroyed, gain " + getPlayCost() + " life";
+                sb.append(effectString);
                 sb.append("\n");
-                sb.append(deathDescription);
+                sb.append(effectDescription);
             }
             
-            if(etbEffect==ETBeffect.NONE && deathEffect == DeathEffect.NONE)
+            if(creatureEffect==CreatureEffect.NONE && creatureEffect == CreatureEffect.NONE)
             {
                 sb.append("Basic Minion");
                 sb.append("\n");

@@ -10,19 +10,13 @@ import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import Interface.Cards.SpellCard;
 import Interface.Constants.CardLocation;
-import Interface.Constants.DeathEffect;
-import Interface.Constants.ETBeffect;
+import Interface.Constants.CreatureEffect;
 import Interface.Constants.TurnPhase;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -31,26 +25,10 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 
 /**
  *
@@ -254,11 +232,11 @@ public class PlayArea extends JPanel
     
     public void triggerETBEffect(Card card)
     {
-        if(card.getETBeffect()==null)
+        if(card.getCreatureEffect()==null)
             return;
 
         //String effectName = card.getETBeffect().toString().split("_")[0];
-        switch(card.getETBeffect())
+        switch(card.getCreatureEffect())
         {
             case Taunt:
                 //this is a passive ability
@@ -290,26 +268,18 @@ public class PlayArea extends JPanel
     }
     
     public void triggerDeathFffect(Card card)
-    {
-        //trigger death effects
-        if(card.getDeathEffect()!=null)
+    {        
+        //remove ETB buffs or trigger death effects
+        if(card.getCreatureEffect()!=null)
         {
-            //String deathEffectName = card.getDeathEffect().toString().split("_")[0];
-            switch(card.getDeathEffect())
+            //String ETBeffectName = card.getETBeffect().toString().split("_")[0];
+            switch(card.getCreatureEffect())
             {
                 case Gain_Life:
                     gameWindow.playSound("gainLife");
                     this.playerBox.gainLife(card.getPlayCost());
                 break;
-            }
-        }
-        
-        //remove ETB buffs
-        if(card.getETBeffect()!=null)
-        {
-            //String ETBeffectName = card.getETBeffect().toString().split("_")[0];
-            switch(card.getETBeffect())
-            {
+                
                 case Taunt:
                 break;
 
@@ -494,7 +464,7 @@ public class PlayArea extends JPanel
         {
             //for each creature card player has in play
             //if a creature without taunt is present, mark it as not attackable
-            if(c instanceof CreatureCard && ((CreatureCard )c).getETBeffect()==ETBeffect.Taunt)
+            if(c instanceof CreatureCard && ((CreatureCard )c).getCreatureEffect()==CreatureEffect.Taunt)
                 return true;
         }
         return false;
