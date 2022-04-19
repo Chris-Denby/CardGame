@@ -19,13 +19,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JRootPane;
-import javax.swing.JTabbedPane;
+import java.util.*;
+import javax.swing.*;
+
 import Interface.Constants.CardLocation;
 import Interface.Constants.CreatureEffect;
 import Interface.Constants.SpellEffect;
@@ -38,7 +34,6 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,10 +45,9 @@ import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
+
 import org.json.simple.JSONObject;
+import org.w3c.dom.ls.LSOutput;
 
 
 /**
@@ -86,16 +80,14 @@ public class GameWindow extends JPanel
     private TurnPhase turnPhase;
     private int turnCycleIncrementor = 0;
     private Color overlayColor = new Color(223,223,223,200);
-    private int discardTimeLimit;
-    private Timer discardTimer = new Timer();
-    private TimerTask discardTask;
     private StartGameWindow startGameWindow;
     private Timer combatTimer;
     private JSONHelper jsonHelper;
     private Clip musicClip;
     private Clip ambientSoundClip;
     private AnimationGlassPane animationGlassPane;
-   
+    public Map<Component,String> componentAnimateMap = new HashMap<Component,String>();
+
     
     //constructor
     public GameWindow(JTabbedPane pane, StartGameWindow startGameWindow)
@@ -216,19 +208,19 @@ public class GameWindow extends JPanel
             {
                 SpellCard scard = (SpellCard) card;
 
-                if(scard.getEffect()==SpellEffect.DRAW_CARD)
+                if(scard.getSpellEffect()==SpellEffect.Draw_cards)
                 {
                     //if a draw card spell, set self as the target and execute immediately
                     cardEvent.addTargetPlayerBox(playerPlayArea.getPlayerBoxPanel());
                     executeCardEvent();
                 }
                 else
-                if(scard.getEffect()==SpellEffect.DEAL_DAMAGE)
+                if(scard.getSpellEffect()==SpellEffect.Deal_damage)
                 {
                     //let method continue to allow a second card, or player, to be targeted
                 }
             }
-            
+
             //***************
             //send message to connected server/client
             if(isPlayerTurn)
@@ -237,7 +229,7 @@ public class GameWindow extends JPanel
                 message.setText("OPPONENT_ACTIVATE_CARD");
                 sendMessage(message,jsonHelper.convertCardToJSON(card));
             }
-        }       
+        }
         else
         //if a card event exists and target card has not yet been set
         if(cardEvent != null && cardEvent.getTargetCard()==null && cardEvent.getTargetPlayerBox()==null && turnPhase!=TurnPhase.DECLARE_BLOCKERS)
@@ -247,16 +239,15 @@ public class GameWindow extends JPanel
             if(getPlayerLocalCard(card.getCardID())==null)
                 card.setCardLocation(CardLocation.OPPONENT_PLAY_AREA);
             else
-                card.setCardLocation(CardLocation.PLAYER_PLAY_AREA);   
-            
+                card.setCardLocation(CardLocation.PLAYER_PLAY_AREA);
+
             //if target card is the same as the origin - abandon method
             if(cardEvent.getOriginCard().getCardID()==card.getCardID())
                 return;
-            
+
             //if the target card is a spell - abandon method
             if(card instanceof SpellCard)
                 return;
-            
 
             if(cardEvent.getOriginCard() instanceof CreatureCard && card instanceof CreatureCard)
             {
@@ -265,26 +256,26 @@ public class GameWindow extends JPanel
                 //and the creature being attacked doesnt have taunt
                 //and there is a taunt creature in play
                 //RETURN!!
-                
-                if(this.isPlayerTurn 
-                        && ((CreatureCard) card).getCreatureEffect()!=CreatureEffect.Taunt 
-                        && opponentsPlayArea.checkForTauntCreature()){   
+
+                if(this.isPlayerTurn
+                        && ((CreatureCard) card).getCreatureEffect()!=CreatureEffect.Taunt
+                        && opponentsPlayArea.checkForTauntCreature()){
                     return;
                 }
             }
-    
+
             //add card event to the stack
             //cardEventStack.addFirst((CardEvent)cardEvent);
-            
+
             //set selected card as the target card
             cardEvent.addTargetCard(card);
             cardEvent.getTargetCard().setIsSelected(true);
-                              
+
             //show glass pane so the arrow can be drawn
             drawPointer(cardEvent.getOriginCard(), cardEvent.getTargetCard());
 
             executeCardEvent();
-            
+
             //***************
             //send message to connected server/client
             if(isPlayerTurn)
@@ -302,12 +293,12 @@ public class GameWindow extends JPanel
             //add blocker to card event
             cardEvent.addBlockingCard(card);
 
-            
+
             //show blocker selected
             drawPointer(cardEvent.getOriginCard(),cardEvent.getBlockingCard());
-                    
+
             card.setIsSelected(true);
-            
+
             if(!isPlayerTurn)
             {
                 //send message to connected server/client
@@ -315,61 +306,68 @@ public class GameWindow extends JPanel
                 message.setText("OPPONENT_DECLARED_BLOCKER");
                 sendMessage(message,jsonHelper.convertCardToJSON(card));
             }
-            
+
             //after blocker declared
             //execute the card event
             executeCardEvent();
-        }  
+        }
     }
-    
+
     public void createCardEvent(PlayerBox playerBox)
     {
         //if the event already created
         //if a target card has not been set in the event
-        //if a target player has not been set in th event  
-        
+        //if a target player has not been set in th event
+
         if(cardEvent != null && cardEvent.getTargetCard()==null & cardEvent.getTargetPlayerBox()==null)
         {
             //exit method if targeting own player
             if(this.isPlayerTurn && !playerBox.getIsOpponent())
                 return;
-            
+
             //exit method if a taunt creature is present
             if(this.isPlayerTurn && opponentsPlayArea.checkForTauntCreature())
                 return;
 
+            //exit method if a stun spell is being played on a player
+            if(cardEvent.getOriginCard() instanceof SpellCard && ((SpellCard)cardEvent.getOriginCard()).getSpellEffect()==SpellEffect.Stun)
+                return;
+
             playerBox.setIsSelected(true);
             cardEvent.addTargetPlayerBox(playerBox);
-            
+
             //add card event to the stack
             //cardEventStack.addFirst((CardEvent)cardEvent);
-            
+
             //show glass pane so the arrow can be drawn
             drawPointer(cardEvent.getOriginCard(),cardEvent.getTargetPlayerBox());
-            
+
             //if its the opponent who recieved the card event targeting their player box
             //and they have no available blockers
             //skip blocking without their input
-            
-            
+
+
             //if origin is a spell, execute
             if(cardEvent.getOriginCard() instanceof SpellCard)
             {
                 executeCardEvent();
             }
-            
             //if the origin is a creature
-            else if(cardEvent.getOriginCard() instanceof CreatureCard) 
+            else if(cardEvent.getOriginCard() instanceof CreatureCard)
+            {
                 //and it isnt the players turn
+                //allow opponent to block
                 requestResolveCombat();
                 if(!isPlayerTurn)
                     //and there is no creatures available to block
-                    if(!playerPlayArea.checkForAvailableBlockers()){
+                    if(!playerPlayArea.checkForAvailableBlockers())
                         passOnBlocking();
-                    }
-            
-            
-            
+            }
+
+
+
+
+
             //***************
             //send message to connected server/client
             if(isPlayerTurn)
@@ -377,14 +375,14 @@ public class GameWindow extends JPanel
                 Message message = new Message();
 
                 if(playerBox.getIsOpponent())
-                    message.setText("CARD_EVENT_ON_OPPONENT");             
+                    message.setText("CARD_EVENT_ON_OPPONENT");
                 else
-                    message.setText("CARD_EVENT_ON_PLAYER");                
+                    message.setText("CARD_EVENT_ON_PLAYER");
                 sendMessage(message,null);
             }
         }
     }
-    
+
     public void cancelCardEvent()
     {   if(cardEvent!=null)
         {
@@ -406,21 +404,21 @@ public class GameWindow extends JPanel
                 targetPlayer.setIsSelected(false);
             if(targetCard!=null)
                 targetCard.setIsSelected(false);
-            
-            
+
+
             //if spell is pending a target, remove the spell from plat
             if(originCard instanceof SpellCard && targetCard==null)
             {
                 originCard.removeFromPlayArea();
             }
-            
-            
+
+
 
             cardEvent = null;
 
             hideDrawLineGlassPane();
-            
-            
+
+
             drawLineGlassPane=null;
 
             if(isPlayerTurn)
@@ -431,7 +429,7 @@ public class GameWindow extends JPanel
             }
         }
     }
-    
+
     public Card getPlayerLocalCard(int id)
     {
         if(playerPlayArea.getCardsInPlayArea().containsKey(id))
@@ -439,7 +437,7 @@ public class GameWindow extends JPanel
         else
             return null;
     }
-    
+
     public Card getOpponentLocalCard(int id)
     {
         if(opponentsPlayArea.getCardsInPlayArea().containsKey(id))
@@ -455,8 +453,8 @@ public class GameWindow extends JPanel
         else
         if(cardEvent.getOriginCard() instanceof CreatureCard && cardEvent.getTargetPlayerBox()!=null)
         {
-            setTurnPhase(TurnPhase.DECLARE_BLOCKERS);  
-            
+            setTurnPhase(TurnPhase.DECLARE_BLOCKERS);
+
             if(!isPlayerTurn)
             {
                 gameControlPanel.enableResolveButton(true);
@@ -470,11 +468,11 @@ public class GameWindow extends JPanel
             Message message = new Message();
             message.setText("REQUEST_RESOLVE_COMBAT");
             sendMessage(message,null);
-        } 
+        }
     }
 
     public void executeCardEvent(CardEvent event)
-    {   
+    {
         TimerTask combatTask = null;
         Timer timer = new Timer();
 
@@ -483,46 +481,62 @@ public class GameWindow extends JPanel
         PlayerBox targetPlayer = event.getTargetPlayerBox();
         Card blockingCard = event.getBlockingCard();
 
+        //force the cards to be face up, if it is face down for some reason
+        //such as Stealth effect...
+        originCard.setFaceUp(true);
+        if(targetCard!=null)
+            targetCard.setFaceUp(true);
+
         this.gameControlPanel.increaseTime();
-        
+
         //if target card objects dont match whats in players hand due to sending over stream
-        //match by ID instead        
+        //match by ID instead
         if(targetCard!=null && getPlayerLocalCard(targetCard.getCardID())!=null)
             targetCard = getPlayerLocalCard(targetCard.getCardID());
 
-        
+
         if(event.getOriginCard() instanceof SpellCard)
         {
             //do action
             SpellCard spellCard = (SpellCard) event.getOriginCard();
-            if(spellCard.getEffect()==SpellEffect.DRAW_CARD)
+
+            if(spellCard.getSpellEffect()==SpellEffect.Draw_cards)
+            {
+
+                combatTask = new TimerTask()
+                {
+                    @Override
+                    public void run()
+                    {
+                        hideDrawLineGlassPane();
+
+
+                        componentAnimateMap.put(originCard,"slash");
+                        drawAnimations();
+
+                        playSound("drawCardSpell");
+                        if(isPlayerTurn)
+                            playerHand.drawCards(spellCard.getPlayCost());
+
+                        originCard.removeFromPlayArea();
+                        //release current card event
+                        cardEvent = null;
+                    }
+                };
+            }
+            else
+            if(spellCard.getSpellEffect()==SpellEffect.Deal_damage)
             {
                 combatTask = new TimerTask()
                 {
                     @Override
                     public void run()
                     {
-                        playSound("drawCardSpell");
-                        if(isPlayerTurn)
-                            playerHand.drawCards(spellCard.getPlayCost());
-                        
-                        originCard.removeFromPlayArea();
-                        //release current card event
-                        cardEvent = null;
-                        //hideDrawLineGlassPane();
-                    }
-                };  
-            }
-            else
-            if(spellCard.getEffect()==SpellEffect.DEAL_DAMAGE)
-            {   
-                Component target;
-                combatTask = new TimerTask()
-                {
-                    @Override
-                    public void run()
-                    {
                         playSound("fireball");
+
+                        componentAnimateMap.put(originCard,"slash");
+                        drawAnimations();
+
                         if(cardEvent.getTargetCard() instanceof CreatureCard)
                         {
                             CreatureCard ccard;
@@ -533,37 +547,94 @@ public class GameWindow extends JPanel
                                 ccard = (CreatureCard) cardEvent.getTargetCard();
                             }
                             ccard.takeDamage(cardEvent.getOriginCard().getPlayCost());
-                            drawAnimation("explode",null,ccard);
+                            componentAnimateMap.put(ccard,"explode");
+                            //drawAnimations("explode",null,ccard);
+                            drawAnimations();
                         }
                         if(cardEvent.getTargetPlayerBox()!=null)
                         {
                             cardEvent.getTargetPlayerBox().takeDamage(cardEvent.getOriginCard().getPlayCost());
-                            drawAnimation("explode",null,cardEvent.getTargetPlayerBox());
+                            //drawAnimation("explode",null,cardEvent.getTargetPlayerBox());
+                            componentAnimateMap.put(cardEvent.getTargetPlayerBox(),"explode");
+                            drawAnimations();
                         }
-                        
+
 
                         event.getOriginCard().removeFromPlayArea();
                         //release current card event
                         cardEvent = null;
                         //hideDrawLineGlassPane();
                     }
-                };   
+                };
             }
+            else
+            if(spellCard.getSpellEffect()==SpellEffect.Stun)
+            {
+                combatTask = new TimerTask()
+                {
+                    @Override
+                    public void run()
+                    {
+                        playSound("stun");
+
+                        componentAnimateMap.put(originCard,"slash");
+                        drawAnimations();
+
+                        if(cardEvent.getTargetCard() instanceof CreatureCard)
+                        {
+                            //set targets
+                            CreatureCard ccard;
+                            if(getPlayerLocalCard(cardEvent.getTargetCard().getCardID())!=null){
+                                ccard = (CreatureCard) getPlayerLocalCard(cardEvent.getTargetCard().getCardID());
+                            }
+                            else{
+                                ccard = (CreatureCard) cardEvent.getTargetCard();
+                            }
+
+                            //execute effect
+                            ((Card)ccard).setIsActivated(true);
+
+                            //draw animation
+                            //drawAnimation("stun",null,ccard);
+                        }
+
+                        //remove spent spell card from play area
+                        event.getOriginCard().removeFromPlayArea();
+                        //release current card event
+                        cardEvent = null;
+                        hideDrawLineGlassPane();
+                    }
+                };
+            }
+
             if(combatTask!=null)
                 timer.schedule(combatTask, 500);
         }
         else
         {
             if(event.getOriginCard() instanceof CreatureCard & event.getTargetCard() instanceof CreatureCard)
-            {   
+            {
                 //exchange damage between origin and target
                 CreatureCard origin = (CreatureCard) originCard;
                 CreatureCard target = (CreatureCard) targetCard;
-                
+
                 TimerTask originDamageTask = new TimerTask() {
                     @Override
                     public void run() {
-                        drawAnimation("slash",origin,target);
+                        //drawAnimation("slash",origin,target);
+                        componentAnimateMap.put(origin,"slash");
+                        componentAnimateMap.put(target,"slash");
+
+                        //add heal animation for Gain_Life ability
+                        if(origin.getPower()>=target.getToughness() && target.getCreatureEffect()==CreatureEffect.Gain_Life){
+                                componentAnimateMap.put(target.getPlayArea().playerBox,"heal");
+                        }
+
+                        if(target.getPower()>=origin.getToughness() && origin.getCreatureEffect()==CreatureEffect.Gain_Life){
+                                componentAnimateMap.put(origin.getPlayArea().playerBox,"heal");
+                        }
+
+                        drawAnimations();
                         target.takeDamage(origin.getPower());
                         playSound("attackSwing");
                         origin.takeDamage(target.getPower());
@@ -575,12 +646,12 @@ public class GameWindow extends JPanel
             }
             else
             if(event.getOriginCard() instanceof CreatureCard & event.getTargetPlayerBox() !=null)
-            {            
+            {
                 //creature does damage to target player
                 CreatureCard origin = (CreatureCard) originCard;
                 PlayerBox target = event.getTargetPlayerBox();
                 CreatureCard blocker = (CreatureCard) event.getBlockingCard();
-                
+
                 final int originPower = origin.getPower();
                 final int blockerPower;
                 final int blockerToughness;
@@ -595,35 +666,40 @@ public class GameWindow extends JPanel
                     blockerPower = 0;
                     blockerToughness = 0;
                 }
-                
+
                 //if blocker has been declared
                 if(blocker!=null)
                 {
                     TimerTask originDamageTask = new TimerTask() {
                         @Override
                         public void run() {
-                            
-                            drawAnimation("slash",origin,blocker);
+
+                            componentAnimateMap.put(origin,"slash");
+                            componentAnimateMap.put(blocker,"slash");
+                            drawAnimations();
+                            //drawAnimation("slash",origin,blocker);
                             blocker.takeDamage(originPower);
                             playSound("attackSwing");
                             origin.takeDamage(blockerPower);
                             //release current card event
                             cardEvent = null;
                         }
-                    };  
+                    };
                     timer.schedule(originDamageTask, 500);
-                }   
+                }
                 //if no blocker has been delared
                 else
                 {
                     TimerTask playerDamageTask = new TimerTask(){
                         @Override
-                        public void run() 
+                        public void run()
                         {
-                            drawAnimation("slash",null,target);
+                            //drawAnimation("slash",null,target);
+                            componentAnimateMap.put(target,"slash");
+                            drawAnimations();
                             playSound("attackSwing");
-                            
-                            if(originPower-blockerToughness>0)                       
+
+                            if(originPower-blockerToughness>0)
                                target.takeDamage(originPower-blockerToughness);
 
                             //if card event execution reduced player health to 0 or below
@@ -637,7 +713,7 @@ public class GameWindow extends JPanel
                             cardEvent = null;
                         }
                     };
-                    timer.schedule(playerDamageTask,500);  
+                    timer.schedule(playerDamageTask,500);
                 }
             }
         }
@@ -669,13 +745,13 @@ public class GameWindow extends JPanel
         //progress turn phase
         setTurnPhase(TurnPhase.MAIN_PHASE);
     }
-    
+
     public void hideDrawLineGlassPane()
     {
         if(drawLineGlassPane!=null)
         {
             drawLineGlassPane.setVisible(false);
-            drawLineGlassPane = null; 
+            drawLineGlassPane = null;
         }
     }
 
@@ -686,30 +762,31 @@ public class GameWindow extends JPanel
         if(cardEvent!=null)
         executeCardEvent(cardEvent);
     }
-    
+
     public boolean getIsPlayerTurn()
     {
         return isPlayerTurn;
     }
-    
+
     public TurnPhase getTurnPhase()
     {
         return turnPhase;
     }
 
     public void passTurn()
-    {   
+    {
         playSound("passTurn");
-        gameControlPanel.setTurnPhaseLabelText(turnPhase);  
-        //gameControlPanel.startTurnTimer();
-               
+        gameControlPanel.setTurnPhaseLabelText(turnPhase);
+        gameControlPanel.startTurnTimer();
+        gameControlPanel.setNotificationLabel("");
+
         if(isPlayerTurn)
-        {            
-            isPlayerTurn=false;      
+        {
+            isPlayerTurn=false;
             this.playerPlayArea.setIsPlayerTurn(isPlayerTurn);
             this.opponentsPlayArea.setIsPlayerTurn(true);
             this.gameControlPanel.setIsPlayerTurn(isPlayerTurn);
-          
+
             Message message = new Message();
             message.setText("OPPONENT_PASS_TURN");
             sendMessage(message,null);
@@ -718,162 +795,58 @@ public class GameWindow extends JPanel
         {
             //it becomes the players turn
             isPlayerTurn=true;
-            
+
             this.playerPlayArea.setIsPlayerTurn(isPlayerTurn);
             this.opponentsPlayArea.setIsPlayerTurn(false);
             this.gameControlPanel.setIsPlayerTurn(isPlayerTurn);
-            
+
             //deactivate all activated cards in the players play area
             playerPlayArea.unActivateAllCards();
-            
+
             //draw card at the start of the turn - except the first turn of the game
             if(turnCycleIncrementor>0)
-                playerDeck.drawCard(true);     
+                playerDeck.drawCard(true);
         }
-        
+
         //replenish resources back to turn amount
         resourcePanel.resetResources(turnNumber);
-        
+
         //highlight playable cards
         playerHand.highlightPlayableCards();
-        
+
         //cancel any half created events
         if(cardEvent!=null)
             cancelCardEvent();
-        
+
         //progress to next turn phase
         setTurnPhase(TurnPhase.MAIN_PHASE);
         gameControlPanel.setTurnPhaseLabelText(turnPhase);
-        
-        //increment turn number 
+
+        //increment turn number
         turnCycleIncrementor++;
         if(turnCycleIncrementor==(turnNumber*2))
         {
             turnNumber++;
-        }  
-                
+        }
+
     }
-    
+
     public void passOnBlocking()
     {
         executeCardEvent();
-        
+
         Message message = new Message();
         message.setText("OPPONENT_PASS_ON_BLOCKING");
         sendMessage(message,null);
     }
-    
-    public void drawPointer(Component origin, Component target)
-    {
-        rootPane = this.getRootPane();
-        
-        int horizontalSpacing = gameControlPanel.getWidth();
-        int originVerticalSpacing = 0;
-        int targetVerticalSpacing = 0;
-        
-        if(target instanceof PlayerBox)
-        {
-            PlayerBox targetPlayer = (PlayerBox) target;
 
-            if(isPlayerTurn)
-                //on the players turn, origin is always from players hand
-                originVerticalSpacing = opponentsHand.getHeight()
-                        + opponentsPlayArea.getHeight()
-                        + target.getHeight()/2;
-            else if(!isPlayerTurn)
-                //if its the opponents turn, origin is always from the opponents hand
-                originVerticalSpacing = opponentsHand.getHeight()
-                        + (opponentsPlayArea.getHeight()/2)
-                        + target.getHeight()/2;
-            
-            
-            //if the target player is the player (me)
-            if(!targetPlayer.getIsOpponent())             
-                 //spacing includes opponents hand
-                targetVerticalSpacing = 
-                        opponentsHand.getHeight()
-                        + opponentsPlayArea.getHeight()
-                        + playerPlayArea.getHeight()/2
-                        + target.getHeight()/2;
-            
-            
-            //if the target player is the opponent
-            if(targetPlayer.getIsOpponent())                             
-                 //spacing includes opponents hand
-                targetVerticalSpacing = 
-                        opponentsHand.getHeight()
-                        + target.getHeight()/2;
-        }
-        
-        
-        if(target instanceof Card)
-        {
-            Card originCard = (Card) origin;
-            Card targetCard = (Card) target;
-            if(isPlayerTurn)
-            {
-                //on the players turn, origin is always from players hand
-                originVerticalSpacing = opponentsHand.getHeight() + opponentsPlayArea.getHeight();
-
-
-                //if target is in player hand, spacing includes opponents hand + play area
-                if(targetCard.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
-                    targetVerticalSpacing = 
-                            opponentsHand.getHeight()
-                            + opponentsPlayArea.getHeight();
-
-                //if target is in opponents hand, spacing includes opponents hand only
-                if(targetCard.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
-                    targetVerticalSpacing = opponentsHand.getHeight()
-                    + (opponentsPlayArea.getHeight()/2);
-            }
-            else if(!isPlayerTurn)
-            {
-                //if its the opponents turn, origin is always from the opponents hand
-                originVerticalSpacing = opponentsHand.getHeight()
-                         + (opponentsPlayArea.getHeight()/2);
-
-
-                //if the target is in the opponents hand, spacing includes opponents hand only
-                if(targetCard.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
-                    targetVerticalSpacing = opponentsHand.getHeight()
-                    + (opponentsPlayArea.getHeight()/2);
-
-
-                //if the target is in the players hand, spacing includes
-                if(targetCard.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
-                    targetVerticalSpacing = 
-                              opponentsHand.getHeight()
-                            + opponentsPlayArea.getHeight();
-            }            
-        }
-        
-
-        //create points for origin and target cards
-        //x = middle of card + horizontal spacing
-        //y = middle of card + vertical spacing determined above
-        Point originPoint = new Point(origin.getX()+(origin.getWidth()/2)+horizontalSpacing,
-                origin.getY()+(origin.getHeight()/2)+originVerticalSpacing);
-        
-        Point targetPoint = new Point(target.getX()+(target.getWidth()/2)+horizontalSpacing,
-                target.getY()+(target.getHeight()/2)+targetVerticalSpacing);
-        
-        drawLineGlassPane = new DrawLineGlassPane(originPoint,targetPoint);
-
-        if(cardZoomGlassPane==null)
-        {
-            rootPane.setGlassPane(drawLineGlassPane);
-            drawLineGlassPane.setVisible(true);  
-        }
-    }
-    
     public void setOpponentInteractable(boolean enabled)
     {
         opponentsHand.setEnabled(enabled);
         opponentsPlayArea.setEnabled(enabled);
         opponentsDeck.setEnabled(enabled);
     }
-    
+
     public GameWindow(JTabbedPane pane,TCPServer server, StartGameWindow startGamePanel)
     {
         this(pane, startGamePanel);
@@ -881,35 +854,35 @@ public class GameWindow extends JPanel
         server.setGameWindow(this);
         //setOpponentInteractable(false);
     }
-    
+
     public PlayerHand getPlayerHand()
     {
         return playerHand;
     }
-    
+
     public PlayerHand getOpponentHand()
     {
         return opponentsHand;
     }
-    
+
     public Image getImageFromCache(int id)
     {
-        return startGameWindow.getImageFromCache(id);        
+        return startGameWindow.getImageFromCache(id);
     }
-    
+
     public GameWindow(JTabbedPane pane,TCPClient client, StartGameWindow startGamePanel)
     {
         this(pane, startGamePanel);
         netClient = client;
         client.setGameWindow(this);
     }
-    
+
     public void sendMessage(Message message, JSONObject o)
     {
         if(o!=null){
             message.setJsonCard(o);
         }
-        
+
         if(netServer!=null)
         {
             netServer.sendMessage(message);
@@ -919,31 +892,31 @@ public class GameWindow extends JPanel
             netClient.sendMessage(message);
         }
     }
-    
+
     public void recieveMessage(Message message)
-    {   
+    {
         Card messageCard = null;
         if(message.getJsonCard()!=null && !message.getText().equals("OPPONENTS_DECKLIST"))
-        {        
+        {
             //convert from JSON to card
-            messageCard = this.jsonHelper.convertJSONtoCard(message.getJsonCard());            
+            messageCard = this.jsonHelper.convertJSONtoCard(message.getJsonCard());
 
             if(this.getPlayerLocalCard(messageCard.getCardID())!=null){
                 messageCard = this.getPlayerLocalCard(messageCard.getCardID());
                 messageCard.setPlayArea(playerPlayArea);
                 messageCard.setPlayerHand(playerHand);
-                
+
             }
             else
             if(this.getOpponentLocalCard(messageCard.getCardID())!=null){
                 messageCard = this.getOpponentLocalCard(messageCard.getCardID());
                 messageCard.setPlayArea(opponentsPlayArea);
-                messageCard.setPlayerHand(opponentsHand);  
+                messageCard.setPlayerHand(opponentsHand);
             }
         }
         if(message.getText().equals("OPPONENTS_DECKLIST"))
         {
-            this.opponentsDeck.populateDeckAndDeal(jsonHelper.readCardListJSON(message.getJsonCard()));      
+            this.opponentsDeck.populateDeckAndDeal(jsonHelper.readCardListJSON(message.getJsonCard()));
         }
         else
         if(message.getText().equals("OPPONENT_DRAW_CARD"))
@@ -962,8 +935,8 @@ public class GameWindow extends JPanel
         }
         else
         if(message.getText().equals("OPPONENT_ACTIVATE_CARD"))
-        { 
-            createCardEvent(messageCard); 
+        {
+            createCardEvent(messageCard);
         }
         else
         if(message.getText().equals("OPPONENT_PASS_TURN"))
@@ -986,14 +959,20 @@ public class GameWindow extends JPanel
         if(message.getText().equals("CARD_EVENT_ON_OPPONENT"))
         {
             //"opponent" meaning this player (who recieved the message) self
-            this.createCardEvent(playerPlayArea.getPlayerBoxPanel());            
+            this.createCardEvent(playerPlayArea.getPlayerBoxPanel());
         }
         else
         if(message.getText().equals("PLAYER_DISCARD_CARD"))
         {
+            System.out.println("I am instructed to discard card - " + messageCard.getCardID());
+            //System.out.println("which is in hand? - "+ getOpponentLocalCard(messageCard.getCardID()));
+            System.out.println("cards in opponents hand:");
+            for(Card c:opponentsHand.getCardsInHand())
+                System.out.println(c.getCardID());
+
             //"player" meaning the active player who's turn it is
             //therefore on receipt, the player would be this applications opponent
-            opponentsHand.discardCard(messageCard);
+            opponentsHand.discardCard(messageCard.getCardID());
         }
         else
         if(message.getText().equals("OPPONENT_LOSE_GAME"))
@@ -1015,7 +994,7 @@ public class GameWindow extends JPanel
         else
         if(message.getText().equals("OPPONENT_PASS_ON_BLOCKING"))
         {
-            executeCardEvent();            
+            executeCardEvent();
         }
         else
         if(message.getText().equals("OPPONENT_RESIGNED"))
@@ -1023,38 +1002,38 @@ public class GameWindow extends JPanel
             winGame();
         }
     }
-    
+
     public int getTurnNumber()
     {
         return turnNumber;
     }
-    
+
     public void disablePlay()
     {
         //disable interaction with play area
         //disable interaction with players game
-        
+
         //player
         playerPlayArea.setEnabled(false);
-        playerHand.setEnabled(false); 
+        playerHand.setEnabled(false);
         playerDeck.setEnabled(false);
-        
+
         //opponent
         opponentsPlayArea.setEnabled(false);
         opponentsHand.setEnabled(false);
         opponentsDeck.setEnabled(false);
-        
-     
+
+
     }
-    
+
     public void setTurnPhase(TurnPhase phase)
     {
         turnPhase = phase;
         gameControlPanel.setTurnPhaseLabelText(turnPhase);
-        
+
         if(phase==TurnPhase.MAIN_PHASE)
         {
-            gameControlPanel.setResolveButtonText("Resolve"); 
+            gameControlPanel.setResolveButtonText("Resolve");
             gameControlPanel.enableResolveButton(false);
         }
         else
@@ -1068,36 +1047,36 @@ public class GameWindow extends JPanel
             if(isPlayerTurn)
                 gameControlPanel.enableResolveButton(false);
             else
-                gameControlPanel.enableResolveButton(true);    
+                gameControlPanel.enableResolveButton(true);
         }
     }
-    
+
     public void loseGame()
     {
         //you lose the game
         this.getRootPane().setGlassPane(new EndGameGlassPane(false));
-        
+        playSound("lost");
         //disable interaction
         this.disablePlay();
         gameControlPanel.endGame(false);
-        
-        
+
+
         //send message to connected server/client
         Message message = new Message();
         message.setText("OPPONENT_LOSE_GAME");
         sendMessage(message,null);
     }
-    
+
     public void winGame()
     {
         //you win the games
         this.getRootPane().setGlassPane(new EndGameGlassPane(true));
-        
+        playSound("won");
         //disable interaction
         this.disablePlay();
         gameControlPanel.endGame(true);
     }
-    
+
     public void zoomInCard(Card card)
     {
         if(cardZoomGlassPane==null)
@@ -1109,40 +1088,40 @@ public class GameWindow extends JPanel
             rootPane = this.getRootPane();
             cardZoomGlassPane = new CardZoomGlassPane(zoomedCard);
             rootPane.setGlassPane(cardZoomGlassPane);
-            cardZoomGlassPane.setVisible(true); 
+            cardZoomGlassPane.setVisible(true);
         }
         else
         if(cardZoomGlassPane!=null)
         {
             //remove zoomed in card glass pane
             //restore draw line glass pane
-            cardZoomGlassPane.setVisible(false); 
+            cardZoomGlassPane.setVisible(false);
             cardZoomGlassPane = null;
             if(drawLineGlassPane!=null)
             {
                 rootPane.setGlassPane(drawLineGlassPane);
                 drawLineGlassPane.setVisible(true);
             }
-        }        
+        }
     }
-    
+
     public void closeGameWindow()
     {
         sendMessage(new Message("OPPONENT_RESIGNED"),null);
         //remove game window
-        parentTabbedPane.remove(this); 
+        parentTabbedPane.remove(this);
         musicClip.close();
-                
+
         //close network connections
         if(netServer!=null)
             startGameWindow.stopNetworkGame(1);
         else if(netClient!=null)
-            startGameWindow.stopNetworkGame(0); 
-    }   
-    
+            startGameWindow.stopNetworkGame(0);
+    }
+
     public void playSound(String soundFileName)
     {
-        
+
         AudioInputStream audioInputStream = null;
         final Clip clip;
         try {
@@ -1151,7 +1130,7 @@ public class GameWindow extends JPanel
             clip = AudioSystem.getClip();
             clip.open(audioInputStream);
             clip.start();
-            
+
             clip.addLineListener(new LineListener() {
                 public void update(LineEvent myLineEvent) {
                     if(myLineEvent.getType() == LineEvent.Type.STOP){
@@ -1159,8 +1138,8 @@ public class GameWindow extends JPanel
                     }
                 }
             });
-            
-        } 
+
+        }
         catch (UnsupportedAudioFileException ex) {
             Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -1174,12 +1153,12 @@ public class GameWindow extends JPanel
                 Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
-    }    
-   
+
+    }
+
     public void playAmbientSound()
     {
-        
+
         AudioInputStream audioInputStream = null;
         try {
             String soundName = "sounds/ambientSound1.wav";
@@ -1187,14 +1166,14 @@ public class GameWindow extends JPanel
             ambientSoundClip = AudioSystem.getClip();
             ambientSoundClip.open(audioInputStream);
             ambientSoundClip.loop(100);
-            
+
             ambientSoundClip.addLineListener(new LineListener() {
                 public void update(LineEvent myLineEvent) {
                     if(myLineEvent.getType() == LineEvent.Type.STOP)
                         ambientSoundClip.close();
                 }
             });
-        } 
+        }
         catch (UnsupportedAudioFileException ex) {
             Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -1209,10 +1188,10 @@ public class GameWindow extends JPanel
             }
         }
     }
-    
+
     public void playMusic()
     {
-        
+
         int songNum = ThreadLocalRandom.current().nextInt(1,4);
         String soundName = "sounds/music_" + songNum +".wav";
         AudioInputStream audioInputStream = null;
@@ -1221,8 +1200,8 @@ public class GameWindow extends JPanel
             musicClip = AudioSystem.getClip();
             musicClip.open(audioInputStream);
             setVolume(musicClip,0.4f);
-            musicClip.loop(100);    
-            
+            musicClip.loop(100);
+
             musicClip.addLineListener(new LineListener() {
                 public void update(LineEvent myLineEvent) {
                     if(myLineEvent.getType() == LineEvent.Type.STOP)
@@ -1230,7 +1209,7 @@ public class GameWindow extends JPanel
                 }
             });
 
-        } 
+        }
         catch (UnsupportedAudioFileException ex) {
             Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -1244,33 +1223,30 @@ public class GameWindow extends JPanel
                 Logger.getLogger(PlayArea.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
-       
     }
-    
-    public float getVolume(Clip clip) 
+
+    public float getVolume(Clip clip)
     {
-        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
+        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
         return (float) Math.pow(10f, gainControl.getValue() / 20f);
     }
 
-    public void setVolume(Clip clip, float volume) 
+    public void setVolume(Clip clip, float volume)
     {
         if (volume < 0f || volume > 1f)
             throw new IllegalArgumentException("Volume not valid: " + volume);
-        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);        
+        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
         gainControl.setValue(20f * (float) Math.log10(volume));
     }
-    
-    public void drawAnimation(String effect, Component origin, Component target)
+
+    public void drawPointer(Component origin, Component target)
     {
         rootPane = this.getRootPane();
-        
-        //int horizontalSpacing = gameControlPanel.getWidth();
-        int horizontalSpacing = 0;
+
+        int horizontalSpacing = gameControlPanel.getWidth();
         int originVerticalSpacing = 0;
         int targetVerticalSpacing = 0;
-        
+
         if(target instanceof PlayerBox)
         {
             PlayerBox targetPlayer = (PlayerBox) target;
@@ -1285,27 +1261,27 @@ public class GameWindow extends JPanel
                 originVerticalSpacing = opponentsHand.getHeight()
                         + (opponentsPlayArea.getHeight()/2)
                         + target.getHeight()/2;
-            
-            
+
+
             //if the target player is the player (me)
-            if(!targetPlayer.getIsOpponent())             
-                 //spacing includes opponents hand
-                targetVerticalSpacing = 
+            if(!targetPlayer.getIsOpponent())
+                //spacing includes opponents hand
+                targetVerticalSpacing =
                         opponentsHand.getHeight()
-                        + opponentsPlayArea.getHeight()
-                        + playerPlayArea.getHeight()/2
-                        + target.getHeight()/2;
-            
-            
+                                + opponentsPlayArea.getHeight()
+                                + playerPlayArea.getHeight()/2
+                                + target.getHeight()/2;
+
+
             //if the target player is the opponent
-            if(targetPlayer.getIsOpponent())                             
-                 //spacing includes opponents hand
-                targetVerticalSpacing = 
+            if(targetPlayer.getIsOpponent())
+                //spacing includes opponents hand
+                targetVerticalSpacing =
                         opponentsHand.getHeight()
-                        + target.getHeight()/2;
+                                + target.getHeight()/2;
         }
-        
-        
+
+
         if(target instanceof Card)
         {
             Card originCard = (Card) origin;
@@ -1318,91 +1294,158 @@ public class GameWindow extends JPanel
 
                 //if target is in player hand, spacing includes opponents hand + play area
                 if(targetCard.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
-                    targetVerticalSpacing = 
+                    targetVerticalSpacing =
                             opponentsHand.getHeight()
-                            + opponentsPlayArea.getHeight();
+                                    + opponentsPlayArea.getHeight();
 
                 //if target is in opponents hand, spacing includes opponents hand only
                 if(targetCard.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
                     targetVerticalSpacing = opponentsHand.getHeight()
-                    + (opponentsPlayArea.getHeight()/2);
+                            + (opponentsPlayArea.getHeight()/2);
             }
             else if(!isPlayerTurn)
             {
                 //if its the opponents turn, origin is always from the opponents hand
                 originVerticalSpacing = opponentsHand.getHeight()
-                         + (opponentsPlayArea.getHeight()/2);
+                        + (opponentsPlayArea.getHeight()/2);
 
 
                 //if the target is in the opponents hand, spacing includes opponents hand only
                 if(targetCard.getCardLocation()==CardLocation.OPPONENT_PLAY_AREA)
                     targetVerticalSpacing = opponentsHand.getHeight()
-                    + (opponentsPlayArea.getHeight()/2);
+                            + (opponentsPlayArea.getHeight()/2);
 
 
                 //if the target is in the players hand, spacing includes
                 if(targetCard.getCardLocation()==CardLocation.PLAYER_PLAY_AREA)
-                    targetVerticalSpacing = 
-                              opponentsHand.getHeight()
-                            + opponentsPlayArea.getHeight();
-            }            
+                    targetVerticalSpacing =
+                            opponentsHand.getHeight()
+                                    + opponentsPlayArea.getHeight();
+            }
         }
-        
+
 
         //create points for origin and target cards
         //x = middle of card + horizontal spacing
         //y = middle of card + vertical spacing determined above
-        Point originPoint = null;
-        Point targetPoint = null;
-        
-        if(origin!=null)
-        originPoint = new Point(origin.getX()+(origin.getWidth()/2)+horizontalSpacing,
-                origin.getY()+(origin.getHeight()/2)+originVerticalSpacing-opponentsHand.getHeight());
-        
-        if(target!=null)
-        targetPoint = new Point(target.getX()+(target.getWidth()/2)+horizontalSpacing,
-                target.getY()+(target.getHeight()/2)+targetVerticalSpacing-opponentsHand.getHeight());
-        
-        animationGlassPane = new AnimationGlassPane(effect,originPoint,targetPoint);
-        rootPane.setGlassPane(animationGlassPane); 
+        Point originPoint = new Point(origin.getX()+(origin.getWidth()/2)+horizontalSpacing,
+                origin.getY()+(origin.getHeight()/2)+originVerticalSpacing);
+
+        Point targetPoint = new Point(target.getX()+(target.getWidth()/2)+horizontalSpacing,
+                target.getY()+(target.getHeight()/2)+targetVerticalSpacing);
+
+        drawLineGlassPane = new DrawLineGlassPane(originPoint,targetPoint);
+
+        if(cardZoomGlassPane==null)
+        {
+            rootPane.setGlassPane(drawLineGlassPane);
+            drawLineGlassPane.setVisible(true);
+        }
+    }
+
+    public void drawAnimations()
+    {
+        rootPane = this.getRootPane();
+        Map<Point,String> animations = new HashMap<Point,String>();
+
+        /**
+         *  component width/2 = compCentre
+         *  animation width/2 = animCentre
+         *
+         *  where to draw
+         *  horizontal UI spacing + componenet.width/2
+         *
+         *  centre the animation
+         *  where to draw *minus* animation.width/2
+         *
+         */
+
+        componentAnimateMap.forEach((component,name)->{
+            int horizontalSpacing = component.getWidth()/2;
+            int verticalSpacing = 20 + component.getHeight()/2;
+
+            if (component instanceof PlayerBox) {
+                PlayerBox targetPlayer = (PlayerBox) component;
+
+                if (targetPlayer.getIsOpponent()) {
+                    //verticalSpacing = verticalSpacing + opponentsHand.getHeight();
+                } else if (!targetPlayer.getIsOpponent()) {
+                    verticalSpacing = verticalSpacing
+                            //+ opponentsHand.getHeight()
+                            + opponentsPlayArea.getHeight()
+                            + playerPlayArea.getHeight() / 2;
+                }
+            }
+
+            if (component instanceof Card) {
+                Card targetCard = (Card) component;
+
+                if(targetCard.getCardLocation() == CardLocation.PLAYER_PLAY_AREA){
+                    verticalSpacing = verticalSpacing
+                            //+ opponentsHand.getHeight()
+                            + opponentsPlayArea.getHeight();
+                }
+                else
+                if(targetCard.getCardLocation() == CardLocation.OPPONENT_PLAY_AREA){
+                    verticalSpacing = verticalSpacing
+                            //+ opponentsHand.getHeight()
+                            + opponentsPlayArea.getHeight()/2;
+                }
+                else
+                if(targetCard.getCardLocation() == CardLocation.PLAYER_HAND){
+                    verticalSpacing = verticalSpacing
+                            //+ opponentsHand.getHeight()
+                            + opponentsPlayArea.getHeight()
+                            + playerPlayArea.getHeight();
+                }
+                if(targetCard.getCardLocation() == CardLocation.OPPONENT_HAND){
+                    //no spacing required
+                }
+            }
+
+            //create points for origin and target cards
+            //x = middle of card + horizontal spacing
+            //y = middle of card + vertical spacing determined above
+            Point targetPoint = new Point(component.getX()+horizontalSpacing,
+                    component.getY()+verticalSpacing);
+
+            animations.put(targetPoint,name);
+        });
+
+        animationGlassPane = new AnimationGlassPane(animations);
+        rootPane.setGlassPane(animationGlassPane);
         Timer t = new Timer();
-        TimerTask task = new TimerTask() 
+        TimerTask task = new TimerTask()
         {
             @Override
-            public void run() 
-            {    
+            public void run()
+            {
                 animationGlassPane.setVisible(false);
                 animationGlassPane = null;
-
+                componentAnimateMap.clear();
             }
         };
-        
         t.schedule(task, 500);
     }
-   
+
     public class AnimationGlassPane extends JComponent
-    {       
-        public AnimationGlassPane(String effect,Point origin, Point target)
-        {                       
-            if(target!=null){
-                ImageIcon damageAnimation = new ImageIcon(effect+".gif"); 
-                JLabel label = new JLabel(damageAnimation);
-                label.setBounds(target.x,target.y,damageAnimation.getIconWidth(),damageAnimation.getIconHeight());
+    {
+        public AnimationGlassPane(Map<Point,String> animations)
+        {
+            animations.forEach((point,effect)->{
+                System.out.println("play " + effect);
+                System.out.println(point.toString());
+                ImageIcon animation = new ImageIcon(effect+".gif");
+                JLabel label = new JLabel(animation);
+                label.setBounds((point.x),point.y,animation.getIconWidth(),animation.getIconHeight());
                 this.add(label);
-            }
-            
-            if(origin!=null){
-                ImageIcon damageAnimation1 = new ImageIcon(effect+".gif");
-                JLabel label1 = new JLabel(damageAnimation1);
-                label1.setBounds(origin.x,origin.y,damageAnimation1.getIconWidth(),damageAnimation1.getIconHeight());
-                this.add(label1);
-            }
-            
+                animation.getImage().flush();
+            });
             //this.setOpaque(false);
             setVisible(true);
-        }     
-    }      
-    
+        }
+    }
+
     public class DrawLineGlassPane extends JComponent
     {
         Point originCardPoint;

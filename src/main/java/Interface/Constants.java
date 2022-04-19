@@ -18,7 +18,7 @@ public class Constants
     public static final int maxHandSize = 7;
     public static final int maxResourceAmount = 7;
     public static final int defaultPlayerHealth = 5;
-    public static final int turnTimeLimit = 10;
+    public static final int turnTimeLimit = 30;
     public static final int discardTimeLimit = 10;
     public static final int maxCaradsInPlayArea = 14;
     public static final int buffDistance = 2;
@@ -32,7 +32,20 @@ public class Constants
     public static final Color uncommonColor = new Color(0,112,221,255);
     public static final Color rareColor = new Color(163,53,238,255);
     public static final Color mythicColor = new Color(255,128,0,255);
-    
+
+    public static enum CreatureType
+    {
+
+
+    }
+
+    public static enum BannerType
+    {
+        Longsword,
+        Rapier,
+        Singlesword,
+        Sabre,
+    }
     
     public static enum CardLocation
     {
@@ -57,14 +70,15 @@ public class Constants
     
     public static enum SpellEffect
     {
-        DRAW_CARD,
-        DEAL_DAMAGE,
-        //HEAL_DAMAGE
+        Draw_cards,
+        Deal_damage,
+        Stun;
     }
     
     public static enum CreatureEffect
     {
         NONE,
+        Stealth, //card comes in face down to opponent until used
         Gain_Life,
         Taunt,
         Buff_Power;

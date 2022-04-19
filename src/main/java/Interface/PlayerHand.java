@@ -9,29 +9,14 @@ import Interface.Cards.Card;
 import Interface.Cards.CreatureCard;
 import Interface.Constants.CardLocation;
 import Interface.Constants.TurnPhase;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Point;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.JLayeredPane;
 
 /**
  *
@@ -44,7 +29,6 @@ public class PlayerHand extends JLayeredPane
     int width;
     int height;
     int maxHandSize = Constants.maxHandSize;
-    ArrayList<Card> cardsInHand = new ArrayList<>();
     PlayArea playArea;
     Deck deck;
     //this is the origin of hte first card added
@@ -53,6 +37,7 @@ public class PlayerHand extends JLayeredPane
     ResourcePanel resourcePanel;
     private int discardTimeLimit = 10;
     private int cardOverlap=0;
+    private LinkedHashMap<Integer,Card> cardsInHandMap = new LinkedHashMap<Integer,Card>();
     
     public PlayerHand(int containerWidth, int containerHeight, PlayArea area, boolean isOpponents, GameWindow window, ResourcePanel panel)
     {
@@ -69,17 +54,17 @@ public class PlayerHand extends JLayeredPane
     
     public boolean addCard(Card card)
     {
-        if(!cardsInHand.contains(card))
+        if(!cardsInHandMap.containsKey(card.getCardID()))
         {
             gameWindow.playSound("addCard");
             card.setPlayerHand(this);
-            cardsInHand.add(card);
             card.applySize(height);
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
             //set the position of the cards added
             card.setBounds(origin.x, origin.y,card.getWidth(),card.getHeight());
             if(!isOpponents)
                 card.setFaceUp(true);
+            cardsInHandMap.put(card.getCardID(),card);
             this.add(card,layers);
             layers++;
             resizeHand();
@@ -100,7 +85,7 @@ public class PlayerHand extends JLayeredPane
                         {
                             if(gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
                             {
-                                discardCard(card);
+                                discardCard(card.getCardID());
                                 if(checkHandSizeForEndTurn())
                                     gameWindow.passTurn();     
                             }
@@ -128,36 +113,33 @@ public class PlayerHand extends JLayeredPane
     
     public List<Card> getCardsInHand()
     {
-        return cardsInHand;
+        return cardsInHandMap.values().stream().toList();
+        //return cardsInHand;
     }
+
     
-    public void discardCard(Card card)
+    public void discardCard(int cardID)
     {
-        if(cardsInHand.contains(card))
-        {
-            gameWindow.playSound("discardCard");
-            int index = cardsInHand.indexOf(card);
-            cardsInHand.remove(card);
-            this.remove(card);
-            resizeHand();
-            layers--;
-            //remove mouse listener assigned when card was added
-            //card.removeMouseListener(card.getMouseListeners()[0]);
-            playArea.addToDiscardPile(card);
+        Card discard = cardsInHandMap.get(cardID);
+        gameWindow.playSound("discardCard");
+        playArea.addToDiscardPile(discard);
+        System.out.println("discard card - " + discard.getCardID());
             
             if(!isOpponents)
             {
                 Message message = new Message();
                 message.setText("PLAYER_DISCARD_CARD");
-                gameWindow.sendMessage(message,gameWindow.getJsonHelper().convertCardToJSON(card));
+                gameWindow.sendMessage(message,gameWindow.getJsonHelper().convertCardToJSON(discard));
             }
-        }    
+        //remove card after sending hte message
+        //otherwise theres no reference to the card anymore
+        removeCard(discard);
     }
     
     public void removeCard(Card card)
     {
         card.setIsPlayable(false);
-        cardsInHand.remove(card);
+        cardsInHandMap.remove(card.getCardID());
         this.remove(card);
         resizeHand();
         layers--;
@@ -181,9 +163,7 @@ public class PlayerHand extends JLayeredPane
         origin.x = (deck.getWidth()+(Math.round((height-deck.getHeight())/2)*2));
         
         //@index parameter is the hard that was taken from the hand
-        for(int x = 0; x<cardsInHand.size();x++)
-        {
-            Card card = (Card) cardsInHand.get(x);
+        cardsInHandMap.forEach((cardID,card)->{
             this.remove(card);
             layers--;
             card.setBounds(origin.x, origin.y,card.getWidth(),card.getHeight());
@@ -192,26 +172,22 @@ public class PlayerHand extends JLayeredPane
             layers++;
             repaint();
             revalidate();
-        }  
+        });
     }
     
     public void highlightPlayableCards()
     {
-        for(Card c:cardsInHand)
-        {
-            if(c.getPlayCost()<=resourcePanel.getAmount() && gameWindow.getIsPlayerTurn())
-                c.setIsPlayable(true);
-            else if(c.getPlayCost()>resourcePanel.getAmount() | !gameWindow.getIsPlayerTurn() )
-                c.setIsPlayable(false);
-        }
+        cardsInHandMap.forEach((cardID,card)->{
+            if(card.getPlayCost()<=resourcePanel.getAmount() && gameWindow.getIsPlayerTurn())
+                card.setIsPlayable(true);
+            else if(card.getPlayCost()>resourcePanel.getAmount() | !gameWindow.getIsPlayerTurn() )
+                card.setIsPlayable(false);
+        });
     }
     
     public void playCard(int cardID, boolean isOpponent)
     {
-        Card card = null;
-        for(Card c:cardsInHand)
-            if(c.getCardID()==cardID)
-                card = c;
+        Card card = cardsInHandMap.get(cardID);
         
         //if the played card is a creature
         //and the maxmimum num of cards are in play
@@ -235,6 +211,8 @@ public class PlayerHand extends JLayeredPane
         
         this.removeCard(card);
         card.removeFromPlayerHand();
+
+        this.gameWindow.getGameControlPanel().increaseTime();
 
         //***************
         //send message to connected server/client
@@ -266,7 +244,7 @@ public class PlayerHand extends JLayeredPane
     
     public int getNumCards()
     {
-        return this.cardsInHand.size();
+        return cardsInHandMap.size();
     }
     
     public int getMaxHandSize()
@@ -275,10 +253,9 @@ public class PlayerHand extends JLayeredPane
     }
     
     public boolean checkHandSizeForEndTurn()
-    {        
+    {
         gameWindow.setTurnPhase(TurnPhase.END_PHASE);
-        
-        int numCardsOver = cardsInHand.size()-maxHandSize;
+        int numCardsOver = cardsInHandMap.size()-maxHandSize;
   
         if(numCardsOver>0)
         {

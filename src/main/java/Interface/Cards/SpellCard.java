@@ -17,8 +17,9 @@ import javax.swing.JLabel;
  */
 public class SpellCard extends Card
 {
-    private SpellEffect effect;
+    private SpellEffect spellEffect;
     private JLabel effectLabel;
+    
     
     public SpellCard(String cardName, int imageID) 
     {
@@ -34,33 +35,42 @@ public class SpellCard extends Card
         revalidate();
     }
         
-    public void setEffect(SpellEffect effect)
+    public void setSpellEffect(SpellEffect effect)
     {
-        this.effect=effect;
-        setBodyText(this.effect);
+        this.spellEffect =effect;
+        setBodyText(this.spellEffect);
     }
     
     public void setBodyText(SpellEffect effect)
     {
+        String text = effect.toString();
+        if(effect.toString().contains("_"))
+        {
+            String partA = effect.toString().split("_")[0];
+            String partB = effect.toString().split("_")[1];
+            text = partA+" "+playCost+" "+partB;
+        }
+
+        
         switch(effect)
         {
-            case DRAW_CARD:
-                setBodyText("Draw "+ playCost +" cards");
+            case Draw_cards:
+                setBodyText(text);
                 return;
                 
-            case DEAL_DAMAGE:
-                setBodyText("Deal "+ playCost +" damage");
+            case Deal_damage:
+                setBodyText(text);
                 return;
                 
-            //case HEAL_DAMAGE:
-                //setBodyText("Heal "+ playCost +" damage");
-                //return;
+            case Stun:
+                setBodyText(text+" a creature");
+                return;
         }
     }
     
-    public SpellEffect getEffect()
+    public SpellEffect getSpellEffect()
     {
-        return effect;
+        return spellEffect;
     }
     
     @Override
@@ -73,20 +83,11 @@ public class SpellCard extends Card
         //this method creates a deep copy of the card and returns it
         SpellCard clone = new SpellCard(getName(), getImageID());
         clone.setPlayCost(getPlayCost());
-        clone.setEffect(effect);
+        clone.setSpellEffect(spellEffect);
         clone.setImage(img);
         clone.setCardID(this.getCardID());
         //set picture box
         return clone;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ 
 }

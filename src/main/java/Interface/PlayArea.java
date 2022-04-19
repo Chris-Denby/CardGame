@@ -5,16 +5,12 @@
  */
 package Interface;
 
-import Interface.Cards.PlayerBox;
-import Interface.Cards.Card;
-import Interface.Cards.CreatureCard;
-import Interface.Cards.SpellCard;
+import Interface.Cards.*;
 import Interface.Constants.CardLocation;
 import Interface.Constants.CreatureEffect;
 import Interface.Constants.TurnPhase;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
+
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayDeque;
@@ -25,8 +21,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
-import javax.swing.BoxLayout;
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -37,7 +32,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class PlayArea extends JPanel
 {
     GameWindow gameWindow;
-    
+    Card artifactInPlay = null;
     boolean isOpponent = false;
     int width;
     int height;
@@ -93,12 +88,10 @@ public class PlayArea extends JPanel
         
         playerBox = new PlayerBox(playerSubPanel.getHeight(),this.isOpponent, this);
         playerBox.setImage(gameWindow.getImageFromCache(ThreadLocalRandom.current().nextInt(1001,1003)));
-                
         
         playerBox.addMouseListener(new PlayerBoxMouseListener(playerBox,this));
         playerSubPanel.add(playerBox,Component.CENTER_ALIGNMENT);
-        
-        
+
         this.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) 
@@ -158,7 +151,6 @@ public class PlayArea extends JPanel
     {       
         if(!cardsInPlay.containsKey(card.getCardID()))
         {
-                
             gameWindow.playSound("playCard");
             //set card location
             if(isOpponent)
@@ -167,22 +159,30 @@ public class PlayArea extends JPanel
                 card.setCardLocation(CardLocation.PLAYER_PLAY_AREA);
             
             card.setPlayArea(this);
-            
-            //card.applySize(cardSubPanel.getHeight());
             card.setAlignmentX(Component.CENTER_ALIGNMENT);
             card.setAlignmentY(Component.CENTER_ALIGNMENT);
             card.setFaceUp(true);
-            cardSubPanel.add(card);
-            CardMouseListener mouseListener = new CardMouseListener(card,this);
-            card.addMouseListener(mouseListener); 
+
+            //Determine which segment of hte play area to add the card to
+            //based on card type
+            if(card instanceof BannerCard){
+                if(artifactInPlay!=null)
+                {
+                    this.removeCard(artifactInPlay);
+                }
+                artifactInPlay = card;
+                playerSubPanel.add(card);
+            }
+            else{
+                cardSubPanel.add(card);
+                card.addMouseListener(new CardMouseListener(card,this));
+            }
+
             cardsInPlay.put(card.getCardID(), card);
-            //this.revalidate();
-            //this.repaint();
-            
             triggerETBEffect(card);
             
             if(card instanceof SpellCard)
-            {
+            { 
                 SpellCard scard = (SpellCard) card;
                 
                 //do activate on enter the battlefield
@@ -192,13 +192,12 @@ public class PlayArea extends JPanel
                     public void run()
                     {
                         timer.cancel();
-                        selectCard(scard);  
+                        selectCard(scard); 
+                        gameWindow.playSound("playSpell");
                     }
                 }; 
-                timer.schedule(tt, 1000);
-                
+                timer.schedule(tt, 500);
             }
-             
         }
     }
     
@@ -206,6 +205,7 @@ public class PlayArea extends JPanel
     {
         if(cardsInPlay.containsKey(card.getCardID()))
         {
+            playerSubPanel.remove(cardsInPlay.get(card.getCardID()));
             cardSubPanel.remove(cardsInPlay.get(card.getCardID()));
             addToDiscardPile(card);
             cardsInPlay.remove(card.getCardID()); 
@@ -247,11 +247,12 @@ public class PlayArea extends JPanel
                 
             case Buff_Power:
                 gameWindow.playSound("buffSound");
+
                 cardList = new ArrayList<Card>(cardsInPlay.values());
                 int buffValue = Math.round(card.getPlayCost()/Constants.buffModifier);
                 if(buffValue<1)
                     buffValue = 1;
-                //for(Card c:cardsInPlay.values()){
+
                 for(int x=0; x<cardList.size();x++)
                 {       
                     int playedCardIndex = cardList.indexOf(card);
@@ -261,9 +262,16 @@ public class PlayArea extends JPanel
                     {
                         CreatureCard ccard = (CreatureCard) c;
                         ccard.setBuffed(buffValue);
+                        gameWindow.componentAnimateMap.put(c,"slash");
                     }
-                }   
-            break;  
+                }
+                gameWindow.drawAnimations();
+            break;
+            
+            case Stealth:
+                if(isOpponent)
+                    card.setFaceUp(false);
+            break;
         }        
     }
     
@@ -291,7 +299,7 @@ public class PlayArea extends JPanel
                         buffValue = 1;
                     buffValue = buffValue*-1;
 
-                    
+
                     for(Card c:cardsInPlay.values())
                     {  
                         int x = cardList.indexOf(c);
@@ -303,7 +311,6 @@ public class PlayArea extends JPanel
                                 ccard.setBuffed(buffValue);
                             }
                     }
-                    //for each creature card in play, increase power by buff value
                 break;  
             } 
         }
@@ -332,7 +339,9 @@ public class PlayArea extends JPanel
         }
 
         @Override
-        public void mouseReleased(MouseEvent e) {                     
+        public void mouseReleased(MouseEvent e) {
+
+            System.out.println(card.getWidth() +", " + card.getHeight());
             //only allow mouse events while its the players turn, or if its the declare blockers phase
             if(e.getButton()==MouseEvent.BUTTON1 && gameWindow.getTurnPhase()==TurnPhase.END_PHASE)
                 return;
@@ -367,8 +376,8 @@ public class PlayArea extends JPanel
             if(e.getButton()==MouseEvent.BUTTON3)
             {
                 //if mouse 3 (right button) clicked
-                gameWindow.zoomInCard(card);
-                card.getCardSize();
+                //gameWindow.zoomInCard(card);
+                //card.getCardSize();
             }
         }
 
@@ -408,6 +417,7 @@ public class PlayArea extends JPanel
         @Override
         public void mouseReleased(MouseEvent e) { 
             //only allow mouse events while its the players
+            System.out.println(playerBox.getWidth() + ", " + playerBox.getHeight());
             if(e.getButton()==MouseEvent.BUTTON1)
             {
                 if(gameWindow.getIsPlayerTurn())

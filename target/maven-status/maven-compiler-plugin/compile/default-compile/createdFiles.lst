@@ -4,9 +4,9 @@ Interface\AssetHelper$1.class
 Interface\CentrePanel.class
 Interface\GameWindow$4.class
 Interface\Cards\CreatureCard.class
+Interface\GameWindow$AnimationGlassPane.class
 NetCode\TCPServer$Connection.class
 Interface\CardEvent.class
-Interface\GameWindow$HitAnimationGlassPane$1.class
 Interface\GameWindow$8.class
 Interface\StartGameWindow$2.class
 NetCode\TCPClient$Connection.class
@@ -20,7 +20,6 @@ Interface\GameWindow$5.class
 Interface\PlayArea$1.class
 Interface\GameWindow$DrawLineGlassPane.class
 Interface\Message.class
-Interface\PlayArea$4.class
 Interface\GameWindow$CardZoomGlassPane$1.class
 Interface\GameControlPanel$5.class
 Interface\GameWindow$7.class
@@ -38,15 +37,16 @@ Interface\DiscardPile.class
 Interface\Cards\SpellCard$1.class
 Database\JSONHelper.class
 Interface\GameWindow$1.class
+Interface\GameWindow$11.class
 Interface\GameWindow$6.class
-Interface\GameWindow$HitAnimationGlassPane.class
-Interface\Constants$ETBeffect.class
 Interface\GameWindow.class
 Interface\PlayArea$PlayerBoxMouseListener.class
 Interface\PlayArea$3.class
+Interface\GameWindow$EndGameGlassPane.class
 Main.class
 Interface\GameWindow$2.class
 Interface\Cards\ImagePanel.class
+Interface\GameWindow$10.class
 Interface\Cards\Card.class
 Interface\StatLabel.class
 Interface\ApplicationWindow.class
@@ -60,7 +60,7 @@ Interface\GameWindow$3.class
 Interface\GameWindow$9.class
 Interface\PlayArea$2.class
 Interface\Constants$CardLocation.class
-Interface\Constants$DeathEffect.class
+Interface\Constants$CreatureEffect.class
 Interface\Constants$SpellEffect.class
 Interface\InnerCardPanel.class
 Interface\Deck.class

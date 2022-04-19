@@ -8,7 +8,8 @@ package Interface;
 import Database.JSONHelper;
 import NetCode.TCPServer;
 import NetCode.TCPClient;
-import java.awt.Image;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -18,12 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.SwingWorker;
+import javax.swing.*;
 
 
 /**
@@ -50,10 +46,38 @@ public class StartGameWindow extends JPanel
         applicationWindow = appWindow;
         self = this;
         parentTabbedPane = pane;
-        //this.add(startLocalButton);
-        this.add(startClientButton);
-        this.add(startServerButton);
-        
+
+        Dimension verticalPanelDimensions = new Dimension(this.getWidth(),(Constants.windowHeight/3)-20);
+        Dimension horizontalPanelDimensions = new Dimension((Constants.windowWidth/3)-20,this.getHeight());
+        this.setLayout(new BorderLayout());
+        JPanel topPanel = new JPanel();
+        JPanel bottomPanel = new JPanel();
+        JPanel middlePanel = new JPanel();
+        JPanel leftPanel = new JPanel();
+        JPanel rightPanel = new JPanel();
+        topPanel.setPreferredSize(verticalPanelDimensions);
+        bottomPanel.setPreferredSize(verticalPanelDimensions);
+        middlePanel.setPreferredSize(verticalPanelDimensions);
+        leftPanel.setPreferredSize(horizontalPanelDimensions);
+        rightPanel.setPreferredSize(horizontalPanelDimensions);
+
+        JLabel titleLabel = new JLabel("Mage Ick That Gather Rings");
+        Font font = new Font("Arial",Font.BOLD,48);
+        titleLabel.setFont(font);
+
+        this.add(topPanel,BorderLayout.NORTH);
+        this.add(bottomPanel,BorderLayout.SOUTH);
+        this.add(middlePanel,BorderLayout.CENTER);
+        this.add(leftPanel,BorderLayout.WEST);
+        this.add(rightPanel,BorderLayout.EAST);
+
+        topPanel.setLayout(new GridBagLayout());
+        //topPanel.add(titleLabel,SwingConstants.CENTER);
+
+        middlePanel.setLayout(new GridLayout(2,1,0,20));
+        middlePanel.add(startClientButton);
+        middlePanel.add(startServerButton);
+
         JSONHelper jh = new JSONHelper();  
         
         loadImageCache();

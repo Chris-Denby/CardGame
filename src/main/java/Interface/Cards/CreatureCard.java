@@ -27,10 +27,12 @@ public class CreatureCard extends Card
     private int toughness = 1;
     private JLabel powerLabel;
     private JLabel toughnessLabel;
+    JLabel statDivider = new JLabel("/");
     private Font statFont = new Font("Courier",Font.BOLD,20);
-    private Font modifiedStatFont = new Font("Arial",Font.BOLD,headingFontSize+2);
     private boolean isBuffed = false;
     private int buffedBy = 0;
+    private Constants.BannerType bannerType = null;
+    
     
     public CreatureCard(String cardName, int imageID) 
     {
@@ -41,27 +43,37 @@ public class CreatureCard extends Card
         powerLabel.setFont(statFont);
         toughnessLabel = new JLabel();
         toughnessLabel.setFont(statFont);
-        powerLabel.setForeground(Color.BLACK);
-        powerLabel.setBackground(new Color(235, 64, 52,100)); //red with reduced opacity
-        toughnessLabel.setForeground(Color.BLACK);
-        toughnessLabel.setBackground(new Color(52, 89, 235,100)); //blue with reduced opacity
-        toughnessLabel.setOpaque(false);
+        statDivider.setFont(statFont);
+        powerLabel.setForeground(Color.WHITE);
+        toughnessLabel.setForeground(Color.WHITE);
+        statDivider.setForeground(Color.WHITE);
         powerLabel.setHorizontalAlignment(SwingConstants.CENTER);
         toughnessLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        powerLabel.setOpaque(true);
-        toughnessLabel.setOpaque(true);
+        statDivider.setHorizontalAlignment(SwingConstants.CENTER);
+        powerLabel.setOpaque(false);
+        toughnessLabel.setOpaque(false);
+        statDivider.setOpaque(false);
         
         
 
-        GridLayout gridLayout = new GridLayout(0,2,0,0);
+        GridLayout gridLayout = new GridLayout(0,3,0,0);
         bodyBox.setLayout(gridLayout);
+        bodyBox.setBackground(new Color(0,0,0,180));
         bodyBox.remove(textBox);
         bodyBox.add(powerLabel);
+        bodyBox.add(statDivider);
         bodyBox.add(toughnessLabel);     
     }
-     
-    
-    public int getPower() 
+
+    public Constants.BannerType getBannerType() {
+        return bannerType;
+    }
+
+    public void setBannerType(Constants.BannerType bannerType) {
+        this.bannerType = bannerType;
+    }
+
+    public int getPower()
     {
         return power + buffedBy;
     }
@@ -91,7 +103,7 @@ public class CreatureCard extends Card
         else
         {
             isBuffed = false;
-            powerLabel.setForeground(Color.BLACK);
+            powerLabel.setForeground(Color.WHITE);
             
         }
         System.out.println("my power is now " + power + ", and is buffed by " + buffedBy);

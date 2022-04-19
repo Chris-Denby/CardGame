@@ -104,7 +104,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         abilityPanel.setLayout(new GridLayout(1,1));
         abilityLabel.setHorizontalAlignment(SwingConstants.CENTER);
         abilityLabel.setFont(headingFont);
-        abilityLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        //abilityLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         abilityLabel.setOpaque(false);
         abilityPanel.add(abilityLabel);
         bodyBox = new JPanel();
@@ -168,7 +168,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         this.creatureEffect = effect;
         if(this.getCreatureEffect()!=CreatureEffect.NONE){
             setBodyText(this.getCreatureEffect().toString());
-            abilityLabel.setText(this.getCreatureEffect().toString());  
+            abilityLabel.setText(this.getCreatureEffect().toString().replace('_', ' '));  
             }
     }
     
@@ -261,7 +261,7 @@ public class Card extends JPanel implements Serializable, Cloneable
         
         topPanel.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*1)));
         pictureBox.setPreferredSize(new Dimension(innerWidth,Math.round((innerHeight/10)*4)));
-        bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
+        //bodyBox.setPreferredSize(new Dimension(innerWidth,(int) Math.round((innerHeight/10)*3.5)));
         abilityPanel.setPreferredSize(new Dimension(innerWidth,(Math.round(innerHeight/10)*1)+4));
         
                 
@@ -523,8 +523,9 @@ public class Card extends JPanel implements Serializable, Cloneable
         if(object instanceof Card)
         {
             Card other = (Card) object;
-            if(this.cardID == other.getCardID())
+            if(this.cardID == other.getCardID()) {
                 return true;
+            }
         }
         return false;
     }

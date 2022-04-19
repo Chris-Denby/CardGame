@@ -22,7 +22,7 @@ import javax.swing.JPanel;
  *
  * @author chris
  */
-public class GameControlPanel extends JPanel 
+public class GameControlPanel extends JPanel
 {
     private int height;
     private int width;
@@ -47,44 +47,8 @@ public class GameControlPanel extends JPanel
         gameWindow = window;
         height = containerHeight;
         width = Math.round(containerWidth/3);
-        
-        turnTimerTask = new TimerTask() 
-        {
-            @Override
-            public void run() 
-            {
-                turnTimeLimit--;
-                
-                if(turnTimeLimit>=0)
-                    turnTimeLabel.setText(turnTimeLimit+"");
-                
-                if(turnTimeLimit<=10)
-                    turnTimeLabel.setForeground(Color.RED);
-                
-                if(turnTimeLimit==0)
-                {                    
-                    if(gameWindow.getIsPlayerTurn())
-                        gameWindow.passTurn(); 
-                }
-            }
-        };
-        
-        discardTask = new TimerTask() 
-        {
-            @Override
-            public void run() 
-            {
-                discardTimeLimit--;
-                setTurnTimerLabelText(discardTimeLimit);                
-                if(discardTimeLimit==0)
-                {
-                    //if discard time limit reaches 0
-                    //discard last card in hand
-                    gameWindow.getPlayerHand().discardCard(gameWindow.getPlayerHand().getCardsInHand().get(gameWindow.getPlayerHand().getCardsInHand().size()-1));
-                    gameWindow.passTurn();
-                }
-            }
-        };
+
+
         
         this.setPreferredSize(new Dimension(width,height));
         this.setOpaque(true);
@@ -136,10 +100,7 @@ public class GameControlPanel extends JPanel
             @Override
             public void actionPerformed(ActionEvent e) 
             {
-                if(gameWindow.getPlayerHand().checkHandSizeForEndTurn())
-                        gameWindow.passTurn();
-                //else
-                    //startDiscardTimer();                    
+                passTurnButtonAction();
             }
         });
         
@@ -196,6 +157,8 @@ public class GameControlPanel extends JPanel
     
     public void endGame(boolean hasWon)
     {
+        turnTimer.cancel();
+
         if(hasWon)
         {
             //you won
@@ -213,21 +176,53 @@ public class GameControlPanel extends JPanel
          
         
     }
-    
-    public void stopTurnTimer()
+
+    private void passTurnButtonAction()
     {
-        turnTimer.cancel();
-        turnTimer.purge();
+        if(gameWindow.getPlayerHand().checkHandSizeForEndTurn()) {
+            gameWindow.passTurn();
+        }
+        else {
+            startDiscardTimer();
+        }
     }
-    
-    
+
     public void startTurnTimer()
     {
+        //stop timer from previous turn
+        if(turnTimerTask!=null) {
+            turnTimerTask.cancel();
+        }
+        if(discardTask!=null){
+            discardTask.cancel();
+        }
+
         turnTimeLimit = Constants.turnTimeLimit;
         turnTimeLabel.setText(turnTimeLimit+"");
         turnTimeLabel.setForeground(Color.BLACK);
-        stopTurnTimer();
-        //repeat turn timer update every 1 second
+
+        turnTimer.purge();
+
+        turnTimerTask = new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                turnTimeLimit--;
+
+                if(turnTimeLimit>=0)
+                    turnTimeLabel.setText(turnTimeLimit+"");
+
+                if(turnTimeLimit<=10)
+                    turnTimeLabel.setForeground(Color.RED);
+
+                if(turnTimeLimit==0)
+                {
+                    if(gameWindow.getIsPlayerTurn())
+                        passTurnButtonAction();
+                }
+            }
+        };
         turnTimer.scheduleAtFixedRate(turnTimerTask,0,1000);
     }
     
@@ -243,10 +238,39 @@ public class GameControlPanel extends JPanel
     
     public void startDiscardTimer()
     {
-        turnTimer.cancel();
-        turnTimer.purge();
+        if(discardTask!=null){
+            discardTask.cancel();
+        }
+        if(turnTimerTask!=null){
+            turnTimerTask.cancel();
+        }
+
         resolveButton.setEnabled(false);
         discardTimeLimit = Constants.discardTimeLimit;
-        turnTimer.schedule(discardTask, 0, Constants.discardTimeLimit*100);
+
+        discardTask = new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                discardTimeLimit--;
+                setTurnTimerLabelText(discardTimeLimit);
+                if(discardTimeLimit==0)
+                {
+                    //if discard time limit reaches 0
+                    //discard last card in hand
+                    int cardsInHand = gameWindow.getPlayerHand().getCardsInHand().size();
+                    int cardsToDiscard = cardsInHand - Constants.maxHandSize;
+                    while(cardsToDiscard>0)
+                    {
+                        gameWindow.getPlayerHand().discardCard(gameWindow.getPlayerHand().getCardsInHand().get(gameWindow.getPlayerHand().getCardsInHand().size()-1).getCardID());
+                        cardsToDiscard--;
+                    }
+                    gameWindow.passTurn();
+                }
+            }
+        };
+
+        turnTimer.schedule(discardTask, 0, 1000);
     }
 }
