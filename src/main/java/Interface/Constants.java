@@ -33,12 +33,6 @@ public class Constants
     public static final Color rareColor = new Color(163,53,238,255);
     public static final Color mythicColor = new Color(255,128,0,255);
 
-    public static enum CreatureType
-    {
-
-
-    }
-
     public static enum BannerType
     {
         Longsword,

@@ -110,13 +110,13 @@ public class JSONHelper
                 cardsList.add(sCard);
             }
             else
-            if(o.get("type").equals("class Interface.Cards.ArtifactCard"))
+            if(o.get("type").equals("class Interface.Cards.BannerCard"))
             {
                 BannerCard aCard = new BannerCard("",1);
                 aCard.setName((String)o.get("name"));
                 aCard.setCardID(Integer.parseInt(o.get("id").toString()));
                 aCard.setPlayCost(Integer.parseInt(o.get("cost").toString()));
-                aCard.setArtifactType(Constants.BannerType.valueOf(o.get("bannerType").toString()));
+                aCard.setBannerType(Constants.BannerType.valueOf(o.get("bannerType").toString()));
                 cardsList.add(aCard);
             }
         }
@@ -210,7 +210,7 @@ public class JSONHelper
                 ac.setName("Equipment");
                 ac.setCardID(System.identityHashCode(ac));
                 ac.setPlayCost(0);
-                ac.setArtifactType(Constants.BannerType.values()[ThreadLocalRandom.current().nextInt(1, Constants.BannerType.values().length)]);
+                ac.setBannerType(Constants.BannerType.values()[ThreadLocalRandom.current().nextInt(1, Constants.BannerType.values().length)]);
 
             }
             cardList.add(card);
@@ -250,7 +250,7 @@ public class JSONHelper
         }
         if(c instanceof BannerCard)
         {
-            cardJSON.put("bannerType",((BannerCard) c).getArtifactType().toString());
+            cardJSON.put("bannerType",((BannerCard) c).getBannerType().toString());
         }
         cardJSON.put("id",c.getCardID());
         cardJSON.put("name",c.getName());
@@ -282,11 +282,11 @@ public class JSONHelper
             sCard.setSpellEffect(SpellEffect.valueOf(o.get("effect").toString()));
         }
         else
-        if(o.get("type").equals("class Interface.Cards.ArtifactCard"))
+        if(o.get("type").equals("class Interface.Cards.BannerCard"))
         {
             card = new BannerCard("",1);
             BannerCard aCard = (BannerCard) card;
-            aCard.setArtifactType(Constants.BannerType.valueOf(o.get("bannerType").toString()));
+            aCard.setBannerType(Constants.BannerType.valueOf(o.get("bannerType").toString()));
         }
         
         card.setImageID((int) o.get("imageID"));

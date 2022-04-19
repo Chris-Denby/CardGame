@@ -1,6 +1,6 @@
 package Interface.Cards;
 
-import Interface.Constants;
+import Interface.Constants.BannerType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,7 +8,7 @@ import java.awt.*;
 public class BannerCard extends Card
 {
 
-    private Constants.BannerType artifactType;
+    private BannerType bannerType;
     private int durability = 5;
     private JLabel durabilityLabel = new JLabel(durability+"");
 
@@ -23,15 +23,15 @@ public class BannerCard extends Card
         bodyBox.add(durabilityLabel);
     }
 
-    public void setArtifactType(Constants.BannerType type)
+    public void setBannerType(BannerType type)
     {
-        artifactType = type;
-        abilityLabel.setText(artifactType.name());
+        bannerType = type;
+        abilityLabel.setText(bannerType.name());
     }
 
-    public Constants.BannerType getArtifactType()
+    public BannerType getBannerType()
     {
-        return artifactType;
+        return bannerType;
     }
 
     public void decrementDurability()

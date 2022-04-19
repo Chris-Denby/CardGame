@@ -203,7 +203,7 @@ public class CreatureCard extends Card
         if((power+toughness)>Constants.maxResourceAmount+3 && getCreatureEffect()!=CreatureEffect.NONE)
             borderColor = Constants.mythicColor;
         
-        //dont set border for common cards
+        //don't set border for common cards
         if(borderColor!=Constants.commonColor){
             border = new LineBorder(borderColor,borderStroke);
             innerPanel.setBorder(border);
